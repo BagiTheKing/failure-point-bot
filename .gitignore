@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Downloaded by the "Fetch Kokoro model files" workflow step, ~355MB —
+# never meant to be committed, see audio_engine.py's docstring.
+models/
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment / secrets
+.env
+previews/
+
+# OAuth client files: credentials, never committed
+client_secret*.json
+*token*.json

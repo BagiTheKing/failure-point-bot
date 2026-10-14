@@ -1,0 +1,386 @@
+name: Weekly Long-Form — Encore Lane
+
+# Lane 1 of 2. Expands whichever Short actually earned the most likes, so the
+# deep dive follows the channel's own numbers instead of the date rotation.
+# Lane 2 is weekly_timely.yml.
+
+on:
+  schedule:
+    # Tuesdays 09:00 UTC. Moved off Sunday: OpenRouter's free tier is 50
+    # requests per DAY across everything, and Sunday also publishes a Short.
+    # Tuesday and Thursday are the only days with no other run.
+    #
+    # This lane normally picks its topic from the channel's own numbers, so the
+    # day does not matter. LONGFORM_TOPIC_OFFSET only feeds the fallback.
+    # Wednesdays since 2026-09-28 (owner): Tuesday is a trend-lane day now,
+    # and two story videos on one day share one free quota.
+    - cron: '0 9 * * 3'
+  workflow_dispatch:
+    inputs:
+      skip_upload:
+        description: 'Render only, do not upload (dry run)'
+        type: boolean
+        default: false
+      topic_offset:
+        description: 'Days back in the topic rotation (default -7)'
+        type: string
+        default: '-7'
+
+concurrency:
+  group: weekly-longform
+  cancel-in-progress: false
+
+jobs:
+  # GitHub starts scheduled runs hours late on this repo (the 15:23 Shorts
+  # started between 18:38 and 21:16 in late September), so a late scheduled
+  # run can land after a manual one the same day. Two story videos on one day
+  # share one free quota and publish twice: a scheduled run steps aside when
+  # another run of this workflow started in the last 20 hours and did not
+  # fail.
+  gate:
+    # Scheduled runs wait for the repository variable PIPELINE_ENABLED=true
+    # (Settings > Secrets and variables > Actions > Variables), so a fresh
+    # copy without its secrets does not fail on a timer every day.
+    if: github.event_name != 'schedule' || vars.PIPELINE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    outputs:
+      go: ${{ steps.check.outputs.go }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          go=true
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            since=$(date -u -d '20 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+            n=$(gh api "repos/${{ github.repository }}/actions/workflows/weekly_longform.yml/runs?per_page=30&created=%3E%3D$since" \
+                  --jq '[.workflow_runs[] | select(.id != ${{ github.run_id }}) | select(.conclusion != "failure" and .conclusion != "cancelled" and .conclusion != "skipped")] | length' || echo 0)
+            if [ "${n:-0}" -gt 0 ]; then
+              echo "Another run of this workflow started in the last 20 hours — skipping this scheduled run."
+              go=false
+            fi
+          fi
+          echo "go=$go" >> "$GITHUB_OUTPUT"
+
+  build-and-publish:
+    needs: gate
+    if: needs.gate.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    # contents: write only to register the thumbnails on the thumb-rotation
+    # branch (step "Register thumbnails for rotation")
+    permissions:
+      contents: write
+      actions: read
+    # The repo is private, so minutes are metered against 2,000/month. A healthy
+    # run is ~60 min; this ceiling stops a hung ffmpeg or a Pollinations
+    # rate-limit spiral from quietly eating a fifth of the monthly budget.
+    timeout-minutes: 240
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install FFmpeg and espeak-ng
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng
+
+      # ~355MB combined, so cached rather than pulled on every run. The key
+      # never changes unless the model version does, so after the first run
+      # this step is a cache hit and the fetch below is skipped entirely.
+      - name: Cache Kokoro model files
+        uses: actions/cache@v4
+        with:
+          path: models
+          key: kokoro-v1.0-model-files
+
+      # Map beat data (src/map_engine.py): Natural Earth 1:10m countries,
+      # provinces and places, public domain, ~58MB. map_engine downloads
+      # whatever is missing; this cache just means it happens once.
+      - name: Cache Natural Earth map data
+        uses: actions/cache@v4
+        with:
+          path: models/naturalearth
+          key: naturalearth-10m-v1
+
+      - name: Fetch Kokoro model files (cache miss only)
+        run: |
+          mkdir -p models
+          if [ ! -f models/kokoro-v1.0.onnx ]; then
+            curl -sSL -o models/kokoro-v1.0.onnx "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
+          fi
+          if [ ! -f models/voices-v1.0.bin ]; then
+            curl -sSL -o models/voices-v1.0.bin "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
+          fi
+
+      # Cast cards (src/cast_engine.py): person cut-out (u2net_human_seg,
+      # Apache-2.0), face detection (YuNet) and face matching (SFace) from
+      # the OpenCV model zoo. ~215MB, fetched once. Any missing file only
+      # turns off the step that needs it.
+      - name: Cache cast-card models
+        uses: actions/cache@v4
+        with:
+          path: models/cast
+          key: cast-models-v1
+
+      - name: Fetch cast-card models (cache miss only)
+        run: |
+          mkdir -p models/cast
+          cd models/cast
+          [ -f u2net_human_seg.onnx ] || curl -sSL -o u2net_human_seg.onnx "https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_human_seg.onnx" || true
+          [ -f face_detection_yunet_2023mar.onnx ] || curl -sSL -o face_detection_yunet_2023mar.onnx "https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx" || true
+          [ -f face_recognition_sface_2021dec.onnx ] || curl -sSL -o face_recognition_sface_2021dec.onnx "https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx" || true
+          # a failed download must not leave an error page posing as a model
+          for f in *.onnx; do [ "$(stat -c%s "$f")" -gt 100000 ] || rm -f "$f"; done
+          ls -la
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Progress of a run that died (run_cache.py): the next run of this
+      # lane carries on from it instead of paying for the same research and
+      # chapters twice. Kept on the run-cache branch, one folder per lane.
+      - name: Fetch saved progress
+        continue-on-error: true
+        run: |
+          git fetch -q origin run-cache && git worktree add -q cache origin/run-cache || mkdir -p cache
+
+      # A render the last run made but could not upload (run_cache.py): its
+      # files were kept as an artifact, and this run uploads them.
+      - name: Find last run's render
+        id: render
+        continue-on-error: true
+        run: |
+          [ -f cache/encore/state.json ] || exit 0
+          python -c "import json; r=json.load(open('cache/encore/state.json')).get('rendered') or {}; print('run_id=' + str(r.get('run_id') or ''))" >> "$GITHUB_OUTPUT" || true
+
+      - name: Restore last run's render
+        if: steps.render.outputs.run_id != ''
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: render-encore
+          path: restore
+          run-id: ${{ steps.render.outputs.run_id }}
+          github-token: ${{ github.token }}
+
+      # Stories researched ahead by the daily scout (topic_scout.yml): the run
+      # takes the next one instead of finding and researching its own topic.
+      - name: Fetch researched stories
+        continue-on-error: true
+        run: |
+          git fetch -q origin topic-queue && git worktree add -q queue origin/topic-queue || mkdir -p queue
+
+      - name: Run long-form pipeline
+        id: pipeline
+        env:
+          RUN_CACHE_DIR: cache/encore
+          STORY_QUEUE_DIR: queue
+          RESTORE_DIR: restore
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          # Optional and the biggest script-quality upgrade available: a free
+          # Google AI Studio key (https://aistudio.google.com/apikey) switches
+          # the writer from OpenRouter's free models to Gemini's free tier.
+          # Absent, the pipeline uses OpenRouter exactly as before.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          WIKIMEDIA_TOKEN: ${{ secrets.WIKIMEDIA_TOKEN }}
+          # More free writers, each with its own daily allowance. The chain is
+          # gemini -> groq -> cerebras -> zhipu -> openrouter, and a provider
+          # that runs dry now retires itself and hands over instead of ending
+          # the run. All free, none need a card:
+          #   https://console.groq.com/keys
+          #   https://cloud.cerebras.ai
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          # Independent of every provider above — a separate company, on
+          # its own infrastructure, not sitting behind OpenRouter the way
+          # most of the free chain ultimately does. GLM-4.7-Flash and
+          # GLM-4.5-Flash are genuinely free (not trial credit), confirmed
+          # across several independent sources. Sign up at https://z.ai/
+          # model-api (email only) — NOT open.bigmodel.cn, which is a
+          # separate mainland-China portal requiring a verified Chinese
+          # phone number and real-name ID.
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+          # Last in the chain and the only tier that bills, so nothing reaches
+          # it until every free allowance above is spent. Leave the secret
+          # unset to keep the pipeline entirely free. NOTE: a Claude Pro
+          # subscription is a chat plan and does not issue an API key — this
+          # needs a pay-as-you-go key from https://console.anthropic.com.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Optional, and the biggest available quality upgrade: a free
+          # Cloudflare account unlocks FLUX-1-schnell via Workers AI, which
+          # renders the same prompts far more cleanly than the keyless
+          # endpoint. Absent, the pipeline falls back to Pollinations exactly
+          # as before. Create a token with the "Workers AI" template at
+          # https://dash.cloudflare.com/profile/api-tokens
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          # Swapped from am_onyx: owner's explicit call after the A/B
+          # period, not a data-driven pick either way — Trending now
+          # carries am_onyx instead (see weekly_timely.yml). Shorts still
+          # alternates between both; see daily_publish.yml.
+          KOKORO_VOICE: am_santa
+          # Optional. A free key from https://www.pexels.com/api/ unlocks muted
+          # real b-roll clips between the stills. Absent, the pipeline simply
+          # uses no stock video — nothing fails.
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          # public at upload; the clips after the first are scheduled
+          # 6 hours apart (longform_main.publish_clips). Set 'private' to
+          # review each video in Studio before it goes out.
+          PRIVACY_STATUS: public
+          # image-to-video for the hook and rising action (animate_engine.py)
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          # Named in the description so both formats read as one
+          # channel. Not put in the long-form title on purpose —
+          # these videos live on search, and a prefix pushes the
+          # searchable words past where YouTube truncates them.
+          SERIES_NAME: Failure File
+          EXPERIMENT_EVERY: '0'
+          SKIP_UPLOAD: ${{ inputs.skip_upload && '1' || '0' }}
+          LONGFORM_LANE: encore
+          # Shorts cut from this video after it uploads (src/longform_clips.py):
+          # the teaser and the main event, each linking back to the full
+          # video. Same privacy as the video itself. 0 turns them off.
+          LONGFORM_CLIPS: '4'
+          LONGFORM_TOPIC_OFFSET: ${{ inputs.topic_offset || '-7' }}
+        run: python src/longform_main.py
+
+      # Rendered but not uploaded: the render is kept for the next run, which
+      # uploads it instead of writing and rendering the video again.
+      - name: Keep the render for the next run
+        if: always() && hashFiles('build/rendered.json') != '' && hashFiles('build/uploaded.json') == ''
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: render-encore
+          path: |
+            build/final_longform.mp4
+            build/thumbnail.jpg
+            build/thumbnails/
+            build/captions.srt
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 4
+
+      - name: Save progress
+        if: always()
+        continue-on-error: true
+        run: |
+          [ -e cache/.git ] || exit 0
+          cd cache
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -qm "Run progress (${{ github.workflow }} #${{ github.run_number }})"
+          git push -q origin HEAD:run-cache
+
+      # The story this run took leaves the queue (it lives on in the run's
+      # saved progress until the video is up).
+      - name: Save researched stories
+        if: always()
+        continue-on-error: true
+        run: |
+          [ -e queue/.git ] || exit 0
+          cd queue
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -qm "Story taken (${{ github.workflow }} #${{ github.run_number }})"
+          for i in 1 2 3; do git pull -q --rebase origin topic-queue && git push -q origin HEAD:topic-queue && exit 0; sleep 5; done
+
+      # Test & Compare has no API: the thumbnails are tried in turn by
+      # rotate_thumbnails.yml once the video is public.
+      - name: Register thumbnails for rotation
+        if: success()
+        continue-on-error: true
+        run: |
+          [ -f build/uploaded.json ] || [ -f build/pending_comments.json ] || exit 0
+          git fetch -q origin thumb-rotation
+          git worktree add -q rot origin/thumb-rotation
+          if [ -f build/uploaded.json ] && [ -d build/thumbnails ]; then
+            vid=$(python -c "import json; print(json.load(open('build/uploaded.json'))['video_id'])")
+            ROT_DIR=rot python tools/thumb_rotation.py register "$vid" build/thumbnails
+          fi
+          # first comments wait there until the video is public (private
+          # uploads refuse comments)
+          if [ -f build/pending_comments.json ]; then
+            ROT_DIR=rot python tools/thumb_rotation.py comments build/pending_comments.json
+          fi
+          cd rot
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -qm "Register uploads for thumbnail rotation and held comments"
+          git push -q origin HEAD:thumb-rotation
+
+      # Diagnostics only — never allowed to fail the run. Same reasoning as the
+      # Shorts workflow: whether we can save a debug copy must not decide whether
+      # a published video counts as a success.
+      - name: Upload script for review
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: longform-script-${{ github.run_number }}
+          path: build/longform_script.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+      # Raw replies from any model whose output would not parse. A few KB, and
+      # the only way to see what a model actually sent — the run log truncates
+      # the error to a line and throws the reply away.
+      - name: Upload unparseable model replies
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: longform-llm-failures-${{ github.run_number }}
+          path: build/llm_failures/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      # NOT uploaded on failure, unlike the Shorts workflow. An eight-minute
+      # 1080p render is 200-400 MB against a 500 MB account-wide quota, so one
+      # stray copy would refill the wall we just cleared. Dry runs only, one day.
+      - name: Upload thumbnail for review
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: longform-thumbnail-${{ github.run_number }}
+          path: |
+            build/thumbnail.jpg
+            build/thumbnails/
+          if-no-files-found: ignore
+          # 90 days: the three variants are uploaded to YouTube Studio's
+          # Test & Compare by hand when the video goes public
+          retention-days: 90
+
+      - name: Upload rendered video (explicit dry runs only)
+        if: always() && inputs.skip_upload
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: longform-video-${{ github.run_number }}
+          path: |
+            build/final_longform.mp4
+            build/lf_clip_*.mp4
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 1

@@ -1,0 +1,247 @@
+name: Daily YouTube Shorts Publisher
+
+on:
+  schedule:
+    # Two a week, Mon and Fri (owner, 2026-10-09): the clips cut from each
+    # long video bring ~85% of the Shorts views, the standalone Shorts ~40
+    # views each; Mon and Fri carry no long-form upload, which keeps every
+    # day under the 10,000-unit YouTube quota. Day numbers: 0=Sun ... 6=Sat.
+    - cron: '23 15 * * 0,1,5'
+  workflow_dispatch:
+    inputs:
+      skip_upload:
+        description: 'Render only, do not upload (dry run)'
+        type: boolean
+        default: false
+      privacy:
+        description: 'Privacy of the upload (private: review it, then publish it yourself)'
+        type: choice
+        options: [public, private, unlisted]
+        default: public
+      skip_gemini:
+        description: 'Skip Gemini today (write with Groq and the rest of the chain)'
+        type: boolean
+        default: false
+
+# Two runs writing to the same channel on the same day is never wanted.
+#
+# `concurrency` only stops two runs that OVERLAP. It did nothing about the
+# failure that actually happened: a manual run at 14:02 finishing cleanly, then
+# the scheduled run at 15:23 starting fresh, landing on the same date-based
+# topic, and publishing a reworded copy two hours later. That happened three
+# times (Light Brigade, Ariane 5, the Great Fire). The real guard is in
+# src/published_history.py, which reads the channel back and stands the run
+# down if anything went out inside the last 20 hours.
+#
+# A manual run always overrides that guard now (FORCE_PUBLISH below) — a
+# person triggering this by hand already knows what they're doing, and
+# re-checking a box every time was pure friction. The guard itself is not
+# gone: it still protects the case that actually caused the three repeats
+# above, because the SCHEDULED run keeps checking it regardless of what a
+# manual run did earlier that day.
+concurrency:
+  group: daily-publish
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    # Scheduled runs wait for the repository variable PIPELINE_ENABLED=true
+    # (Settings > Secrets and variables > Actions > Variables), so a fresh
+    # copy without its secrets does not fail on a timer every day.
+    if: github.event_name != 'schedule' || vars.PIPELINE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    # This was the only workflow with no ceiling, so a hung run inherited
+    # GitHub's 6-hour default. On 2026-08-19 two runs had to be killed by hand
+    # at 79 and 77 minutes — 157 minutes for nothing, against a 2,000/month
+    # budget on a private repo.
+    #
+    # 50, not 30. Across all 68 runs to date the slowest SUCCESSFUL publish was
+    # 41.7 min and the median was 13.1, so a 30-minute cap would have thrown
+    # away two videos that did finish. 50 clears the worst good run with room
+    # to spare and still turns a hang into 50 wasted minutes instead of 360.
+    timeout-minutes: 50
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install FFmpeg and espeak-ng
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng
+
+      # ~355MB combined, so cached rather than pulled on every run. The key
+      # never changes unless the model version does, so after the first run
+      # this step is a cache hit and the fetch below is skipped entirely.
+      - name: Cache Kokoro model files
+        uses: actions/cache@v4
+        with:
+          path: models
+          key: kokoro-v1.0-model-files
+
+      - name: Fetch Kokoro model files (cache miss only)
+        run: |
+          mkdir -p models
+          if [ ! -f models/kokoro-v1.0.onnx ]; then
+            curl -sSL -o models/kokoro-v1.0.onnx "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
+          fi
+          if [ ! -f models/voices-v1.0.bin ]; then
+            curl -sSL -o models/voices-v1.0.bin "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
+          fi
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run automation pipeline
+        id: pipeline
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          # Optional and the biggest script-quality upgrade available: a free
+          # Google AI Studio key (https://aistudio.google.com/apikey) switches
+          # the writer from OpenRouter's free models to Gemini's free tier.
+          # Absent, the pipeline uses OpenRouter exactly as before.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          WIKIMEDIA_TOKEN: ${{ secrets.WIKIMEDIA_TOKEN }}
+          # More free writers, each with its own daily allowance. The chain is
+          # gemini -> groq -> cerebras -> zhipu -> openrouter, and a provider
+          # that runs dry now retires itself and hands over instead of ending
+          # the run. All free, none need a card:
+          #   https://console.groq.com/keys
+          #   https://cloud.cerebras.ai
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          # Independent of every provider above — a separate company, on
+          # its own infrastructure, not sitting behind OpenRouter the way
+          # most of the free chain ultimately does. GLM-4.7-Flash and
+          # GLM-4.5-Flash are genuinely free (not trial credit), confirmed
+          # across several independent sources. Sign up at https://z.ai/
+          # model-api (email only) — NOT open.bigmodel.cn, which is a
+          # separate mainland-China portal requiring a verified Chinese
+          # phone number and real-name ID.
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+          # Last in the chain and the only tier that bills, so nothing reaches
+          # it until every free allowance above is spent. Leave the secret
+          # unset to keep the pipeline entirely free. NOTE: a Claude Pro
+          # subscription is a chat plan and does not issue an API key — this
+          # needs a pay-as-you-go key from https://console.anthropic.com.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Optional, and the biggest available quality upgrade: a free
+          # Cloudflare account unlocks FLUX-1-schnell via Workers AI, which
+          # renders the same prompts far more cleanly than the keyless
+          # endpoint. Absent, the pipeline falls back to Pollinations exactly
+          # as before. Create a token with the "Workers AI" template at
+          # https://dash.cloudflare.com/profile/api-tokens
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          # A 1-2 week A/B test between the two Kokoro voices picked by ear
+          # (see audio_engine.py's module docstring) — main.py alternates
+          # through this list by run number so Shorts compares both before
+          # settling on one for good. The long-form lanes each pin a single
+          # voice instead; see their own workflow files.
+          KOKORO_VOICE_ROTATION: 'am_onyx,am_santa'
+          RUN_NUMBER: ${{ github.run_number }}
+          # The schedule always publishes; a manual run may choose.
+          PRIVACY_STATUS: ${{ inputs.privacy || 'public' }}
+          SKIP_UPLOAD: ${{ inputs.skip_upload && '1' || '0' }}
+          # The channel's recurring format. Every Short is published as
+          # "Failure File #N — ...", numbered from what is already on the
+          # channel, so a viewer has a reason to expect another one. Set to an
+          # empty string to publish unnamed episodes again.
+          SERIES_NAME: Failure File
+          # 0 = catastrophe-decision stories only. A 30-day single-identity
+          # test; set to 7 to bring the experiment lane back (see src/topics.py
+          # for the numbers on both sides of that call).
+          EXPERIMENT_EVERY: '5'
+          # Overrides the duplicate guard for every manual run, never for
+          # the schedule — see the concurrency comment above for why the
+          # scheduled side still needs to check it.
+          FORCE_PUBLISH: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
+          # Checks the live catalogue before committing to a topic: how many
+          # Shorts on the same subject already cleared 100k views this year.
+          # Costs ~101 Data API units per candidate (search.list is 100) and is
+          # capped at 3 candidates a run, against a 10,000/day allowance shared
+          # with the upload itself. Set to 0 to run on the static ratings alone.
+          MEASURE_SATURATION: '1'
+          # Every other Short's next-file promise comes from current events:
+          # what this channel is covering this week, anchored to a settled
+          # historical event by the same gates as the timely long-form lane
+          # (see live_upcoming in src/main.py). alternate | always | off.
+          # A blank handle turns it off as well.
+          SHORTS_LIVE_MODE: alternate
+          HISTORY_CUTOFF_YEAR: '2010'
+          # The closing question is posted as the first comment only. Speaking
+          # it too was tried for six episodes: it cost ~7 seconds per video,
+          # produced zero comments, and talked over the script's designed last
+          # line. Set to 1 to speak it again.
+          SPEAK_QUESTION: '0'
+          # The outro tease instead: the narrator ends every video naming the
+          # next episode's story ("Next file: ..."), and the next run keeps
+          # that promise by publishing exactly that story. This is the
+          # channel's subscribe reason; set to 0 to end on the story alone.
+          SPEAK_TEASE: '1'
+          # The long-form lanes' days (trending Tue/Thu/Sat, encore Wed; see
+          # weekly_timely.yml and weekly_longform.yml). On these days this
+          # workflow skips Gemini and writes with Groq, Cerebras, Zhipu and
+          # OpenRouter, leaving Gemini's ~80 free requests to the long-form
+          # video (~62 a run). On Mon, Fri and Sun the Short uses Gemini first
+          # as before. Update this when the long-form schedules change.
+          # A manual run can also skip Gemini any day (the skip_gemini input).
+          GEMINI_RESERVED_DAYS: ${{ inputs.skip_gemini && 'mon,tue,wed,thu,fri,sat,sun' || 'tue,wed,thu,sat' }}
+          # The script is written from the story's Wikipedia fact sheet and
+          # checked against the article (src/shorts_facts.py). prefer = write
+          # from memory when no article is found; require = stop instead;
+          # off = the old memory-only writer.
+          SHORTS_FACTS: prefer
+          # Real Commons / Library of Congress pictures cut in beside the
+          # paintings, credited in the description (src/shorts_archive.py).
+          SHORTS_ARCHIVE_FRAMES: '2'
+          # A new shot about this often inside each scene (painting wide,
+          # archive picture, punch-in). See plan_shots in src/video_engine.py.
+          SHORTS_SHOT_SECONDS: '3.5'
+        run: python src/main.py
+
+      # ---- Artifacts, sized for the 0.5 GB Actions storage allowance ----
+      # The old step kept the rendered MP4 (~25-50 MB) from EVERY run for 5 days,
+      # including successful publishes where the video already lives on YouTube.
+      # That is what filled the quota. The script is a few KB, so it stays.
+
+      # continue-on-error on both: these artifacts are diagnostics, not the
+      # deliverable. Run #45 published to YouTube successfully and was still
+      # marked failed because the artifact quota was full, which also made
+      # failure() true and dragged the video-upload step in behind it.
+      # Whether we can save a debug copy must never decide whether the run passed.
+
+      - name: Upload script for review
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: script-${{ github.run_number }}
+          path: build/script.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+      # Keyed to the pipeline step specifically, not failure(), so a failed
+      # artifact upload cannot trigger another artifact upload.
+      - name: Upload rendered video (dry runs and failures only)
+        if: always() && (steps.pipeline.outcome == 'failure' || inputs.skip_upload)
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-${{ github.run_number }}
+          path: build/final_short.mp4
+          if-no-files-found: ignore
+          # MP4 is already compressed; skipping zip compression saves CI time
+          # and produces no meaningful size difference.
+          compression-level: 0
+          retention-days: 2

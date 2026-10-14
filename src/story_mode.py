@@ -1,0 +1,1116 @@
+"""
+Story mode: research first, outline second, chapters written from both.
+
+WHY THIS EXISTS
+The six-chapter arc (Cost -> Claim -> Plan -> Decision -> Chain -> Verdict)
+is a courtroom case built for one decision and one disaster. The 1967
+Six-Day War video showed what it does to a big story: the same idea said
+four times in two minutes, two and a half minutes of what one man
+"believed" before anything happened, the war's actual six days squeezed
+into twenty seconds, a fake cliffhanger at every chapter end, and, written
+from memory with no source, an invented ship and the West Bank and Golan
+credited to Egypt.
+
+Story mode tells the story instead of arguing a case:
+1. gather(): the event's own Wikipedia article (checked to be about this
+   event and its time) plus up to three related articles from the other
+   sides, cut to the same years, as plain text.
+2. fact_sheet(): a model extracts a dated timeline, the people, places,
+   figures and verbatim quotes — ONLY from that text. Every quote must be
+   a substring of the article and every figure's digits must appear in it;
+   anything else is dropped before a chapter is written.
+3. outline(): one call plans the video as a story: a cold open on the most
+   gripping moment, then chronological chapters that follow named people,
+   with the space given where the drama is (the climax gets the most) and
+   at most two earned end-of-chapter hooks.
+4. The existing chapter writer writes each chapter from its beats and the
+   fact sheet, under STORY_SYSTEM_PROMPT (scenes over reasoning, varied
+   sentence length, no facts outside the sheet).
+
+Every downstream feature keeps working: chapters carry the same pacing
+roles (open / build / pivot / drive / close), so grades, date stamps, the
+clock before the decision, maps, the chain and the decision-maker card
+land where they already do.
+"""
+
+import json
+import os
+import re
+
+STORY_WORDS = int(os.getenv("STORY_WORDS", "2000"))     # ~12 min narrated
+WIKI_API = "https://en.wikipedia.org/w/api.php"
+# The whole article, not its first third: at 45,000 characters the Six-Day
+# War outline lost the Syrian front and Nasser's resignation entirely.
+ARTICLE_CHARS = 150000
+# The latest year the video may reach when it tells what the event led to
+# (docs/VIDEO_SPEC.md): the same cutoff as the history rule in longform_llm.
+LEGACY_CUTOFF = int(os.getenv("HISTORY_CUTOFF_YEAR", "2010"))
+_DROP_SECTIONS = ("See also", "References", "Notes", "Further reading",
+                  "External links", "Bibliography", "Sources", "Citations",
+                  "Footnotes")
+
+STORY_SYSTEM_PROMPT = """You write documentary narration for Failure Point, a \
+YouTube channel about engineering and industrial disasters: what failed, why, and \
+what it cost. You are telling a TRUE STORY to someone who has never heard of it, \
+and your job is to make them unable to stop watching.
+
+FACTS:
+- Use ONLY the facts, names, dates, figures and quotes given in the FACT SHEET below. \
+Never add a detail that is not there — no invented ships, scenes, times, numbers or \
+words. If a detail would help but is not in the sheet, write around it.
+- A quote may only be used word for word as it appears in the sheet, attributed to \
+its speaker.
+
+STORYTELLING:
+- Scenes, not summaries. Put the viewer in a place at a moment: who is in the room, \
+what they do, what happens next. Action verbs, not mental-state verbs — show what \
+people DID, and let what they thought come through what they did and said.
+- Follow the named people of this chapter. Give each one a reason we should care.
+- Move forward in time. Anchor the viewer with dates and times from the sheet as you go: \
+whenever the story reaches a new day, say its date the way a narrator speaks it \
+("On the fifth of June", "On the twenty-second of May, 1967"), and say the clock time \
+when the sheet gives one ("at seven forty-five that morning"). An on-screen time bar \
+follows every date you say, so the viewer always knows when they are.
+- Never restate what an earlier chapter already told. Every sentence adds something new.
+- Rhythm: mix sentence lengths deliberately. Mostly medium sentences, a long one when \
+the moment needs room, and short hard ones — three to six words — for impact. \
+Never three long sentences in a row.
+- Plain language for a general audience: explain any military, political or technical \
+term in the same sentence.
+- Speak to the viewer at turning points, the way a storyteller does ("Remember \
+that promise?", "Now watch what happens next", "Let's go back to that morning") \
+— once or twice a chapter, never in every sentence. No jokes. No fake \
+suspense lines. The events supply the drama.
+- Do not take sides between present-day states or companies in live litigation. \
+Narrate what people did and what it cost, attributed to them, and what the official \
+inquiry found, attributed to the inquiry.
+
+THE MECHANISM IS THE PRODUCT:
+- The object is the antagonist. By the end the viewer must be able to say, in their \
+own words, exactly what failed and why: the part, the load, the material, the \
+pressure, the unit, the missing step.
+- Explain the physics or chemistry in one or two plain sentences, with an everyday \
+comparison when it helps ("like a paperclip bent back and forth until it snaps").
+- Show the warning signs before the failure, and who saw them. That is where the \
+tension lives.
+- State the number of dead plainly, once, with respect. Never describe injuries.
+
+SIMPLICITY — the viewer has NO engineering, political or historical background:
+- Name ONLY the people in this video's CAST. The first time each is named, say who \
+they are in the same sentence ("the bridge's chief engineer, Theodore Cooper"); \
+after that, remind the viewer now and then ("Cooper, the engineer"). Everyone else \
+is a role: "a night-shift operator", "a welder", "a federal inspector".
+- Name ONLY the PLACES listed for this video. Any other place is described in \
+plain words ("a desert pass", "the border villages").
+- No part numbers, standard codes or model designations unless the story turns on \
+them: "a steel connecting plate", "the main pressure valve".
+- At most four figures in a chapter, rounded ("about 1,000 tonnes", "nearly 20,000 \
+litres"), each with its unit and used only for exactly what it measures.
+- A quote is at most 40 words.
+- One sentence, one idea. Nothing over 30 words.
+
+IMAGE PROMPTS:
+- One clear focal subject: one person, one object or one place, with the shot type \
+first and the period's dress, vehicles and buildings named explicitly. One figure at \
+most. Never hands as the subject.
+- Every prompt must end with exactly: "{style}"
+"""
+
+
+# ---------------------------------------------------------------------------
+# 1. Research
+# ---------------------------------------------------------------------------
+
+def article_queries(pool, topic, call):
+    """What to search Wikipedia for: (main, related). main: titles for the
+    event's own article, best first, then the topic itself. related: up to
+    3 articles that tell the same event from other sides (the wider
+    conflict, the key people on each side), so the story does not rest on
+    one article."""
+    main, related = [], []
+    try:
+        data = call(pool, "You name Wikipedia articles. Output only JSON.",
+                    f"Topic: {topic}\n\nName English Wikipedia articles, exact titles.\n"
+                    "- titles: up to 3 for the main event this topic is about, best "
+                    "first (e.g. \"Hyatt Regency walkway collapse\", \"Piper Alpha\").\n"
+                    "- related: up to 3 OTHER articles that explain the same failure "
+                    "from other angles: the structure, vessel, machine or plant "
+                    "itself, the company or designer behind it, the official "
+                    "inquiry, or the engineering concept it turned on (e.g. "
+                    "\"Metal fatigue\", \"Soil liquefaction\"). Not later events.\n"
+                    'Output ONLY JSON: {"titles": ["..."], "related": ["..."]}',
+                    max_tokens=800, expect={"titles": list})
+        ok = lambda t: isinstance(t, str) and 3 <= len(t.strip()) <= 80 and "..." not in t
+        main = [t.strip() for t in (data or {}).get("titles") or [] if ok(t)][:3]
+        related = [t.strip() for t in (data or {}).get("related") or [] if ok(t)][:3]
+    except Exception as e:
+        print(f"⚠️ Article lookup failed ({type(e).__name__}: {e}).")
+    if topic not in main:
+        main.append(topic)
+    return main, [t for t in related if t not in main]
+
+
+def _fetch(title):
+    """{"title", "url", "text"} for an exact Wikipedia title, or None."""
+    from archive_engine import _polite_get
+    r = _polite_get(WIKI_API, params={
+        "action": "query", "prop": "extracts", "explaintext": 1,
+        "exsectionformat": "wiki", "titles": title, "redirects": 1,
+        "format": "json"}, timeout=60)
+    pages = list(((r.json().get("query") or {}).get("pages") or {}).values())
+    if not pages or "missing" in pages[0]:
+        return None
+    title = pages[0].get("title") or title
+    text = pages[0].get("extract") or ""
+    # Cut the reference apparatus: it is long and carries no story.
+    for sec in _DROP_SECTIONS:
+        m = re.search(rf"\n==+\s*{re.escape(sec)}\s*==+", text)
+        if m:
+            text = text[:m.start()]
+    if len(text) < 2000:
+        return None
+    return {"title": title, "text": text[:ARTICLE_CHARS],
+            "url": "https://en.wikipedia.org/wiki/" + title.replace(" ", "_")}
+
+
+def candidates(query):
+    """The article named `query`, then Wikipedia's top search hits for it."""
+    from archive_engine import _polite_get
+    seen = set()
+    got = _fetch(query)
+    if got:
+        seen.add(got["title"])
+        yield got
+    r = _polite_get(WIKI_API, params={
+        "action": "query", "list": "search", "srsearch": query, "srlimit": 3,
+        "format": "json"}, timeout=30)
+    for hit in (r.json().get("query") or {}).get("search") or []:
+        if hit["title"] not in seen:
+            seen.add(hit["title"])
+            got = _fetch(hit["title"])
+            if got:
+                yield got
+
+
+def research(topic):
+    """The first article found for `topic`, with its footnotes, or None."""
+    for art in candidates(topic):
+        return _with_sources(art)
+    return None
+
+
+def _with_sources(art):
+    # the article's footnotes, for the per-claim sources on screen and in
+    # the description (claim_sources.py); a failure only costs those
+    from claim_sources import fetch as fetch_sources
+    art["sources"] = fetch_sources(art["title"], art["url"])
+    return art
+
+
+_YEAR_RE = re.compile(r"\b(1[0-9]\d\d|20[0-4]\d)\b")
+_TOPIC_STOP = {"the", "and", "that", "with", "from", "into", "over", "this", "their",
+               "which", "when", "where", "after", "before", "during", "against",
+               "was", "were", "how", "why", "what", "who", "its", "his", "her"}
+
+
+def _years(text):
+    return sorted(int(y) for y in _YEAR_RE.findall(text or ""))
+
+
+_DASHES = re.compile("[\u2010-\u2015\u2212]")
+
+
+def _plain_dashes(text):
+    """Wikipedia writes "Arab–Israeli" with an en dash, models write
+    "Arab-Israeli": on 8 Oct every 1948 war article was refused as not
+    naming "The Arab-Israeli War", and the trend lane fell back to the
+    Great Fire of London on the third anniversary of 7 October."""
+    return _DASHES.sub("-", text or "")
+
+
+def topic_words(topic):
+    """The topic's naming words: from its name part (before any long
+    description), 4+ letters, possessives cut."""
+    name = re.split(r"\s*[:—]\s|,| was | is | and the ", topic or "", maxsplit=1)[0]
+    name = _plain_dashes(name)
+    words = [re.sub(r"'s$", "", w.lower()) for w in re.findall(r"[A-Za-z][A-Za-z'-]+", name)]
+    return [w for w in dict.fromkeys(words) if len(w) >= 4 and w not in _TOPIC_STOP][:8]
+
+
+def article_problem(topic, art, cutoff=LEGACY_CUTOFF):
+    """Why this article is not the topic's own article, or None.
+    The first scout run took "Anti-Hamas insurgency in the Gaza Strip"
+    (2023-) for the 2007 Hamas takeover of Gaza: an article about another
+    time, and after the cutoff."""
+    years = _years(art["text"])
+    if len(years) >= 5:
+        # the year it names most, not the median: an article with decades
+        # of aftermath (Chernobyl: median 2006) is still about its event
+        from collections import Counter
+        top = Counter(years).most_common(1)[0][0]
+        if cutoff and top > cutoff:
+            return f"it is mostly about {top}, after the {cutoff} cutoff"
+        asked = _years(topic)
+        lead = art["title"] + " " + art["text"][:1500]
+        if asked and min(abs(top - y) for y in asked) > 15 \
+                and not any(str(y) in lead for y in asked):
+            return f"it is mostly about {top}, the topic is {asked[0]}"
+    words = topic_words(topic)
+    head = _plain_dashes(art["title"] + " " + art["text"][:3000]).lower()
+    need = min(2, len(words))
+    if need and sum(1 for w in words if w in head) < need:
+        return "its opening does not name the topic"
+    return None
+
+
+RELATED_CHARS = 7000
+
+
+def _excerpt(art, window):
+    """The related article's paragraphs about the main story's years."""
+    lo, hi = window
+    out, size = [], 0
+    for para in (p for p in art["text"].split("\n") if p.strip()):
+        if any(lo <= y <= hi for y in _years(para)) and size + len(para) <= RELATED_CHARS:
+            out.append(para)
+            size += len(para) + 1
+    return "\n".join(out)
+
+
+def gather(pool, topic, call, cutoff=LEGACY_CUTOFF):
+    """The story's sources: the event's own article (checked to be about
+    this event and its time) and up to three related articles cut to the
+    same years. One combined article, or None:
+    {"title", "url", "text", "prompt_text", "sources", "related"}."""
+    main_q, related_q = article_queries(pool, topic, call)
+    main, tried = None, set()
+    for q in main_q:
+        for art in candidates(q):
+            if art["title"] in tried:
+                continue
+            tried.add(art["title"])
+            problem = article_problem(topic, art, cutoff)
+            if problem:
+                print(f"   ↩️  Article {art['title']!r} skipped: {problem}.")
+                continue
+            main = art
+            break
+        if main:
+            break
+    if not main:
+        print(f"⚠️ Story mode: no Wikipedia article matches {topic!r}.")
+        return None
+    _with_sources(main)
+    years = _years(main["text"])
+    if years:
+        lo, hi = years[len(years) // 10], years[(len(years) * 9) // 10]
+        window = (lo - 3, min(hi + 3, cutoff or hi + 3))
+    else:
+        window = (0, cutoff or 9999)
+    extras = []
+    for q in related_q:
+        try:
+            art = _fetch(q)
+        except Exception:
+            art = None
+        if not art or art["title"] in tried or art["title"] == main["title"]:
+            continue
+        tried.add(art["title"])
+        part = _excerpt(art, window)
+        if len(part) >= 500:
+            extras.append((art, part))
+    budget = FACT_SHEET_CHARS - sum(len(p) + 80 for _, p in extras)
+    prompt_text = compact_article(main["text"], budget)
+    full_text = main["text"]
+    sources = main.get("sources") or {"title": main["title"], "url": main["url"], "sentences": []}
+    for art, part in extras:
+        head = f"\n\n=== From the Wikipedia article \"{art['title']}\" ===\n"
+        prompt_text += head + part
+        full_text += head + art["text"]
+        more = _with_sources(art).get("sources")
+        if more:
+            sources = {**sources, "sentences": list(sources.get("sentences") or [])
+                       + list(more.get("sentences") or [])}
+    main.update(text=full_text, prompt_text=prompt_text, sources=sources,
+                related=[{"title": a["title"], "url": a["url"]} for a, _ in extras])
+    print(f"📚 Sources: {main['title']!r}"
+          + (" + " + ", ".join(repr(a["title"]) for a, _ in extras) if extras else "")
+          + f" (years {window[0]}–{window[1]}).")
+    return main
+
+
+# ---------------------------------------------------------------------------
+# 2. Fact sheet
+# ---------------------------------------------------------------------------
+
+def _norm(s):
+    s = (s or "").replace("’", "'").replace("‘", "'")
+    s = s.replace("“", '"').replace("”", '"')
+    return re.sub(r"\s+", " ", s).strip().lower()
+
+
+def _names_ok(text, art):
+    """Every capitalised word is in the article (a possessive "Gur's"
+    matched as "Gur")."""
+    return all(re.sub(r"'s$", "", w).lower() in art
+               for w in re.findall(r"[A-Z][a-zA-Z'-]{2,}", text or ""))
+
+
+def _digits_ok(text, art_digits):
+    return all(d.rstrip(".,") in art_digits
+               for d in re.findall(r"\d[\d,.]*", _norm(text)))
+
+
+def verify_beats(plan, article_text):
+    """The outline's beats and hooks get the fact sheet's check: a beat or
+    hook naming a place, person or figure the article does not contain is
+    dropped (v1 invented "the Lion's Gate" and a pre-dawn launch)."""
+    art = _norm(article_text)
+    digits = {d.rstrip(".,") for d in re.findall(r"\d[\d,.]*", art)}
+    dropped = []
+    for c in plan["chapters"]:
+        kept = []
+        for b in c["beats"]:
+            if _names_ok(b, art) and _digits_ok(b, digits):
+                kept.append(b)
+            else:
+                dropped.append(b)
+        c["beats"] = kept
+        if c.get("hook") and not (_names_ok(c["hook"], art)
+                                  and _digits_ok(c["hook"], digits)):
+            dropped.append("HOOK: " + c["hook"])
+            c["hook"] = ""
+    # the teaser and the cast chapter keep their places even without beats:
+    # everything after them is positioned by index
+    plan["chapters"] = [c for i, c in enumerate(plan["chapters"]) if c["beats"] or i < 2]
+    for key, name in (("cast", lambda c: c.get("name")), ("places", lambda p: p)):
+        kept = [x for x in plan.get(key) or [] if _names_ok(name(x), art)]
+        dropped += [f"{key.upper()}: {name(x)}" for x in plan.get(key) or []
+                    if x not in kept]
+        plan[key] = kept
+    return dropped
+
+
+def _legacy_year(item):
+    m = re.search(r"\b(1\d{3}|20\d{2})\b", str((item or {}).get("year") or ""))
+    return int(m.group(1)) if m else None
+
+
+def verify_sheet(sheet, article_text):
+    """Drops every quote that is not verbatim in the article, every figure
+    whose digits are not in it, and every person, place or timeline entry
+    that names nothing the article names. Returns (sheet, dropped_count)."""
+    art = _norm(article_text)
+    art_digits = {d.rstrip(".,") for d in re.findall(r"\d[\d,.]*", art)}
+    dropped = 0
+
+    def names_ok(text):
+        return _names_ok(text, art)
+
+    def digits_ok(text):
+        return all(d in art_digits or d.rstrip(".,") in art_digits
+                   for d in re.findall(r"\d[\d,.]*", _norm(text)))
+
+    out = {}
+    for key, check in (
+            ("quotes", lambda q: _norm(q.get("text")) in art and len(q.get("text", "")) > 8
+             and names_ok(q.get("speaker"))),
+            ("numbers", lambda n: n.get("value") and n.get("what")
+             and digits_ok(str(n.get("value"))) and names_ok(n.get("what"))),
+            ("people", lambda p: names_ok(p.get("name")) and p.get("name")),
+            ("places", lambda p: names_ok(p if isinstance(p, str) else p.get("name"))),
+            ("timeline", lambda t: t.get("date") and t.get("event")
+             and digits_ok(t.get("date")) and names_ok(t.get("event"))
+             and names_ok(" ".join(t.get("people") or []))),
+            # every field the prompt prints must be there: a legacy line
+            # without "what" crashed the 12 Oct scout (KeyError)
+            ("legacy", lambda l: l.get("what") and _legacy_year(l) is not None
+             and _legacy_year(l) <= LEGACY_CUTOFF
+             and digits_ok(str(l.get("year"))) and names_ok(l.get("what"))
+             and digits_ok(l.get("what")))):
+        kept = []
+        for item in sheet.get(key) or []:
+            try:
+                ok = check(item)
+            except Exception:
+                ok = False
+            if ok:
+                kept.append(item)
+            else:
+                dropped += 1
+        out[key] = kept
+    return out, dropped
+
+
+FACT_SHEET_CHARS = 40000
+
+
+def compact_article(text, limit=FACT_SHEET_CHARS):
+    """The article cut to `limit` characters for the fact-sheet request:
+    the lead in full, then the paragraphs that carry dates, in order, until
+    the limit. Most free models refuse a whole long article ("request too
+    large", 413): on 2026-10-01 the Gulf War page (116,000 characters) lost
+    the trend video its Piers Morgan topic that way. The sheet is still
+    verified against the full article."""
+    if len(text) <= limit:
+        return text
+    paras = [p for p in text.split("\n") if p.strip()]
+    out, size = [], 0
+    for i, p in enumerate(paras):
+        keep = i < 6 or re.search(r"\b(1\d{3}|20\d{2})\b", p)
+        if keep and size + len(p) + 1 <= limit:
+            out.append(p)
+            size += len(p) + 1
+    return "\n".join(out)
+
+
+def fact_sheet(pool, topic, article, call):
+    """The verified fact sheet for this story, or None."""
+    prompt = (
+        f"Story: {topic}\n\nSOURCE ARTICLE (Wikipedia, \"{article['title']}\")"
+        f"{', then excerpts of related articles' if article.get('related') else ''}:\n"
+        f"{article.get('prompt_text') or compact_article(article['text'])}\n\n"
+        "Extract a FACT SHEET for a documentary, using ONLY these texts. "
+        "Copy names, dates and figures exactly as the article writes them.\n"
+        "- timeline: 15-45 dated events in order, from the design and "
+        "construction (or the first cause) through the warning signs and the "
+        "failure itself to the investigation and its findings, covering EVERY "
+        "phase the article describes. Each: date (as the article gives it, "
+        "with the year), event (one plain sentence of what happened), "
+        "place, people (names).\n"
+        "- people: the 6-12 key people: name and their role at the time.\n"
+        "- places: the key places.\n"
+        "- numbers: 8-15 figures (loads, weights, pressures, dimensions, "
+        "speeds, quantities, casualties, costs, durations), each value as "
+        "written, with its unit, and what it measures.\n"
+        "- quotes: every direct quotation the article contains that a "
+        "narrator could use, copied EXACTLY character for character, with "
+        "its speaker. None if the article has none.\n"
+        f"- legacy: 3-6 things this event led to in the years and decades "
+        f"after it (inquiries, new building codes, regulations, design "
+        f"changes, trials, rebuilt structures, memorials), each with the year it happened, only "
+        f"up to {LEGACY_CUTOFF}, as the article states them.\n"
+        "Do not add anything the article does not state.\n\n"
+        'Output ONLY JSON: {"timeline": [{"date": "", "event": "", "place": "", '
+        '"people": [""]}], "people": [{"name": "", "role": ""}], "places": [""], '
+        '"numbers": [{"value": "", "what": ""}], "quotes": [{"text": "", '
+        '"speaker": ""}], "legacy": [{"year": "", "what": ""}]}')
+    data = call(pool, "You extract facts from a source text. Never add "
+                "anything. Output only JSON.", prompt, max_tokens=8000,
+                expect={"timeline": ("list", 8)})
+    if not isinstance(data, dict) or not data.get("timeline"):
+        return None
+    sheet, dropped = verify_sheet(data, article["text"])
+    print(f"📑 Fact sheet from {article['url']}: {len(sheet['timeline'])} "
+          f"dated events, {len(sheet['people'])} people, "
+          f"{len(sheet['numbers'])} figures, {len(sheet['quotes'])} verbatim "
+          f"quotes ({dropped} unverifiable item(s) dropped).")
+    if len(sheet["timeline"]) < 8:
+        return None
+    sheet["source"] = article["url"]
+    return sheet
+
+
+QUOTE_MAX_WORDS = 40
+
+
+def sheet_text(sheet, chapter_span=None, cast=None):
+    """The fact sheet as compact lines for a prompt. With a cast, only those
+    people are listed, and only their quotes."""
+    lines = ["TIMELINE:"]
+    lines += [f"- {t['date']}: {t['event']}" + (f" ({t['place']})" if t.get("place") else "")
+              for t in sheet["timeline"]]
+    lines.append("PEOPLE:")
+    people = [{"name": c["name"], "role": c.get("role", "")} for c in cast] \
+        if cast else sheet["people"]
+    lines += [f"- {p['name']}: {p.get('role', '')}" for p in people]
+    if sheet["numbers"]:
+        lines.append("FIGURES:")
+        lines += [f"- {n['value']}: {n['what']}" for n in sheet["numbers"]]
+    quotes = [q for q in sheet["quotes"]
+              if len(q["text"].split()) <= QUOTE_MAX_WORDS
+              and (not cast or _in_cast(q.get("speaker"), cast))]
+    if quotes:
+        lines.append("QUOTES (use only word for word):")
+        lines += [f"- \"{q['text']}\" — {q['speaker']}" for q in quotes]
+    if sheet.get("legacy"):
+        lines.append(f"LEGACY (what it led to, up to {LEGACY_CUTOFF}):")
+        lines += [f"- {l['year']}: {l['what']}" for l in sheet["legacy"]]
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# 3. Outline
+# ---------------------------------------------------------------------------
+
+ROLES = ("open", "build", "pivot", "drive", "close")
+MAX_CAST = 5
+MAX_PLACES = 5
+
+
+def _surname(name):
+    parts = [w for w in re.findall(r"[A-Za-z'-]+", name or "") if len(w) > 2]
+    return parts[-1].lower() if parts else ""
+
+
+def _in_cast(name, cast):
+    sur = _surname(name)
+    return bool(sur) and any(sur == _surname(c["name"]) for c in cast)
+
+
+def fix_roles(chapters):
+    """First chapter open, last close, exactly one pivot in between (the one
+    the outline marked, else the middle), build before it, drive after."""
+    n = len(chapters)
+    # never the teaser (0) or the cast chapter (1)
+    marked = [i for i, c in enumerate(chapters) if c.get("role") == "pivot"
+              and 1 < i < n - 1]
+    pivot = marked[0] if marked else n // 2
+    for i, c in enumerate(chapters):
+        c["role"] = ("open" if i == 0 else "close" if i == n - 1 else
+                     "pivot" if i == pivot else "build" if i < pivot else "drive")
+    return chapters
+
+
+def _outline_problem(data):
+    """What a usable outline reply needs, checked by the gateway so a bad one
+    is asked of another model at once (it used to cost one of the outline's
+    three attempts)."""
+    ch = data.get("chapters") if isinstance(data, dict) else None
+    if not isinstance(ch, list) or not (5 <= len(ch) <= 8):
+        return f"{len(ch) if isinstance(ch, list) else 0} chapters, 5-8 needed"
+    if any(not isinstance(c, dict) or not c.get("title") or not c.get("beats") for c in ch):
+        return "a chapter without title or beats"
+    if not isinstance(data.get("cast"), list) or not data["cast"]:
+        return "no cast"
+    return None
+
+
+def outline(pool, topic, sheet, call, total_words=STORY_WORDS):
+    """{"question", "chapters": [{"title", "span", "pov", "role", "beats",
+    "words", "hook"}]} or None."""
+    prompt = (
+        f"Story: {topic}\n\nFACT SHEET:\n{sheet_text(sheet)}\n\n"
+        f"Plan a {total_words}-word documentary (about "
+        f"{round(total_words / 165)} minutes) that tells this as a STORY a "
+        "stranger cannot stop watching.\n"
+        "RULES:\n"
+        "- Chapter 1 is a TEASER, 100-140 words: the big picture only — what "
+        "failed, where, the scale of it (how big the thing was, how many "
+        "people it cost), and why it still matters to anyone who crosses a "
+        "bridge, boards a plane or lives below a dam — ending on the question "
+        "the video answers. No specific days, dates or clock times, and no "
+        "individual named or introduced. It makes a stranger want the "
+        "details; it does not give them.\n"
+        "- Chapter 2 INTRODUCES THE OBJECT AND THE CAST as a story, 200-300 "
+        "words: what the structure, vessel, machine or plant was built to do, "
+        "the one load, pressure or quantity it had to handle, and who each "
+        "cast member is and what they wanted — told as one flowing passage, "
+        "never a list. EVERY cast member is introduced here, one beat each.\n"
+        "- Then 4 more chapters (6 in all), in time order from the first "
+        "design choice or shortcut to the inquiry and what changed, told as "
+        "ONE story. Each has a dated span, follows 1-2 people from the cast "
+        "(pov), and has 3-5 beats: concrete things that happen, taken from "
+        "the timeline. One chapter must show the WARNING SIGNS: the crack, the "
+        "leak, the alarm, the memo, the complaint, and who saw it. A chapter "
+        "may go BACK in time only to explain how the flaw got there; then its "
+        "\"bridge\" says so in one sentence naming when we go back to; "
+        "otherwise bridge is empty.\n"
+        "- The viewer has NO background. Keep it SIMPLE:\n"
+        f"  * cast: 1 to {MAX_CAST} people for the whole video, each with a "
+        "plain role (\"the bridge's chief engineer\", \"the ship's "
+        "captain\"). Pick the people who DECIDED or could have stopped it: "
+        "designers, engineers, owners, managers, operators, captains, pilots, "
+        "inspectors, the one who raised the alarm. Prefer people with their "
+        "own Wikipedia article (each gets a portrait card), but a person "
+        "named in the fact sheet is allowed. Never a victim by name, a "
+        "journalist or a bystander. Everyone else in the beats is a role "
+        "(\"a night-shift operator\"), never a name.\n"
+        f"  * places: at most {MAX_PLACES} places for the whole video, only "
+        "the ones the story cannot do without. Other places are described "
+        "(\"the valley below the dam\").\n"
+        "  * Few figures, rounded, each with its unit and only for what it "
+        "measures. The figures the failure turns on (the load, the tonnage, "
+        "the pressure, the speed) come first.\n"
+        "  * Basics first: chapter 2 also says, in plain words, how the thing "
+        "was supposed to work, before anything goes wrong.\n"
+        "  * Leave out side incidents that would need their own explanation "
+        "and do not change the outcome.\n"
+        "  * The last chapter covers the investigation: what it found, who "
+        "it blamed, and what rule, code or design changed because of it.\n"
+        f"- The last chapter ENDS on what the disaster changed in the years "
+        f"after, up to {LEGACY_CUTOFF}, taken only from LEGACY (if the "
+        f"sheet has it): one or two things, each with its year. Never a "
+        f"year after {LEGACY_CUTOFF}, never \"today\" or \"nowadays\".\n"
+        "- The turning point (role \"pivot\") is its OWN SHORT chapter, "
+        "150-250 words: the moment the failure becomes unstoppable — the "
+        "part that gives way, the valve that opens, the order that is given "
+        "— and nothing else. The climax chapter (the failure itself, second "
+        "by second) comes right after it.\n"
+        "- Beats use ONLY the fact sheet: no place, name, time, number or "
+        "action that is not in it.\n"
+        "- Give space where the drama is: the warning signs and the failure "
+        "itself get the most words (at least a third of the total). "
+        "Background gets the least. The last chapter (investigation and what "
+        "it changed) is about an eighth.\n"
+        "- A story question, not a verdict: one short, sharp question a "
+        "stranger wants answered (how, or why, something that big failed), "
+        "under 15 words. Every claim of blame in a beat is attributed to "
+        "whoever made it (\"the inquiry found...\", \"the company "
+        "argued...\"), never narrated as fact.\n"
+        "- moment: mark the chapter in which the failure itself BEGINS with "
+        "\"begins\" and the chapter in which it ENDS with \"ends\"; every "
+        "other chapter \"\". Never chapter 1 or 2.\n"
+        "- hook: at most TWO chapters end on a hook, and only where the next "
+        "chapter pays it off. Every other hook is empty.\n"
+        "- Titles are story beats (\"The Hairline Crack\", \"10:47 p.m.\"), "
+        "never abstract labels.\n"
+        f"- Words across all chapters add up to {total_words}.\n\n"
+        'Output ONLY JSON: {"question": "", "cast": [{"name": "", "role": ""}], '
+        '"places": [""], "chapters": [{"title": "", '
+        '"span": "", "pov": [""], "role": "open|build|pivot|drive|close", "bridge": "", "moment": "", '
+        '"beats": [""], "words": 0, "hook": ""}]}')
+    data = call(pool, "You plan documentary stories. Output only JSON.",
+                prompt, max_tokens=5000, expect=_outline_problem)
+    chapters = (data or {}).get("chapters") if isinstance(data, dict) else None
+    if not chapters or not (5 <= len(chapters) <= 8):
+        print(f"   ↩️  Outline had {len(chapters or [])} chapter(s); 5-8 needed.")
+        return None
+    cast = [c for c in (data.get("cast") or [])
+            if isinstance(c, dict) and c.get("name")][:MAX_CAST]
+    places = [p for p in (data.get("places") or [])
+              if isinstance(p, str) and p.strip()][:MAX_PLACES]
+    chapters = fix_roles([c for c in chapters if c.get("title") and c.get("beats")])
+    # Budgets scaled to the target, with floors so no chapter is a stub.
+    raw = [max(80, int(c.get("words") or 0)) for c in chapters]
+    scale = total_words / max(1, sum(raw))
+    for c, w in zip(chapters, raw):
+        c["words"] = max(90 if c["role"] == "open" else 180, int(w * scale))
+        if c["role"] == "pivot":
+            c["words"] = min(c["words"], 260)
+        # a free model writes ~550 words reliably in one reply; the 2026-09-30
+        # weekly run lost an 810-word chapter and with it the whole video
+        c["words"] = min(c["words"], 550)
+        if c["role"] == "open":
+            c["words"] = min(c["words"], 140)
+    if len(chapters) > 1 and cast:
+        # the cast chapter's length follows its shape: a setting, one short
+        # introduction per person, a closing
+        chapters[1]["words"] = 35 + 22 * len(cast) + 35
+    for c in chapters:
+        c["bridge"] = (c.get("bridge") or "").strip() if isinstance(c.get("bridge"), str) else ""
+    chapters[0]["bridge"] = ""
+    if len(chapters) > 1:
+        chapters[1]["bridge"] = ""
+    set_moments(chapters)
+    hooks = 0
+    for c in chapters:
+        c["hook"] = (c.get("hook") or "").strip()
+        if c["hook"]:
+            hooks += 1
+            if hooks > 2 or c["role"] == "close":
+                c["hook"] = ""
+    return {"question": (data.get("question") or "").strip(), "cast": cast,
+            "places": places, "chapters": chapters}
+
+
+def set_moments(chapters):
+    """chapter["moment"]: "begins" on the chapter where the main event starts,
+    "ends" on the one where it is over, "" elsewhere; each at most once and
+    never in the teaser or the cast chapter. When the outline marks none,
+    the chapter after the turning point begins it and the last chapter
+    before the aftermath ends it. There, the narrator tells the viewer so
+    in one short line (docs/VIDEO_SPEC.md 4)."""
+    seen = set()
+    for i, c in enumerate(chapters):
+        m = str(c.get("moment") or "").strip().lower()
+        m = m if m in ("begins", "ends") and i >= 2 and m not in seen else ""
+        c["moment"] = m
+        if m:
+            seen.add(m)
+    n = len(chapters)
+    pivot = next((i for i, c in enumerate(chapters) if c.get("role") == "pivot"), None)
+    if "begins" not in seen and pivot is not None and 2 <= pivot + 1 < n - 1:
+        if not chapters[pivot + 1]["moment"]:
+            chapters[pivot + 1]["moment"] = "begins"
+    if "ends" not in seen and n >= 4 and not chapters[n - 2]["moment"]:
+        chapters[n - 2]["moment"] = "ends"
+    return chapters
+
+
+def print_plan(sheet, plan):
+    print("=" * 70)
+    print("STORY MODE — FACT SHEET")
+    print(sheet_text(sheet))
+    print("-" * 70)
+    print(f"STORY QUESTION: {plan['question']}")
+    print("CAST: " + "; ".join(f"{c['name']} ({c.get('role', '')})"
+                               for c in plan.get("cast") or []))
+    print("PLACES: " + ", ".join(plan.get("places") or []))
+    for i, c in enumerate(plan["chapters"], 1):
+        print(f"\n{i}. {c['title']}  [{c['role']}, ~{c['words']} words, "
+              f"{c.get('span', '')}]  POV: {', '.join(c.get('pov') or [])}")
+        for b in c["beats"]:
+            print(f"   - {b}")
+        if c["hook"]:
+            print(f"   HOOK -> {c['hook']}")
+        if c.get("moment"):
+            print(f"   MOMENT -> the main event {c['moment']} here")
+    print("=" * 70)
+
+
+# ---------------------------------------------------------------------------
+# 4. Chapter briefs for the existing writer
+# ---------------------------------------------------------------------------
+
+def chapter_brief(plan, i, sheet):
+    c = plan["chapters"][i]
+    before = [f"{j + 1}. {x['title']}" for j, x in enumerate(plan["chapters"][:i])]
+    after = [f"{j + 1}. {x['title']}" for j, x in enumerate(plan["chapters"])
+             if j > i]
+    beats = "\n".join(f"- {b}" for b in c["beats"])
+    if i == 0:
+        note = TEASER_NOTE
+    elif i == 1:
+        note = CAST_NOTE
+    elif (c.get("bridge") or "").strip():
+        note = (f"This chapter goes BACK in time: {c['bridge'].strip()}\n"
+                "Open it with one or two sentences of your own, spoken to the "
+                "viewer, that say so plainly: what was happening elsewhere at "
+                "the same time, and that we are going back to that moment "
+                "(the shape is \"While <the earlier events>, <something else> "
+                "was starting in <place>. Let's go back to <that moment>.\" — "
+                "fill it from THIS story only).\n")
+    else:
+        note = ""
+    if i == len(plan["chapters"]) - 1 and sheet.get("legacy"):
+        note += LEGACY_NOTE
+    if i >= 2 and c.get("moment"):
+        note += MOMENT_NOTE.format(moment=c["moment"],
+                                   when="started" if c["moment"] == "begins" else "ended")
+    return (
+        f"{note}"
+        f"The video's story question: {plan['question']}\n"
+        f"This chapter covers {c.get('span', '')}, following "
+        f"{', '.join(c.get('pov') or ['its people'])}.\n"
+        f"Tell these beats, in order, as scenes:\n{beats}\n"
+        f"Chapters already told: {'; '.join(before) or 'none'}. "
+        f"Still to come: {'; '.join(after) or 'none'} — do not tell their "
+        "events here.\n"
+        f"{_cast_note(plan)}\n"
+        f"FACT SHEET (the only facts you may use):\n"
+        f"{sheet_text(sheet, cast=plan.get('cast'))}")
+
+
+TEASER_NOTE = (
+    "This is the TEASER that opens the video: the big picture only — what "
+    "failed, where, how big it was, what it cost, and why it still matters "
+    "to anyone who uses a bridge, a plane or a building — ending on the "
+    "question the video answers. Do NOT give any specific day, date or clock "
+    "time, and do NOT name or introduce any individual person (say \"the "
+    "engineers\", \"the company\", never a name). "
+    "Make a stranger want the details without giving them.\n")
+
+LEGACY_NOTE = (
+    "This is the LAST chapter. After the investigation, end on what the "
+    "disaster changed in the years after (a law, a building code, a design "
+    "rule, an inspection regime): one or two things from LEGACY in the fact "
+    "sheet, each with its year (\"By 1979, ...\", \"In 2005, ...\"). "
+    f"Nothing after {LEGACY_CUTOFF}, and never \"today\", \"now\" or "
+    "\"nowadays\".\n")
+
+MOMENT_NOTE = (
+    "The main event {moment} in this chapter. Right after the beat where it "
+    "{when}, the narrator marks it in one short line spoken to the viewer "
+    "(the shape: \"And this is where <it> {when}.\" or \"This was the "
+    "moment <it> {when}.\" — in this story's own words).\n")
+
+MOMENT_WORDS = ("this is where", "this is when", "this is how", "this was where",
+                "this was when", "this was the moment", "this is the moment",
+                "that was the moment", "that is where", "that was where",
+                "and so began", "and so ended", "and that is how", "and that was how")
+
+CAST_NOTE = (
+    "This chapter INTRODUCES THE OBJECT AND THE CAST as a story: what the "
+    "thing was built to do and the load it had to carry, then who each "
+    "person is, what they wanted, and how they stood toward each other "
+    "(who answered to whom, who warned whom) — one flowing "
+    "passage, never a list (\"First there is... then there is...\" is "
+    "forbidden). Every cast member below appears here, introduced with their "
+    "role the first time they are named.\n")
+
+
+def segment_plan(plan, i):
+    """(segment count, rule) for chapters with a fixed shape, or None. The
+    cast chapter needs one short segment per person: each of those segments
+    becomes that person's cast card, so it must be about 5-8 seconds and name
+    only them."""
+    if i != 1:
+        return None
+    cast = plan.get("cast") or []
+    if not cast:
+        return None
+    names = ", ".join(c["name"] for c in cast)
+    n = len(cast) + 2
+    rule = (
+        f"Split it into exactly {n} consecutive segments: first a scene-setting "
+        f"segment that names no one and shows what the structure, vessel, "
+        f"machine or plant was built to do (25-40 words); then ONE segment for "
+        f"EACH cast member, in the order they enter the story ({names}), 16-26 "
+        f"words each: it introduces that person (name and role) through what "
+        f"they want and how they stand toward the people ALREADY introduced — "
+        f"boss, client, inspector, critic — and introduces no one new; then a "
+        f"closing segment (25-45 words) that shows the one weakness already "
+        f"built in, without yet saying what it will cause. It reads as one story, each "
+        f"segment leading into the next, never a list. Each segment gets its own "
+        f"image prompt.")
+    return n, rule
+
+
+def _cast_note(plan):
+    cast, places = plan.get("cast") or [], plan.get("places") or []
+    out = ""
+    if cast:
+        out += ("CAST — the ONLY people you may name, each introduced with "
+                "their role: " + "; ".join(
+                    f"{c['name']} ({c.get('role', '')})" for c in cast)
+                + ". Anyone else is a role, never a name.\n")
+    if places:
+        out += ("PLACES — the only places you may name: " + ", ".join(places)
+                + ". Describe any other place in plain words.\n")
+    return out
+
+
+def story_arc(plan, sheet):
+    """[(heading, brief, words)] for the writer, plus per-chapter roles and
+    hooks."""
+    arc = [(c["title"], chapter_brief(plan, i, sheet), c["words"])
+           for i, c in enumerate(plan["chapters"])]
+    return arc, [c["role"] for c in plan["chapters"]], [c["hook"] for c in plan["chapters"]]
+
+
+def segment_plans(plan):
+    return [segment_plan(plan, i) for i in range(len(plan["chapters"]))]
+
+
+def save(build_dir, **parts):
+    try:
+        os.makedirs(build_dir, exist_ok=True)
+        with open(os.path.join(build_dir, "story_plan.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(parts, f, indent=2, ensure_ascii=False)
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
+# 5. Simplicity check — "could a viewer with no background follow this?"
+# ---------------------------------------------------------------------------
+
+LONG_SENTENCE_WORDS = 30
+MAX_FIGURES_PER_CHAPTER = 4
+_UNIT_RE = re.compile(r"\b(brigades?|divisions?|battalions?|regiments?|"
+                      r"squadrons?|corps)\b", re.I)
+_YEARISH = re.compile(r"^(1[5-9]\d\d|20[0-2]\d)$")
+_MONTHS = ("january", "february", "march", "april", "may", "june", "july",
+           "august", "september", "october", "november", "december")
+
+
+def simplicity_issues(text, plan, sheet):
+    """What a counting check finds in one chapter's narration: names outside
+    the cast, places outside the list, unit names, too many or unrounded
+    figures, over-long sentences. Plain sentences, ready to hand back to
+    the writer."""
+    issues = []
+    low = text.lower()
+    cast = plan.get("cast") or []
+    if cast:
+        extra = sorted({p["name"] for p in sheet.get("people") or []
+                        if not _in_cast(p["name"], cast)
+                        and re.search(rf"\b{re.escape(_surname(p['name']))}\b",
+                                      low) and len(_surname(p["name"])) > 3})
+        if extra:
+            issues.append("Names people outside the cast: " + ", ".join(extra)
+                          + ". Refer to them by their role instead.")
+    places = [p.lower() for p in plan.get("places") or []]
+    if places:
+        extra = sorted({p for p in sheet.get("places") or []
+                        if isinstance(p, str) and p.lower() not in places
+                        and not any(p.lower() in q or q in p.lower() for q in places)
+                        and re.search(rf"\b{re.escape(p.lower())}\b", low)})
+        if extra:
+            issues.append("Names places outside the list: " + ", ".join(extra)
+                          + ". Describe them in plain words instead.")
+    units = sorted({m.group(0).lower() for m in _UNIT_RE.finditer(text)})
+    if units:
+        issues.append("Uses military unit names (" + ", ".join(units)
+                      + "). Say \"troops\", \"tanks\" or \"soldiers\" instead.")
+    figures = []
+    for m in re.finditer(r"\d[\d,.]*", text):
+        tok = m.group(0).rstrip(".,")
+        before = low[max(0, m.start() - 12):m.start()]
+        after = low[m.end():m.end() + 12]
+        if _YEARISH.match(tok) or any(mo in before or mo in after for mo in _MONTHS):
+            continue          # a year or a date, not a figure
+        if re.match(r"(st|nd|rd|th)\b", after):
+            continue          # an ordinal ("7th"), caught by the unit rule
+        if re.search(r"(a\.m|p\.m|o'clock|:)", after[:5]) or ":" in tok:
+            continue          # a clock time
+        figures.append(tok)
+    if len(figures) > MAX_FIGURES_PER_CHAPTER:
+        issues.append(f"Uses {len(figures)} figures ({', '.join(figures)}). "
+                      f"Keep at most three, the ones that matter most.")
+    unrounded = [f for f in figures
+                 if len(f.replace(",", "")) >= 4 and f.replace(",", "")[-2:] != "00"]
+    if unrounded:
+        issues.append("Unrounded figures: " + ", ".join(unrounded)
+                      + ". Round them (\"about 20,000\").")
+    long = [x for x in re.split(r"(?<=[.!?])\s+", text)
+            if len(x.split()) > LONG_SENTENCE_WORDS]
+    if long:
+        issues.append(f"{len(long)} sentence(s) over {LONG_SENTENCE_WORDS} "
+                      f"words, e.g. \"{long[0][:90]}...\". Split them.")
+    return issues
+
+
+def viewer_check(pool, text, earlier, call):
+    """A model reads the chapter as a viewer with no background who has
+    watched only the chapters before it, and lists what would lose them.
+    [] when clear, or when the check itself fails."""
+    prompt = (
+        "You are a regular YouTube viewer with NO knowledge of engineering, "
+        "physics or history. You have watched the video so far:\n"
+        f"{earlier[-5000:] or '(nothing yet)'}\n\n"
+        f"Now you hear this part:\n{text}\n\n"
+        "List the points where you would get lost: a person you cannot place, "
+        "a place you do not know why it matters, a term you do not "
+        "understand, a jump you cannot follow, too many names or numbers at "
+        "once. At most 5, each one short sentence naming the exact word or "
+        "moment. Only real problems; an empty list if it is clear.\n"
+        'Output ONLY JSON: {"confusing": [""]}')
+    try:
+        data = call(pool, "You judge whether a narration is easy to follow. "
+                    "Output only JSON.", prompt, max_tokens=800)
+    except Exception as e:
+        if type(e).__name__ == "QuotaExhausted":
+            raise
+        return []
+    items = (data or {}).get("confusing") if isinstance(data, dict) else None
+    return [str(x).strip() for x in (items or []) if str(x).strip()][:5]
+
+
+# ---------------------------------------------------------------------------
+# 6. Structure checks (docs/VIDEO_SPEC.md 1-3), by code, per chapter
+# ---------------------------------------------------------------------------
+
+BRIDGE_WORDS = ("back", "meanwhile", "earlier", "same day", "same morning",
+                "same night", "same time", "same hour", "while", "rewind",
+                "at the same", "that same", "hours before", "days before")
+CAST_SEGMENT_MAX_WORDS = 30
+
+
+def _dates_in(text, year):
+    from date_ticker import find_dates
+    words = [{"word": w, "start": 0.0} for w in (text or "").split()]
+    return find_dates(words, {"year": year})
+
+
+def _sn(name):
+    parts = [w for w in re.findall(r"[a-z]+", (name or "").lower()) if len(w) > 2]
+    return parts[-1] if parts else ""
+
+
+def quote_issues(text, sheet):
+    """A quote in the narration must be word for word one of the sheet's
+    (docs/VIDEO_SPEC.md 6), and nothing may dangle after its closing mark
+    (the sixth script had: "...bloodied us." crushing them under our treads)."""
+    issues = []
+    known = [_norm(q.get("text")) for q in (sheet or {}).get("quotes") or []]
+    for m in re.finditer(r'["“]([^"”]{8,}?)["”]', text or ""):
+        said = _norm(m.group(1)).strip(" .,;:!?")
+        if known and not any(said in k for k in known):
+            issues.append(f"The quote \"{m.group(1)[:60]}\" is not word for word from "
+                          f"the fact sheet. Quote it exactly, or tell it without quote marks.")
+        tail = (text[m.end():m.end() + 40] or "")
+        if re.match(r"\s+[a-z]", tail) and not re.match(r"\s+(he|she|they|said|says|wrote|recalled|added|noted)\b", tail):
+            issues.append(f"Words run on after the quote \"{m.group(1)[:40]}\" without "
+                          f"a sentence of their own. Fix that sentence.")
+    return issues
+
+
+def structure_issues(i, plan, segments, earlier_text, era_year, sheet=None):
+    """What breaks the agreed structure in chapter i, as plain instructions
+    for a rewrite. [] when it is right."""
+    texts = [s.get("narration", "") for s in segments]
+    text = " ".join(texts)
+    low = text.lower()
+    cast = plan.get("cast") or []
+    issues = quote_issues(text, sheet)
+    if i == 0:
+        dated = [d["label"] for d in _dates_in(text, era_year) if d["kind"] != "year"]
+        if dated or re.search(r"\b\d{1,2}:\d{2}\b|\bo'clock\b", low):
+            issues.append("The teaser gives specific dates or times (" + ", ".join(dated) +
+                          "). Remove them: the big picture only.")
+        named = [c["name"] for c in cast
+                 if _sn(c["name"]) and re.search(rf"\b{_sn(c['name'])}\b", low)]
+        if named:
+            issues.append("The teaser names individuals (" + ", ".join(named) +
+                          "). Speak of roles instead: the engineers, the company, the crew.")
+    elif i == 1 and cast:
+        seg_low = [t.lower() for t in texts]
+        for c in cast:
+            sn = _sn(c["name"])
+            hits = [k for k, t in enumerate(seg_low) if re.search(rf"\b{sn}\b", t)]
+            if not hits:
+                issues.append(f"{c['name']} ({c.get('role', '')}) is never introduced. "
+                              f"Give them a segment of their own.")
+                continue
+            k = hits[0]
+            # two people introduced (first named) in the same segment; naming
+            # someone already introduced is how relationships are told
+            def first_seg(o):
+                return next((j for j, t in enumerate(seg_low)
+                             if re.search(rf"\b{_sn(o['name'])}\b", t)), None)
+            others = [o["name"] for o in cast if o is not c and _sn(o["name"])
+                      and first_seg(o) == k]
+            n = len(texts[k].split())
+            if others:
+                issues.append(f"{c['name']} is introduced in the same segment as "
+                              f"{', '.join(others)}. Each person gets a segment of their own.")
+            if n > CAST_SEGMENT_MAX_WORDS:
+                issues.append(f"{c['name']}'s introduction is {n} words; keep it to 16-26.")
+        if re.search(r"\b(first|then|next|finally)\s*,?\s+(there\s+(is|was)|we\s+have)\b", low):
+            issues.append("The cast is presented as a list (\"first there is... then...\"). "
+                          "Tell it as one flowing story.")
+    elif i >= 2:
+        before = [d for d in _dates_in(earlier_text, era_year) if d["kind"] == "day"]
+        here = [d for d in _dates_in(text, era_year) if d["kind"] == "day"]
+        if before and here and here[0]["ord"] < before[-1]["ord"]:
+            opening = " ".join(re.split(r"(?<=[.!?])\s+", text)[:2]).lower()
+            if not any(w in opening for w in BRIDGE_WORDS):
+                issues.append(
+                    f"This chapter goes back in time (to {here[0]['label']}, after the "
+                    f"previous chapter reached {before[-1]['label']}) without saying so. "
+                    f"Open with one or two sentences spoken to the viewer that take them "
+                    f"back (the shape: \"While <earlier events>, <something else> "
+                    f"was starting in <place>. Let's go back to <that moment>.\").")
+    legacy = (sheet or {}).get("legacy") or []
+    if i == len(plan["chapters"]) - 1 and legacy:
+        years = {str(_legacy_year(l)) for l in legacy}
+        said = set(re.findall(r"\b(1\d{3}|20\d{2})\b", text))
+        late = sorted(y for y in said if int(y) > LEGACY_CUTOFF)
+        if late:
+            issues.append(f"The chapter mentions {', '.join(late)}, after "
+                          f"{LEGACY_CUTOFF}. End at {LEGACY_CUTOFF} at the latest.")
+        elif not said & years:
+            issues.append("The chapter never says what the event led to. End on "
+                          "one or two things from LEGACY, each with its year "
+                          "(\"By 1979, ...\").")
+    moment = (plan["chapters"][i].get("moment") or "") if i < len(plan["chapters"]) else ""
+    if i >= 2 and moment and not any(w in text.lower() for w in MOMENT_WORDS):
+        when = "started" if moment == "begins" else "ended"
+        issues.append(
+            f"The main event {moment} in this chapter, but the narrator never "
+            f"marks it. Right after that beat, add one short line to the viewer "
+            f"(\"And this is where <it> {when}.\").")
+    return issues

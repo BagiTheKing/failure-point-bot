@@ -1,0 +1,31 @@
+openai>=1.56.0
+httpx>=0.27.2
+edge-tts>=7.0.0
+gTTS==2.5.4
+# The primary narration voice — local, offline, no key. Apache 2.0 licensed
+# (hexgrad/Kokoro-82M), so unlike some of the free cloud TTS alternatives
+# this pipeline compared it against, it carries no non-commercial
+# restriction. kokoro-onnx (ONNX Runtime), not the reference 'kokoro'
+# package: the reference package pulls in full PyTorch plus bundled CUDA
+# wheels for a job that only ever runs on CPU — measured at 5.9 GB installed
+# against kokoro-onnx's 199 MB for the identical model weights. Needs the
+# espeak-ng system package too, and the two model files downloaded by the
+# "Download Kokoro model" workflow step. See audio_engine.py's docstring.
+kokoro-onnx>=0.6.1
+soundfile>=0.12.1
+# Optional: only used when AZURE_SPEECH_KEY and AZURE_SPEECH_REGION are both
+# set. Without them audio_engine.py never imports this — edge-tts only.
+azure-cognitiveservices-speech>=1.40.0
+requests>=2.31.0
+Pillow>=10.0.0
+google-api-python-client>=2.122.0
+google-auth-oauthlib>=1.2.0
+google-auth-httplib2>=0.2.0
+# Optional: only used when ANTHROPIC_API_KEY is set, which puts the paid
+# tier last in the writer chain. Every free provider is reached first.
+anthropic>=0.69.0
+# Cast cards (src/cast_engine.py): face detection and matching (YuNet,
+# SFace) to make sure footage shows the right person. Headless build, no GUI.
+opencv-python-headless>=4.9
+numpy>=1.24
+gradio_client>=1.0  # image-to-video Space (animate_engine.py)
