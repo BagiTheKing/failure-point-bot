@@ -83,8 +83,11 @@ FORMATS = {
             "procedure, an alarm switched off, a shift handover) that let it "
             "reach an ignition source. Explain the chemistry or physics in "
             "one or two plain sentences. " + _MECHANISM),
-        "tags": ["industrial disaster", "industrial accident", "explosion",
-                 "engineering disasters", "chemical plant explosion"],
+        # Neutral on purpose: this format covers fires as well as blasts
+        # (the Triangle fire Short was tagged "chemical plant explosion").
+        # The writer's own tags name the specific event.
+        "tags": ["industrial disaster", "industrial accident",
+                 "engineering disasters", "disaster documentary"],
         "hashtags": ["#engineering", "#industrial", "#disaster"],
     },
     "sinking": {
