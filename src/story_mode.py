@@ -243,6 +243,13 @@ def article_problem(topic, art, cutoff=LEGACY_CUTOFF):
     (2023-) for the 2007 Hamas takeover of Gaza: an article about another
     time, and after the cutoff."""
     years = _years(art["text"])
+    # a year in the TITLE names the article's own event: "2025 Mir Ali
+    # attack" was taken for a 2002 school roof collapse (2026-10-16)
+    late = [y for y in _years(art["title"]) if cutoff and y > cutoff]
+    if late:
+        return f"its title names {late[0]}, after the {cutoff} cutoff"
+    if cutoff and years and len(years) < 5 and min(years) > cutoff:
+        return f"every year it names is after the {cutoff} cutoff"
     if len(years) >= 5:
         # the year it names most, not the median: an article with decades
         # of aftermath (Chernobyl: median 2006) is still about its event

@@ -181,3 +181,40 @@ class TimelyLane(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RecordedNewsLaneFailure(unittest.TestCase):
+    """2026-10-16, first dry run: a Pakistani school roof collapse in the news
+    was anchored to an unnamed "2002 school roof collapse", and Wikipedia
+    search then handed research the 2025 Mir Ali bombing article."""
+
+    def setUp(self):
+        self.real_call = L._call
+
+    def tearDown(self):
+        L._call = self.real_call
+
+    def test_unnamed_anchor_is_re_asked(self):
+        replies = iter([
+            {"subject": "School roof collapse in Pakistan", "topic":
+             "The roof of a primary school collapsed during heavy rainfall due "
+             "to severe structural deterioration", "anchor_year": 2002,
+             "why": "same kind of failure"},
+            {"subject": "School roof collapse in Pakistan", "name":
+             "Knickerbocker Theatre disaster", "topic": "the roof of a "
+             "Washington cinema collapsed under snow", "anchor_year": 1922,
+             "why": "a roof that failed under load"},
+        ])
+        L._call = lambda *a, **k: next(replies)
+        got = L.select_engineering_anchor([{"subject": "School roof collapses"}],
+                                          pool=object())
+        self.assertTrue(got["topic"].startswith("Knickerbocker Theatre disaster (1922)"))
+
+    def test_article_titled_after_the_cutoff_is_refused(self):
+        import story_mode as S
+        art = {"title": "2025 Mir Ali attack", "text": (
+            "On 28 June 2025 a suicide bomber struck a convoy. The roofs of two "
+            "houses collapsed and a school nearby was damaged. " * 20)}
+        problem = S.article_problem(
+            "School roof collapse (2002): a primary school roof collapsed", art, 2010)
+        self.assertIn("2025", problem or "")

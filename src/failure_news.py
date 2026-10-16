@@ -59,6 +59,10 @@ EXCLUDE = (
     "cyclone", "tornado", "wildfire", "tsunami", "volcano", "stock",
     "shares", "market", "election", "poll", "nfl", "nba", "game",
     "anniversary", "years ago", "documentary", "movie", "film", "series",
+    # a sea mine is a weapon, not a failure (first live run, 2026-10-16)
+    "hitting mine", "hit a mine", "hitting a mine", "sea mine", "naval mine",
+    # aftermath stories: the failure itself is not this week's news
+    "reopen", "rebuilt", "rebuild", "celebrat", "demolition of",
 )
 
 DAYS = int(os.getenv("FAILURE_NEWS_DAYS", "7"))

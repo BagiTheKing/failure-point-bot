@@ -1690,21 +1690,30 @@ def select_engineering_anchor(candidates, pool=None, avoid_titles=(),
             year = int(data.get("anchor_year", 9999))
         except (TypeError, ValueError):
             year = 9999
+        name = " ".join(str(data.get("name") or "").split()).strip(" .,")
         reason = None
         if year > HISTORY_CUTOFF_YEAR:
             reason = (f"the event you chose concluded in {year}, later than the "
                       f"{HISTORY_CUTOFF_YEAR} cutoff")
+        elif not (2 <= len(name.split()) <= 8) or "..." in name:
+            # 2026-10-16: "The roof of a primary school collapsed during
+            # heavy rainfall..." with no name — Wikipedia search then
+            # returned the 2025 Mir Ali bombing. The name leads the search.
+            reason = ("you gave no name for the historical event — give its "
+                      "common name as its Wikipedia article calls it")
         elif not _anchor_fits_niche(data.get("topic", ""), data.get("why", ""),
                                     story=True):
             reason = ("the event you chose is not an engineering or industrial "
                       "failure — name the structure, vessel, machine or plant "
                       "that failed")
         if not reason:
+            # the topic sentence starts with the event's name and year, the
+            # shape of every pool topic, so research looks up THAT article
+            topic = f"{name} ({year}): {data['topic'].strip()}"
             print(f"🧭 In the news: {data.get('subject', '?')}")
-            print(f"   Anchored to {year}: {data['topic'][:100]}")
-            return {"subject": data.get("subject", ""), "topic": data["topic"],
-                    "name": (data.get("name") or "").strip(),
-                    "anchor_year": year, "why": data.get("why", "")}
+            print(f"   Anchored to {year}: {topic[:100]}")
+            return {"subject": data.get("subject", ""), "topic": topic,
+                    "name": name, "anchor_year": year, "why": data.get("why", "")}
         print(f"⚠️ Anchor rejected: {reason}. ({data.get('topic', '')[:70]})")
         feedback = (f"\n\nYour previous answer was rejected because {reason}. "
                     "Output ONLY the JSON object.")
