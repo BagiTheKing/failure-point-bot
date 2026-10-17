@@ -285,3 +285,36 @@ class RealPicturesFirst(unittest.TestCase):
                           {"image_source": "pollinations/turbo"}]}
         with self.assertRaises(SystemExit):
             Mn.check_visual_quality(bad)
+
+
+class RecordedSecondShort(unittest.TestCase):
+    """2026-10-17, second Short: Hong Kong garment factory photos (a generic
+    scene query) and the same coffins photo in two scenes."""
+
+    def setUp(self):
+        import shorts_archive as S
+        self.S = S
+        self.real = (S.download_archival_image, S.search_archives)
+        S.download_archival_image = lambda cand, path, w, h, fit=None: True
+
+    def tearDown(self):
+        self.S.download_archival_image, self.S.search_archives = self.real
+
+    def test_generic_scene_query_must_be_about_the_story(self):
+        hk = [{"url": f"hk{i}", "title": f"HKMH Garment factory interior {i}"} for i in range(3)]
+        self.S.search_archives = lambda q, limit=12: hk
+        script = {"topic": "The Triangle Shirtwaist Factory fire (1911), where",
+                  "scenes": [{"duration": 8, "archive_query": "garment factory interior"}]}
+        self.S.fill_real_images(script, "build", pool=[])
+        self.assertNotIn("archive_paths", script["scenes"][0])
+
+    def test_same_photo_twice_is_one_photo(self):
+        self.S.search_archives = lambda q, limit=12: []
+        pool = [{"url": "a/thumb.jpg", "title": "Triangle Shirtwaist coffins"},
+                {"url": "a/orig.jpg", "title": "Triangle Shirtwaist coffins"}]
+        script = {"topic": "The Triangle Shirtwaist Factory fire (1911), where",
+                  "scenes": [{"duration": 4, "archive_query": ""},
+                             {"duration": 4, "archive_query": ""}]}
+        self.S.fill_real_images(script, "build", pool=pool)
+        got = [len(s.get("archive_paths") or []) for s in script["scenes"]]
+        self.assertEqual(sum(got), 1)

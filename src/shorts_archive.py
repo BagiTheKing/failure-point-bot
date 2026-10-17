@@ -106,6 +106,17 @@ def add_archive_frames(script_data: dict, build_dir: str = "build") -> int:
 # ---------------------------------------------------------------------------
 
 PICTURE_SECONDS = float(os.getenv("SHORTS_PICTURE_SECONDS", "3.5"))
+# Words in an event's name that say what KIND of thing failed, not which one:
+# a photo titled "garment factory" is not about the Triangle Shirtwaist
+# Factory fire. Compared on their first five letters.
+_GENERIC_STEMS = {w[:5] for w in (
+    "factory", "fire", "bridge", "dam", "collapse", "disaster", "explosion",
+    "flight", "mine", "mining", "colliery", "plant", "refinery", "tank",
+    "flood", "sinking", "airship", "train", "railway", "reactor", "accident",
+    "failure", "crash", "blast", "building", "tower", "roof", "walkway",
+    "store", "theatre", "theater", "school", "station", "power", "platform",
+    "submarine", "ship", "ferry", "levee", "reservoir", "crisis", "test",
+    "explosions", "disaster", "center", "centre", "company")}
 MAX_PER_SCENE = int(os.getenv("SHORTS_REAL_PER_SCENE", "3"))
 
 
@@ -152,15 +163,32 @@ def fill_real_images(script_data: dict, build_dir: str = "build",
         pool = []
     print(f"🗄️  {len(pool)} real picture(s) found for this story.")
     used, placed = set(), 0
+    seen_titles = set()
+    # A scene's own search must still be about THIS story: on 2026-10-17
+    # "garment factory interior" brought three Hong Kong museum photos into
+    # the Triangle fire Short. The story's pool is already about it.
+    event_stems = {w[:5] for w in re.findall(r"[a-z]+", event_query(
+        script_data.get("topic") or "").lower())
+        if len(w) >= 4 and w[:5] not in _GENERIC_STEMS}
+    pool_urls = {c.get("url") for c in pool}
 
     def want(scene):
         return max(1, min(MAX_PER_SCENE,
                           math.ceil((scene.get("duration") or 0) / PICTURE_SECONDS)))
 
+    def title_key(cand):
+        # the same photo reached through two searches has two URLs (a
+        # thumbnail and the original) but one title: the coffins photo ran
+        # in two scenes of the second Short
+        return re.sub(r"[^a-z0-9]", "", (cand.get("title") or "").lower())[:60]
+
     def take(scene, idx, cand):
         nonlocal placed
-        if cand["url"] in used:
+        key = title_key(cand)
+        if cand["url"] in used or (key and key in seen_titles):
             return False
+        if key:
+            seen_titles.add(key)
         if _fetch(cand, scene, idx, build_dir):
             used.add(cand["url"])
             placed += 1
@@ -178,7 +206,10 @@ def fill_real_images(script_data: dict, build_dir: str = "build",
                 for cand in search_archives(query, limit=12)[:CANDIDATES_PER_QUERY * 2]:
                     if len(scene.get("archive_paths") or []) >= want(scene):
                         break
-                    if footage_matches(query, (cand.get("title") or "").lower()):
+                    title = (cand.get("title") or "").lower()
+                    about_story = (cand.get("url") in pool_urls or not event_stems
+                                   or any(st in title for st in event_stems))
+                    if footage_matches(query, title) and about_story:
                         take(scene, idx, cand)
         for idx, scene in scenes:
             if scene.get("archive_paths"):

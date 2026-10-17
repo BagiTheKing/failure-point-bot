@@ -484,8 +484,12 @@ def generate_longform_visuals(scenes: list, output_dir: str = "build", topic: st
             query = ""
         if query:
             def _search(q):
+                # the file must be OF the subject searched for, not merely
+                # returned by the search (Shorts, 2026-10-17: Hong Kong
+                # factory photos for the Triangle fire)
                 return [c for c in search_archives(q)
-                        if _era_appropriate(c, era) and c.get("url") not in used_urls]
+                        if _era_appropriate(c, era) and c.get("url") not in used_urls
+                        and footage_matches(q, (c.get("title") or "").lower())]
             candidates = []
             # A repeat appearance of the same subject is steered toward a
             # different real moment first (a meeting, a ceremony) rather than
