@@ -27,7 +27,7 @@ import shutil
 import subprocess
 import sys
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 W, H, FPS, SS = 1280, 720, 30, 2
 
@@ -355,35 +355,60 @@ def placeholder_photo(t):
 # Clips
 # ---------------------------------------------------------------------------
 
+def blueprint_tint(img, k):
+    """The photo drained to the blueprint palette, k=0 untouched, k=1 fully."""
+    if k <= 0:
+        return img
+    tinted = ImageOps.colorize(ImageOps.grayscale(img), BG, (150, 182, 232))
+    return Image.blend(img, tinted, k)
+
+
+_last_photo = {}
+
+
+def a_last_frame(photo):
+    """Sample A's final photo frame, fully tinted: where sample B starts."""
+    if photo not in _last_photo:
+        img = kb_photo(photo, 1.0) if photo else placeholder_photo(1.0)
+        _last_photo[photo] = blueprint_tint(img, 1.0)
+    return _last_photo[photo]
+
+
 def clip_a(t, T, photo):
     img = kb_photo(photo, t / T) if photo else placeholder_photo(t / T)
+    # transition out: the last second drains the photo into blueprint colours
+    img = blueprint_tint(img, ease(prog(t, T - 1.0, T)))
     f = Frame()
     f.img, f.d = img, ImageDraw.Draw(img, "RGBA")
-    a = prog(t, 0.8, 1.6)
+    out = 1 - prog(t, T - 1.1, T - 0.5)
+    a = prog(t, 0.8, 1.6) * out
     # lower third
     f.d.rectangle([60 * SS, 520 * SS, 66 * SS, 600 * SS], fill=RED + (int(255 * a),))
     f.text("KANSAS CITY · 17 JULY 1981 · 7:05 PM", 82, 540, 22, LINE,
            "Inter-Bold.otf", screen=True, alpha=a)
     f.text("Hyatt Regency hotel atrium", 82, 570, 20, DIM, "Inter-Medium.otf",
            screen=True, alpha=a)
-    b = prog(t, 2.6, 3.4)
+    b = prog(t, 2.6, 3.4) * out
     f.text("114", 1180, 470, 110, RED, "InterDisplay-Black.otf", anchor="rs",
            screen=True, alpha=b)
     f.text("PEOPLE KILLED", 1180, 505, 26, LINE, "Inter-Bold.otf", anchor="rs",
            screen=True, alpha=b)
     f.tag("A", "REAL ARCHIVE PHOTO + SCALE")
-    f.caption("Two walkways fell into a crowded hotel lobby.", prog(t, 0.3, 1.0))
+    f.caption("Two walkways fell into a crowded hotel lobby.", prog(t, 0.3, 1.0) * out)
     return f.done()
 
 
-def clip_b(t, T):
-    # camera: wide, then push in on the middle 4th-floor connection
-    z = lerp(1.0, 5.2, prog(t, 5.0, 7.6))
-    cx = lerp(W / 2, RODS[1], prog(t, 5.0, 7.6))
-    cy = lerp(H / 2 - 20, W4_Y + 8, prog(t, 5.0, 7.6))
-    f = Frame(cx, cy, z)
-    f.grid(prog(t, 0, 0.8))
-    zoomed = z > 2.2
+B_ZOOM_END = 7.6
+
+
+def b_camera(t):
+    # wide, then push in on the middle 4th-floor connection
+    k = prog(t, 5.0, B_ZOOM_END)
+    return (lerp(W / 2, RODS[1], k), lerp(H / 2 - 20, W4_Y + 8, k), lerp(1.0, 5.2, k))
+
+
+def b_content(f, t, label_alpha=1.0):
+    zoomed = f.zoom > 2.2
     draw_atrium(f, t_walls=prog(t, 0.3, 1.6), t_roof=prog(t, 1.4, 2.4),
                 t_rods=prog(t, 2.3, 3.4), t_walks=prog(t, 3.2, 4.4),
                 skip_mid=zoomed)
@@ -391,24 +416,56 @@ def clip_b(t, T):
     draw_people(f, W2_Y - DECK_H, 320, 960, prog(t, 4.0, 4.6), n=14, seed=5)
     draw_people(f, W4_Y - DECK_H, 320, 960, prog(t, 4.0, 4.6), n=12, seed=7)
     if zoomed:
-        draw_connection_detail(f, 1, pulse=(t - 7.6) if t > 7.6 else 0)
+        draw_connection_detail(f, 1, pulse=(t - B_ZOOM_END) if t > B_ZOOM_END else 0)
     la = prog(t, 3.6, 4.3) * (1 - prog(t, 4.9, 5.3))
     f.label("roof trusses", 700, ROOF_Y - 17, 860, 70, la)
     f.label("steel hanger rods", RODS[2] + 4, 230, 1010, 230, la)
     f.label("4th-floor walkway", 520, W4_Y - 5, 380, 270, la)
     f.label("2nd-floor walkway", 520, W2_Y - 5, 380, 480, la)
-    lb = prog(t, 7.8, 8.4)
+    lb = prog(t, 7.8, 8.4) * label_alpha
     f.label("box beam (two steel channels welded)", RODS[1] + 18, W4_Y + 4, 900, 250, lb, size=19)
     f.label("one nut holds everything", RODS[1] - 4, W4_Y + BEAM_H + 2, 300, 520, lb, RED, size=19)
+
+
+def clip_b(t, T, photo=None):
+    cx, cy, z = b_camera(t)
+    f = Frame(cx, cy, z)
+    # transition in: A's last frame (the photo, already blueprint-tinted)
+    # dissolves away while the grid and the first lines draw over it
+    under = 1 - ease(prog(t, 0.0, 1.4))
+    if under > 0:
+        f.img = Image.blend(f.img, a_last_frame(photo), under)
+        f.d = ImageDraw.Draw(f.img, "RGBA")
+    f.grid(prog(t, 0, 0.8))
+    b_content(f, t)
     f.tag("B", "SCHEMATIC ANIMATION")
     f.caption("Each walkway hung from steel rods fixed to the roof."
-              if t < 5 else "Look closely at one connection.", 1.0)
+              if t < 5 else "Look closely at one connection.", prog(t, 0.8, 1.4))
     return f.done()
 
 
+C_LEAD = 1.2      # seconds C spends taking over B's last frame
+
+
 def clip_c(t, T):
-    f = Frame(RODS[1], W4_Y + 14, 6.0)
+    """Starts on B's last frame, same camera, so B -> C is one shot: the
+    camera keeps pushing in while the rest of the building and B's labels
+    fade, and the force overlay draws on the connection already on screen."""
+    k = ease(prog(t, 0, C_LEAD))
+    bx, by, bz = b_camera(9.5)
+    f = Frame(lerp(bx, RODS[1], k), lerp(by, W4_Y + 14, k), lerp(bz, 6.0, k))
     f.grid(1)
+    if k < 1:
+        g = Frame(f.cx, f.cy, f.zoom)
+        g.grid(1)
+        b_content(g, 9.5, label_alpha=1 - prog(t, 0, 0.6))
+        g.caption("Look closely at one connection.", 1 - prog(t, 0, 0.5))
+        f = _clip_c_body(f, t - C_LEAD * 0.5, T)
+        return Image.blend(g.done(), f.done(), k)
+    return _clip_c_body(f, t - C_LEAD * 0.5, T).done()
+
+
+def _clip_c_body(f, t, T):
     stress = prog(t, 3.5, 7.0)
     crack = prog(t, 6.2, 8.0)
     x, y = RODS[1], W4_Y
@@ -444,7 +501,7 @@ def clip_c(t, T):
                screen=True, alpha=prog(t, 6.4, 7.0), anchor="rs")
     f.tag("C", "FORCE & STRESS OVERLAY")
     f.caption("A change to the rods doubled the load on this one nut.", prog(t, 0.2, 0.8))
-    return f.done()
+    return f
 
 
 def clip_d(t, T):
@@ -570,8 +627,23 @@ def clip_f(t, T):
     return f.done()
 
 
-CLIPS = [("a", clip_a, 5.0), ("b", clip_b, 9.5), ("c", clip_c, 8.5),
+CLIPS = [("a", clip_a, 5.0), ("b", clip_b, 9.5), ("c", clip_c, 9.1),
          ("d", clip_d, 6.5), ("e", clip_e, 8.0), ("f", clip_f, 8.0)]
+
+
+# How each sample hands over to the next. "continuous": the next sample is
+# built to start on this one's last frame (same camera, same drawing), so a
+# plain join is already seamless. "dissolve": two different drawings on the
+# same blueprint board, cross-faded so only the content changes.
+TRANSITIONS = {("a", "b"): "continuous", ("b", "c"): "continuous",
+               ("c", "d"): "dissolve", ("d", "e"): "dissolve", ("e", "f"): "dissolve"}
+DISSOLVE = 0.6
+
+
+def _encode(frames_dir, mp4):
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS),
+                    "-i", os.path.join(frames_dir, "%05d.png"), "-c:v", "libx264",
+                    "-pix_fmt", "yuv420p", "-crf", "20", mp4], check=True)
 
 
 def render(out_dir, photo=None, only=None, stills=False):
@@ -585,27 +657,46 @@ def render(out_dir, photo=None, only=None, stills=False):
         n = int(T * FPS)
         for i in range(n):
             t = i / FPS
-            img = fn(t, T, photo) if key == "a" else fn(t, T)
+            img = fn(t, T, photo) if key in ("a", "b") else fn(t, T)
             img.save(os.path.join(frames, f"{i:05d}.png"))
             if stills and i == int(n * 0.85):
                 img.save(os.path.join(out_dir, f"still_{key}.png"))
         mp4 = os.path.join(out_dir, f"sample_{key}.mp4")
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS),
-                        "-i", os.path.join(frames, "%05d.png"), "-c:v", "libx264",
-                        "-pix_fmt", "yuv420p", "-crf", "20", mp4], check=True)
-        shutil.rmtree(frames)
-        made.append(mp4)
+        _encode(frames, mp4)
+        made.append((key, frames))
         print(f"rendered {mp4} ({T:.1f}s)")
     if len(made) > 1:
-        lst = os.path.join(out_dir, "_list.txt")
-        with open(lst, "w") as fh:
-            fh.writelines(f"file '{os.path.abspath(m)}'\n" for m in made)
+        reel_dir = os.path.join(out_dir, "_frames_reel")
+        os.makedirs(reel_dir, exist_ok=True)
+        seq, skip = [], 0   # a path, or (path, path to blend in, weight)
+        for i, (key, frames) in enumerate(made):
+            files = [os.path.join(frames, x) for x in sorted(os.listdir(frames))][skip:]
+            skip = 0
+            nxt = made[i + 1] if i + 1 < len(made) else None
+            if nxt and TRANSITIONS.get((key, nxt[0])) == "dissolve":
+                k = int(DISSOLVE * FPS)
+                head = [os.path.join(nxt[1], x) for x in sorted(os.listdir(nxt[1]))[:k]]
+                seq.extend(files[:-k])
+                seq.extend((x, y, (j + 1) / (k + 1))
+                           for j, (x, y) in enumerate(zip(files[-k:], head)))
+                skip = k
+            else:
+                seq.extend(files)
+        for j, item in enumerate(seq):
+            out = os.path.join(reel_dir, f"{j:05d}.png")
+            if isinstance(item, tuple):
+                a, b, w = item
+                Image.blend(Image.open(a).convert("RGB"), Image.open(b).convert("RGB"),
+                            ease(w)).save(out)
+            else:
+                shutil.copyfile(item, out)
         reel = os.path.join(out_dir, "style_samples_A_to_F.mp4")
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0",
-                        "-i", lst, "-c", "copy", reel], check=True)
-        os.remove(lst)
-        print(f"reel: {reel}")
-    return made
+        _encode(reel_dir, reel)
+        print(f"reel: {reel} ({len(seq) / FPS:.1f}s)")
+        shutil.rmtree(reel_dir)
+    for _, frames in made:
+        shutil.rmtree(frames)
+    return [os.path.join(out_dir, f"sample_{k}.mp4") for k, _ in made]
 
 
 if __name__ == "__main__":
