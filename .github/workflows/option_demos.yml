@@ -5,6 +5,10 @@ name: Animation options
 # kept as they come out, failures included. Nothing is uploaded to YouTube.
 on:
   workflow_dispatch:
+    inputs:
+      only:
+        description: "Which options to run: all, or a list like scratch,aivideo"
+        default: "all"
 
 permissions:
   contents: read
@@ -26,6 +30,7 @@ jobs:
       fail-fast: false
       matrix:
         mode: [scratch, blocks]
+    if: inputs.only == 'all' || contains(inputs.only, 'scratch') || contains(inputs.only, 'blocks')
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -34,7 +39,8 @@ jobs:
           cache: 'pip'
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: pip install -r requirements.txt numpy
-      - run: python tools/option_demos.py ${{ matrix.mode }} out
+      - if: inputs.only == 'all' || contains(inputs.only, matrix.mode)
+        run: python tools/option_demos.py ${{ matrix.mode }} out
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -43,6 +49,7 @@ jobs:
           retention-days: 14
 
   aivideo:
+    if: inputs.only == 'all' || contains(inputs.only, 'aivideo')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -65,6 +72,7 @@ jobs:
           retention-days: 14
 
   manim:
+    if: inputs.only == 'all' || contains(inputs.only, 'manim')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

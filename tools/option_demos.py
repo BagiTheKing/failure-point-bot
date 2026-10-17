@@ -60,7 +60,7 @@ arrows (255,176,32), labels in cyan (70,210,255) with leader lines."""
 # The writers
 # ---------------------------------------------------------------------------
 
-def writers(limit=3):
+def writers(limit=4):
     """One model per provider, in the pipeline's own order."""
     from llm_provider import get_pool
     pool = get_pool()
@@ -94,6 +94,8 @@ def code_block(text):
 # ---------------------------------------------------------------------------
 # Option: the writer writes the whole animation program
 # ---------------------------------------------------------------------------
+
+REPAIRS = 2     # times a writer may fix its own crash
 
 SCRATCH_PROMPT = f"""Write ONE complete Python 3 program that renders an
 animated engineering explainer clip and saves it as an MP4.
@@ -131,15 +133,30 @@ def scratch(out_dir):
             report.append(row)
             print(row)
             continue
-        open(src, "w").write(code)
-        row["lines"] = code.count("\n") + 1
-        try:
-            p = subprocess.run([sys.executable, src, mp4], capture_output=True, text=True,
-                               timeout=300)
-            ok = p.returncode == 0 and os.path.exists(mp4) and os.path.getsize(mp4) > 10000
-            row["result"] = "rendered" if ok else f"crashed: {(p.stderr or p.stdout)[-600:]}"
-        except subprocess.TimeoutExpired:
-            row["result"] = "timed out after 300 s"
+        row["attempts"] = []
+        for attempt in range(1 + REPAIRS):
+            open(src, "w").write(code)
+            row["lines"] = code.count("\n") + 1
+            try:
+                p = subprocess.run([sys.executable, src, mp4], capture_output=True, text=True,
+                                   timeout=300)
+                ok = p.returncode == 0 and os.path.exists(mp4) and os.path.getsize(mp4) > 10000
+                err = "" if ok else (p.stderr or p.stdout)[-1500:]
+            except subprocess.TimeoutExpired:
+                ok, err = False, "timed out after 300 s"
+            row["attempts"].append("rendered" if ok else err[-300:])
+            if ok or attempt == REPAIRS:
+                break
+            # the pipeline would retry: hand the writer its own error
+            try:
+                code = code_block(ask(pool, model, "You write correct, complete Python programs.",
+                                      SCRATCH_PROMPT + "\n\nYour previous program:\n```python\n"
+                                      + code + "\n```\nfailed with:\n" + err
+                                      + "\nReply with the whole corrected program."))
+            except Exception as e:
+                row["attempts"].append(f"writer failed: {type(e).__name__}")
+                break
+        row["result"] = "rendered" if ok else "crashed every time"
         row["seconds"] = round(time.time() - t)
         report.append(row)
         print(json.dumps(row, indent=1))
@@ -335,10 +352,13 @@ def aivideo(out_dir):
         "walkways stacked one above the other hanging from the glass roof on thin "
         "steel rods, crowd of people dancing on the lobby floor and standing on the "
         "walkways, photorealistic, 1981", 1280, 720)
-    if not img:
-        print("no still: Cloudflare Workers AI unavailable")
-        return
-    img.save(still) if hasattr(img, "save") else open(still, "wb").write(img)
+    if img:
+        open(still, "wb").write(img)
+    else:
+        # Workers AI out for the day: start from the Blender render of the atrium
+        print("Workers AI unavailable: starting from the 3D render of the atrium")
+        import shutil
+        shutil.copy(os.path.join(HERE, "demo_assets", "atrium_3d.jpg"), still)
     print("still:", still)
     if not os.getenv("HF_TOKEN"):
         print("HF_TOKEN not set in this repository: the AI video step cannot run")
