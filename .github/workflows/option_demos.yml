@@ -29,8 +29,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mode: [scratch, blocks]
-    if: inputs.only == 'all' || contains(inputs.only, 'scratch') || contains(inputs.only, 'blocks')
+        mode: [scratch, blocks, kit]
+    if: inputs.only == 'all' || contains(inputs.only, 'scratch') || contains(inputs.only, 'blocks') || contains(inputs.only, 'kit')
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

@@ -190,7 +190,7 @@ Steps (each has "t" = start time in seconds):
 - {{"t","do":"draw","ids":[...],"dur"}}                 the parts draw themselves in
 - {{"t","do":"label","target":id,"text","color":"cyan|red|amber","dur"}}  label with a leader line, shown for dur seconds
 - {{"t","do":"camera","x","y","zoom","dur"}}            move the camera so (x,y) is centred at this zoom
-- {{"t","do":"force","x0","y0","x1","y1","text"}}       an amber arrow from (x0,y0) to (x1,y1), with a short text
+- {{"t","do":"force","x0","y0","x1","y1","text","dur"}}  an amber arrow from (x0,y0) to (x1,y1), with a short text
 - {{"t","do":"stress","ids":[...],"dur"}}               these parts glow and turn red over dur seconds
 - {{"t","do":"fail","ids":[...],"dy","dur"}}            these parts fall dy units over dur seconds
 - {{"t","do":"caption","text","dur"}}                   a subtitle at the bottom for dur seconds
@@ -318,8 +318,8 @@ def render_spec(spec, mp4):
                 ty = max(60, min(S.H - 120, sy / S.SS - 70))
                 f.label(str(s.get("text", ""))[:60], ax, ay, tx, ty, al,
                         colors.get(s.get("color"), S.CYAN))
-            elif do == "force":
-                k = S.prog(t, a, a + 0.8)
+            elif do == "force" and (not s.get("dur") or t < a + d):
+                k = S.prog(t, a, a + 0.8) * (1 - (S.prog(t, a + d - 0.3, a + d) if s.get("dur") else 0))
                 f.arrow(num(s, "x0"), num(s, "y0"), num(s, "x1"), num(s, "y1"), S.AMBER, 5, 14,
                         k, world=False)
                 sx, sy = f.P(num(s, "x0"), num(s, "y0"))
@@ -336,6 +336,81 @@ def render_spec(spec, mp4):
         f.done().save(os.path.join(frames, f"{i:05d}.png"))
     S._encode(frames, mp4)
     shutil.rmtree(frames)
+
+
+# ---------------------------------------------------------------------------
+# Option: kit + AI director. The structure comes from a kit, drawn correctly
+# once by hand (here: the Hyatt atrium of tools/style_samples.py, as named
+# parts). The writer only directs: what to label, where the camera goes,
+# which parts are stressed and fail, and the captions.
+# ---------------------------------------------------------------------------
+
+def hyatt_kit():
+    import style_samples as S
+    R, W4, W2, G, B, D = S.ROOF_Y, S.W4_Y, S.W2_Y, S.GROUND_Y, S.BEAM_H, S.DECK_H
+    parts = [
+        {"id": "roof", "type": "line", "x0": 220, "y0": R, "x1": 1060, "y1": R, "width": 3},
+        {"id": "wall_left", "type": "line", "x0": 200, "y0": R - 30, "x1": 200, "y1": G, "width": 2},
+        {"id": "wall_right", "type": "line", "x0": 1080, "y0": R - 30, "x1": 1080, "y1": G, "width": 2},
+        {"id": "lobby_floor", "type": "line", "x0": 150, "y0": G, "x1": 1130, "y1": G, "width": 3},
+        {"id": "walkway4_deck", "type": "box", "x0": S.WALK_X0, "y0": W4 - D, "x1": S.WALK_X1, "y1": W4},
+        {"id": "walkway2_deck", "type": "box", "x0": S.WALK_X0, "y0": W2 - D, "x1": S.WALK_X1, "y1": W2},
+        {"id": "crowd_lobby", "type": "people", "x0": 230, "x1": 1050, "y": G, "n": 26},
+        {"id": "crowd_walkway4", "type": "people", "x0": 320, "x1": 960, "y": W4 - D, "n": 12},
+        {"id": "crowd_walkway2", "type": "people", "x0": 320, "x1": 960, "y": W2 - D, "n": 14},
+    ]
+    for name, x in zip(("left", "mid", "right"), S.RODS):
+        parts += [
+            {"id": f"beam4_{name}", "type": "box", "x0": x - 22, "y0": W4, "x1": x + 22, "y1": W4 + B},
+            {"id": f"beam2_{name}", "type": "box", "x0": x - 22, "y0": W2, "x1": x + 22, "y1": W2 + B},
+            {"id": f"upper_rod_{name}", "type": "line", "x0": x - 4, "y0": R, "x1": x - 4, "y1": W4 + B + 3, "width": 2},
+            {"id": f"lower_rod_{name}", "type": "line", "x0": x + 4, "y0": W4 + B - 4, "x1": x + 4, "y1": W2 + B + 3, "width": 2},
+            {"id": f"nut4_{name}", "type": "nut", "x": x - 4, "y": W4 + B + 2},
+            {"id": f"nut2_{name}", "type": "nut", "x": x + 4, "y": W2 + B + 2},
+        ]
+    return parts
+
+
+def describe_kit(parts):
+    lines = []
+    for p in parts:
+        if p["type"] == "nut":
+            lines.append(f'- {p["id"]}: nut at ({p["x"]}, {p["y"]})')
+        elif p["type"] == "people":
+            lines.append(f'- {p["id"]}: people standing on y={p["y"]}, x {p["x0"]}-{p["x1"]}')
+        else:
+            lines.append(f'- {p["id"]}: {p["type"]} from ({p["x0"]}, {p["y0"]}) to ({p["x1"]}, {p["y1"]})')
+    return "\n".join(lines)
+
+
+def kit(out_dir):
+    os.makedirs(out_dir, exist_ok=True)
+    parts = hyatt_kit()
+    steps_only = BLOCKS_PROMPT.split("Parts (each has")[0] + (
+        "The structure is ALREADY DRAWN for you (do not add parts). Its parts, by id "
+        "(nut4_* are the nuts under the 4th-floor beams that carry the upper rods; "
+        "lower_rod_* hang from the 4th-floor beams down to the 2nd-floor beams):\n"
+        + describe_kit(parts) + "\n\nSteps" + BLOCKS_PROMPT.split("Steps")[1]
+        .replace('{"duration": seconds, "parts": [...], "steps": [...]}',
+                 '{"duration": seconds, "steps": [...]}'))
+    report = []
+    for pool, model, provider in writers():
+        tag = re.sub(r"[^a-z0-9]+", "-", provider.lower())
+        mp4 = os.path.join(out_dir, f"kit_{tag}.mp4")
+        row = {"provider": provider, "model": model}
+        try:
+            spec = json.loads(code_block(ask(pool, model, "You reply with valid JSON only.",
+                                             steps_only)))
+            spec["parts"] = parts
+            json.dump(spec, open(os.path.join(out_dir, f"kit_{tag}.json"), "w"), indent=1)
+            row["steps"] = len(spec.get("steps", []))
+            render_spec(spec, mp4)
+            row["result"] = "rendered"
+        except Exception as e:
+            row["result"] = f"failed: {type(e).__name__}: {str(e)[:300]}"
+        report.append(row)
+        print(json.dumps(row, indent=1))
+    json.dump(report, open(os.path.join(out_dir, "kit_report.json"), "w"), indent=1)
 
 
 # ---------------------------------------------------------------------------
@@ -378,4 +453,5 @@ def aivideo(out_dir):
 
 
 if __name__ == "__main__":
-    {"scratch": scratch, "blocks": blocks, "aivideo": aivideo}[sys.argv[1]](sys.argv[2])
+    {"scratch": scratch, "blocks": blocks, "kit": kit,
+     "aivideo": aivideo}[sys.argv[1]](sys.argv[2])
