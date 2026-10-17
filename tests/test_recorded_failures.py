@@ -605,32 +605,34 @@ class LongChapterInHalves(unittest.TestCase):
 
 
 class ClipSchedule(unittest.TestCase):
-    """2026-10-14 (owner): video and first clip public at upload, each
-    next clip 6 hours after the one before."""
+    """2026-10-17 (owner): nothing goes out within 48 hours of anything else,
+    so the first clip is scheduled 48 h after the video, each next one 48 h
+    after the one before (was: first clip with the video, then every 6 h)."""
 
-    def test_clips_spaced_six_hours(self):
+    def test_clips_spaced_48_hours_after_the_video(self):
+        import datetime
         import longform_clips as LC
         import longform_main as LM
         seen = []
         real = (LC.LONGFORM_CLIPS, LC.make_clips, LC.clip_metadata,
                 LM.upload_video_to_youtube, LM.build_credit_block)
-        LC.LONGFORM_CLIPS = 4
-        LC.make_clips = lambda *a: [{"path": f"c{i}", "scenes": []} for i in range(4)]
+        LC.LONGFORM_CLIPS = 2
+        LC.make_clips = lambda *a: [{"path": f"c{i}", "scenes": []} for i in range(2)]
         LC.clip_metadata = lambda clip, script, vid, credit_block=None: ("t", "d", "c")
         LM.build_credit_block = lambda scenes: ""
         LM.upload_video_to_youtube = lambda *a, **kw: seen.append(kw.get("publish_at"))
         os.environ["PRIVACY_STATUS"] = "public"
+        start = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         try:
             LM.publish_clips([], {}, "vid")
         finally:
             (LC.LONGFORM_CLIPS, LC.make_clips, LC.clip_metadata,
              LM.upload_video_to_youtube, LM.build_credit_block) = real
             os.environ.pop("PRIVACY_STATUS")
-        self.assertEqual(len(seen), 4)
-        self.assertIsNone(seen[0])
-        import datetime
-        t = [datetime.datetime.strptime(x, "%Y-%m-%dT%H:%M:%SZ") for x in seen[1:]]
-        self.assertEqual((t[1] - t[0]).total_seconds(), 6 * 3600)
+        self.assertEqual(len(seen), 2)
+        t = [datetime.datetime.strptime(x, "%Y-%m-%dT%H:%M:%SZ") for x in seen]
+        self.assertAlmostEqual((t[0] - start).total_seconds(), 48 * 3600, delta=120)
+        self.assertEqual((t[1] - t[0]).total_seconds(), 48 * 3600)
 
 
 class Animation(unittest.TestCase):
