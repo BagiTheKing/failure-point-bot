@@ -311,7 +311,11 @@ jobs:
           git add -A
           git diff --cached --quiet && exit 0
           git commit -qm "Run progress (${{ github.workflow }} #${{ github.run_number }})"
-          git push -q origin HEAD:run-cache
+          # each lane writes its own folder, so two lanes saving at once
+          # rebase cleanly (2026-10-17: the encore save was rejected and
+          # its finished script lost)
+          for i in 1 2 3; do git pull -q --rebase origin run-cache && git push -q origin HEAD:run-cache && exit 0; sleep 5; done
+          exit 1
 
       # The story this run took leaves the queue (it lives on in the run's
       # saved progress until the video is up).
