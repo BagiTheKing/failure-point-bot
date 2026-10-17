@@ -14,12 +14,16 @@ on:
       samples:
         description: "3D render samples per pixel"
         default: "16"
+      frames_run_id:
+        description: "Reuse the 3D frames of this earlier run (blank = render them); 2-day retention"
+        default: ""
 
 permissions:
   contents: write
 
 jobs:
   render3d:
+    if: inputs.frames_run_id == ''
     runs-on: ubuntu-latest
     timeout-minutes: 90
     strategy:
@@ -48,7 +52,11 @@ jobs:
 
   assemble:
     needs: render3d
+    if: always() && (needs.render3d.result == 'success' || inputs.frames_run_id != '')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -63,6 +71,8 @@ jobs:
           pattern: frames3d-*
           path: raw
           merge-multiple: true
+          run-id: ${{ inputs.frames_run_id || github.run_id }}
+          github-token: ${{ github.token }}
       - name: Real photo
         env:
           WIKIMEDIA_TOKEN: ${{ secrets.WIKIMEDIA_TOKEN }}
@@ -74,11 +84,14 @@ jobs:
           sys.path.insert(0, "src")
           from archive_engine import article_images, article_lead_image, download_archival_image, format_credit
           title = json.load(open(os.environ["SHEET"]))["disaster"]["photo_article"]
-          for c in [c for c in [article_lead_image(title)] + article_images(title) if c]:
+          cands = [c for c in [article_lead_image(title)] + article_images(title) if c]
+          print(f"{len(cands)} candidate photo(s) for {title!r}")
+          for c in cands:
               if download_archival_image(c, "out/photo.jpg", 2560, 1440):
                   open("out/photo_credit.txt", "w").write(format_credit(c) + "\n")
                   print("photo:", format_credit(c))
                   break
+              print("  not usable:", c.get("title") or c)
           else:
               print("no free photo found")
           PY
