@@ -201,3 +201,39 @@ def render_clip(fn, seconds, mp4, *args):
     encode(frames, mp4)
     shutil.rmtree(frames)
     return mp4
+
+
+class Beats:
+    """A clip's timeline as named beats. Each beat animates in, then HOLDS so
+    the viewer can take it in before the next one starts (owner, 2026-10-17:
+    pausing at each step is the product). Later the narration sets the holds:
+    a beat lasts as long as the sentence that explains it.
+
+        b = Beats(("arrows", 0.8, 1.8), ("panel", 0.8, 2.6))
+        b.p(t, "arrows")          # 0..1, eased, during the beat's animation
+        b.total                   # the clip's length
+    """
+
+    def __init__(self, *beats, start=0.0, pace=1.0):
+        self.at = {}
+        t = start
+        for name, anim, hold in beats:
+            self.at[name] = (t, t + anim)
+            t += anim + hold * pace
+        self.total = t
+
+    def p(self, t, name):
+        a, b = self.at[name]
+        return prog(t, a, b)
+
+    def start(self, name):
+        return self.at[name][0]
+
+    def end(self, name):
+        return self.at[name][1]
+
+    def until(self, t, name, fade=0.4):
+        """1 until the named beat starts, then fades out: for things that
+        give way to that beat."""
+        a = self.at[name][0]
+        return 1 - prog(t, a - fade, a)

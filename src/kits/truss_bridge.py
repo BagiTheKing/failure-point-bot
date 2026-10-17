@@ -19,12 +19,11 @@ import random
 from PIL import Image, ImageDraw
 
 from kits.blueprint import (W, H, SS, BG, LINE, DIM, RED, AMBER, CYAN, GREEN,
-                            ease, prog, lerp, mix, Frame)
+                            ease, prog, lerp, mix, Frame, Beats)
 
 X0, X1 = 100, 1180          # abutments
 DECK_Y = 300                # roadway level
 WATER_Y, BED_Y = 560, 640
-B_ZOOM_END = 7.6
 WATER = (16, 44, 78)
 
 
@@ -269,154 +268,189 @@ class TrussBridge:
                    RED, 2.5)
 
     # ----------------------------------------------------------------- clips
+    # Every clip is a timeline of beats (blueprint.Beats): each step animates,
+    # then holds long enough to be understood before the next one starts.
+    BUILD = Beats(("draw", 3.6, 1.0), ("traffic", 0.8, 0.6), ("labels", 0.6, 2.6),
+                  ("load", 0.5, 2.2), ("zoom", 2.6, 0.4), ("node", 0.6, 2.8))
+    PHYS = Beats(("lead", 1.2, 0.3), ("push", 0.8, 2.0), ("up", 0.8, 2.2),
+                 ("thick", 0.8, 3.0), ("half", 0.8, 2.4), ("stress", 2.8, 0.8),
+                 ("bow", 2.4, 1.4), ("tear", 1.0, 2.0))
+    FALL = Beats(("handover", 0.8, 0.0), ("pull", 1.8, 0.9), ("drop", 1.6, 0.0),
+                 ("settle", 0.1, 2.0), ("toll", 0.6, 2.8))
+    COMP = Beats(("show", 1.0, 0.6), ("titles", 0.6, 2.6), ("mark", 0.6, 2.4),
+                 ("drop", 1.6, 0.6), ("verdict", 0.6, 2.8))
+
+    def durations(self):
+        return {"build": self.BUILD.total, "physics": self.PHYS.total,
+                "fall": self.FALL.total, "compare": self.COMP.total}
+
     def b_camera(self, t):
-        k = prog(t, 5.0, B_ZOOM_END)
+        b = self.BUILD
+        k = b.p(t, "zoom")
         return (lerp(W / 2, self.fail_x, k), lerp(H / 2 + 60, DECK_Y + 6, k), lerp(1.0, 5.5, k))
 
     def b_content(self, f, t, label_alpha=1.0):
+        b = self.BUILD
         zoomed = f.zoom > 2.4
         self.scenery(f, prog(t, 0.0, 1.0), t)
-        self.truss(f, frac=prog(t, 0.8, 3.6), skip_node=zoomed)
-        self.cars(f, alpha=prog(t, 3.6, 4.2))
-        self.load_pile(f, alpha=prog(t, 4.0, 4.6))
+        self.truss(f, frac=b.p(t, "draw"), skip_node=zoomed)
+        self.cars(f, alpha=b.p(t, "traffic"))
+        self.load_pile(f, alpha=b.p(t, "traffic"))
         if zoomed:
             self.gusset(f)
         L = self.labels
-        la = prog(t, 3.8, 4.4) * (1 - prog(t, 4.9, 5.3))
+        la = b.p(t, "labels") * b.until(t, "load")
         f.label(L.get("deck", "deck"), 250, DECK_Y - 10, 230, 150, la)
         f.label(L.get("truss", "truss"), 760, DECK_Y + 40, 860, 190, la)
         if self.piers:
             f.label(L.get("piers", "piers"), self.piers[-1] + 12, 470, 1020, 470, la)
         f.label(L.get("river", "river"), 640, WATER_Y + 30, 760, 650, la)
-        lp = prog(t, 4.4, 4.9) * (1 - prog(t, 5.2, 5.6))
         if self.with_load:
+            lp = b.p(t, "load") * b.until(t, "zoom")
             f.label(L.get("load", "load"), self.fail_x + 40, DECK_Y - 22, 560, 110, lp, AMBER)
-        lb = prog(t, 7.8, 8.4) * label_alpha
+        lb = b.p(t, "node") * label_alpha
         f.label(L.get("node", self.node_name), self.fail_x, DECK_Y + 4, 300, 520, lb, RED, size=19)
         f.label(L.get("plate", "gusset plate"), self.fail_x + 10, DECK_Y + 10, 820, 560, lb, size=18)
 
-    def build(self, t, T):
+    def build(self, t, T=None):
+        b = self.BUILD
         f = Frame(*self.b_camera(t))
         f.grid(prog(t, 0, 0.8))
         self.b_content(f, t)
-        cap = self.captions.get("establish") if t < 5 else self.captions.get("connection")
-        f.caption(cap or "", prog(t, 0.8, 1.4) if cap else 0)
+        zoom_at = b.start("zoom")
+        cap = self.captions.get("establish") if t < zoom_at else self.captions.get("connection")
+        f.caption(cap or "", (prog(t, 0.8, 1.4) * b.until(t, "zoom", 0.3)) if t < zoom_at
+                  else prog(t, zoom_at + 0.3, zoom_at + 0.8))
         return f.done()
 
-    def physics(self, t, T, lead=1.2):
-        k = ease(prog(t, 0, lead)) if lead else 1
-        bx, by, bz = self.b_camera(99)
+    def physics(self, t, T=None, lead=True):
+        """Starts on build's last frame (one continuous shot) when lead."""
+        b = self.PHYS
+        k = b.p(t, "lead") if lead else 1
+        bx, by, bz = self.b_camera(999)
         f = Frame(lerp(bx, self.fail_x, k), lerp(by, DECK_Y + 10, k), lerp(bz, 6.5, k))
         f.grid(1)
-        tt = t - lead * 0.5
         if k < 1:
             g = Frame(f.cx, f.cy, f.zoom)
             g.grid(1)
-            self.b_content(g, 99, label_alpha=1 - prog(t, 0, 0.6))
-            self._physics_body(f, tt, T)
+            self.b_content(g, 999, label_alpha=1 - prog(t, 0, 0.6))
+            self._physics_body(f, t)
             return Image.blend(g.done(), f.done(), k)
-        return self._physics_body(f, tt, T).done()
+        return self._physics_body(f, t).done()
 
-    def _physics_body(self, f, t, T):
-        stress = prog(t, 4.6, 7.4)
-        bow = prog(t, 6.0, 8.4)
-        tear = prog(t, 8.2, 9.2)
+    def _physics_body(self, f, t):
+        b = self.PHYS
+        stress = b.p(t, "stress")
+        bow = b.p(t, "bow")
+        tear = b.p(t, "tear")
         x, y = self.fail_x, DECK_Y
         f.poly([(x - 120, y - 10), (x + 120, y - 10)], LINE, 1.5)
         self.gusset(f, stress, bow, tear)
-        # forces: the members push and pull on the plate
-        a1 = prog(t, 0.6, 1.4)
+        a1 = b.p(t, "push")
         f.arrow(x - 40, y - 2, x - 12, y - 2, AMBER, 6, 14, a1)
         f.arrow(x + 40, y - 2, x + 12, y - 2, AMBER, 6, 14, a1)
         f.text("the beams push in", 470, 150, 22, AMBER, "Inter-Bold.otf", screen=True, alpha=a1, anchor="rs")
-        a2 = prog(t, 1.8, 2.6)
+        a2 = b.p(t, "up")
         f.arrow(x, y + 46, x, y + 18, AMBER, 6, 14, a2)
         f.text("the truss below pushes up", 760, 560, 22, AMBER, "Inter-Bold.otf", screen=True, alpha=a2)
         f.text("all of it through one steel plate", 760, 586, 18, LINE, "Inter-Medium.otf", screen=True, alpha=a2)
-        # thickness: as built vs needed
-        p = prog(t, 3.0, 3.8)
+        p = b.p(t, "thick")
         d = self.dvb
         f.d.rectangle([40 * SS, 230 * SS, 360 * SS, 420 * SS], fill=(0, 0, 0, int(160 * p)))
         f.text("PLATE THICKNESS", 58, 258, 16, CYAN, "Inter-Bold.otf", screen=True, alpha=p)
-        f.d.rectangle([58 * SS, 290 * SS, 330 * SS, 300 * SS], fill=CYAN + (int(255 * p),))
+        f.d.rectangle([58 * SS, 290 * SS, (58 + 272 * p) * SS, 300 * SS], fill=CYAN + (int(255 * p),))
         f.text(f"needed: {d.get('plate_needed', '')}", 58, 308, 18, LINE, "Inter-Medium.otf", screen=True, alpha=p)
-        f.d.rectangle([58 * SS, 350 * SS, 194 * SS, 360 * SS], fill=RED + (int(255 * p),))
-        f.text(f"built: {d.get('plate_built', '')}", 58, 368, 18, LINE, "Inter-Medium.otf", screen=True, alpha=p)
-        a3 = prog(t, 4.2, 5.0)
+        q = prog(t, b.start("thick") + 0.9, b.start("thick") + 1.6)
+        f.d.rectangle([58 * SS, 350 * SS, (58 + 136 * q) * SS, 360 * SS], fill=RED + (int(255 * q),))
+        f.text(f"built: {d.get('plate_built', '')}", 58, 368, 18, LINE, "Inter-Medium.otf", screen=True, alpha=q)
+        a3 = b.p(t, "half")
         f.text(d.get("multiplier", "½"), 1200, 470, 76, RED, "InterDisplay-Black.otf", screen=True, alpha=a3, anchor="rs")
         f.text(d.get("multiplier_label", ""), 1200, 504, 20, RED, "Inter-Bold.otf", screen=True, alpha=a3, anchor="rs")
-        # edge-view inset: the plate seen from the side, bowing
-        q = prog(t, 5.8, 6.4)
+        q = prog(t, b.start("bow") - 0.4, b.start("bow"))
         if q > 0:
             bx, by = 1000, 170
             f.d.rectangle([(bx - 110) * SS, (by - 60) * SS, (bx + 110) * SS, (by + 70) * SS],
                           fill=(0, 0, 0, int(170 * q)))
             f.text("EDGE VIEW", bx - 96, by - 50, 14, CYAN, "Inter-Bold.otf", screen=True, alpha=q)
-            pts = []
-            for k in range(21):
-                yy = by - 30 + k * 4
-                xx = bx + 26 * bow * math.sin(math.pi * k / 20)
-                pts.append((xx * SS, yy * SS))
+            pts = [((bx + 26 * bow * math.sin(math.pi * k / 20)) * SS, (by - 30 + k * 4) * SS)
+                   for k in range(21)]
             f.d.line(pts, fill=mix(LINE, RED, bow) + (int(255 * q),), width=4 * SS)
             f.text("the plate bows", bx - 96, by + 50, 15, LINE, "Inter-Medium.otf", screen=True, alpha=q)
         if tear > 0:
             f.text("the plates tear", W / 2, 96, 28, RED, "Inter-Bold.otf", screen=True,
-                   alpha=prog(t, 8.4, 9.0), anchor="mm")
+                   alpha=prog(t, b.start("tear") + 0.2, b.start("tear") + 0.8), anchor="mm")
         f.caption(self.captions.get("physics", ""), prog(t, 0.2, 0.8))
         return f
 
-    def fall(self, t, T, lead=1.6):
-        k = ease(prog(t, 0, lead))
+    _phys_last = None
+
+    def fall(self, t, T=None):
+        """Starts on physics' exact last frame, then pulls back, holds a beat
+        on the whole bridge, and lets the failure chain play."""
+        b = self.FALL
+        k = b.p(t, "pull")
         f = Frame(lerp(self.fail_x, W / 2, k), lerp(DECK_Y + 10, H / 2 + 60, k), lerp(6.5, 1.0, k))
-        t0 = lead + 0.6
-        tf = prog(t, t0, t0 + 1.6)
-        hit = t0 + 0.9
+        tf = b.p(t, "drop")
+        hit = b.start("drop") + 0.9
         shake = 4 * math.sin(t * 70) * max(0, 1 - abs(t - hit) * 3) if t > hit - 0.1 else 0
         f.cx += shake
         f.grid(1)
         self.scenery(f, 1, t)
-        self.truss(f, t_fall=tf, highlight=(t - lead) if lead < t < t0 + 0.2 else 0,
-                   node_color=RED if t > lead else None)
+        self.truss(f, t_fall=tf, skip_node=f.zoom > 2.4, node_color=RED,
+                   highlight=(t - b.end("pull")) if b.end("pull") < t < b.start("drop") + 0.2 else 0)
+        if f.zoom > 2.4:
+            self.gusset(f, 1, 1, 1)
         self.cars(f, t_fall=tf)
         self.load_pile(f, t_fall=tf)
         self.water_front(f, t)
         self.splash(f, t - hit)
         nums = self.sheet.get("numbers", [])
-        if nums and t > hit + 1.4:
-            a = prog(t, hit + 1.4, hit + 2.0)
+        if nums:
+            a = b.p(t, "toll")
             f.text(nums[0]["value"], 1180, 200, 96, RED, "InterDisplay-Black.otf", anchor="rs",
                    screen=True, alpha=a)
             f.text(nums[0]["label"], 1180, 236, 24, LINE, "Inter-Bold.otf", anchor="rs",
                    screen=True, alpha=a)
-        f.caption(self.captions.get("fall", ""), prog(t, 0.3, 0.9))
-        return f.done()
+        f.caption(self.captions.get("fall", ""), prog(t, b.end("pull"), b.end("pull") + 0.5))
+        img = f.done()
+        h = b.p(t, "handover")
+        if h < 1:
+            if self._phys_last is None:
+                self._phys_last = self.physics(self.PHYS.total - 1 / 30)
+            img = Image.blend(self._phys_last, img, h)
+        return img
 
-    def compare(self, t, T):
-        tf = prog(t, 5.0, 6.6)
+    def compare(self, t, T=None):
+        b = self.COMP
+        tf = b.p(t, "drop")
+        show = b.p(t, "show")
         left = Frame(W / 2, H / 2 + 60, 0.5)
         left.grid(0.6)
-        self.scenery(left, 1, t)
-        self.truss(left, node_color=CYAN)
+        self.scenery(left, show, t)
+        self.truss(left, frac=show, node_color=CYAN)
         right = Frame(W / 2, H / 2 + 60, 0.5)
         right.grid(0.6)
-        self.scenery(right, 1, t)
-        self.truss(right, t_fall=tf, node_color=RED, highlight=(t - 2.5) if 2.5 < t < 5.0 else 0)
+        self.scenery(right, show, t)
+        mark = b.p(t, "mark")
+        self.truss(right, frac=show, t_fall=tf, node_color=RED if mark > 0 else None,
+                   highlight=(t - b.start("mark")) if b.start("mark") < t < b.start("drop") else 0)
         self.water_front(right, t)
-        self.splash(right, t - 5.9)
+        self.splash(right, t - (b.start("drop") + 0.9))
         out = Image.new("RGB", (W, H), BG)
         out.paste(left.done().crop((W // 4, 0, W // 4 + W // 2, H)), (0, 0))
         out.paste(right.done().crop((W // 4, 0, W // 4 + W // 2, H)), (W // 2, 0))
         f = Frame()
         f.img = out.resize((W * SS, H * SS))
         f.d = ImageDraw.Draw(f.img, "RGBA")
-        f.d.line([(W * SS / 2, 0), (W * SS / 2, H * SS)], fill=LINE, width=2 * SS)
-        d, b = self.dvb.get("designed", {}), self.dvb.get("built", {})
-        f.text(d.get("title", ""), W / 4, 92, 24, CYAN, "Inter-Bold.otf", anchor="mm", screen=True)
-        f.text(d.get("detail", ""), W / 4, 120, 17, LINE, "Inter-Medium.otf", anchor="mm", screen=True)
-        f.text(b.get("title", ""), 3 * W / 4, 92, 24, RED, "Inter-Bold.otf", anchor="mm", screen=True)
-        f.text(b.get("detail", ""), 3 * W / 4, 120, 17, LINE, "Inter-Medium.otf", anchor="mm", screen=True)
-        if t > 6.8:
-            a = prog(t, 6.8, 7.4)
+        f.d.line([(W * SS / 2, 0), (W * SS / 2, H * SS)], fill=LINE + (int(255 * show),), width=2 * SS)
+        d, bb = self.dvb.get("designed", {}), self.dvb.get("built", {})
+        a = b.p(t, "titles")
+        f.text(d.get("title", ""), W / 4, 92, 24, CYAN, "Inter-Bold.otf", anchor="mm", screen=True, alpha=a)
+        f.text(d.get("detail", ""), W / 4, 120, 17, LINE, "Inter-Medium.otf", anchor="mm", screen=True, alpha=a)
+        f.text(bb.get("title", ""), 3 * W / 4, 92, 24, RED, "Inter-Bold.otf", anchor="mm", screen=True, alpha=a)
+        f.text(bb.get("detail", ""), 3 * W / 4, 120, 17, LINE, "Inter-Medium.otf", anchor="mm", screen=True, alpha=a)
+        a = b.p(t, "verdict")
+        if a > 0:
             f.text("HOLDS", W / 4 + 22, 600, 34, GREEN, "Inter-Bold.otf", anchor="mm", screen=True, alpha=a)
             f.text("FAILS", 3 * W / 4 + 22, 600, 34, RED, "Inter-Bold.otf", anchor="mm", screen=True, alpha=a)
             cx, cy = (W / 4 - 70) * SS, 600 * SS

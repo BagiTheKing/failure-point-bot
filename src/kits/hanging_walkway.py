@@ -19,13 +19,12 @@ import random
 from PIL import Image, ImageDraw
 
 from kits.blueprint import (W, H, SS, BG, LINE, DIM, RED, AMBER, CYAN, GREEN,
-                            ease, prog, lerp, mix, Frame)
+                            ease, prog, lerp, mix, Frame, Beats)
 
 # side elevation, world units = screen px at zoom 1
 ROOF_Y, UP_Y, LO_Y, GROUND_Y = 120, 330, 540, 650
 WALK_X0, WALK_X1 = 300, 980
 BEAM_H, DECK_H = 16, 10
-B_ZOOM_END = 7.6
 
 
 class HangingWalkways:
@@ -168,121 +167,156 @@ class HangingWalkways:
                    LINE + (int(220 * fade),), 2)
 
     # -------------------------------------------------------------------- clips
+    # Every clip is a timeline of beats (blueprint.Beats): each step animates,
+    # then holds long enough to be understood before the next one starts.
+    BUILD = Beats(("walls", 1.3, 0.2), ("roof", 1.0, 0.2), ("rods", 1.1, 0.2),
+                  ("walks", 1.2, 0.6), ("people", 0.6, 0.4), ("labels", 0.7, 2.6),
+                  ("zoom", 2.6, 0.4), ("node", 0.6, 2.8))
+    PHYS = Beats(("lead", 1.2, 0.3), ("upper", 0.8, 2.0), ("lower", 0.8, 2.2),
+                 ("sum", 0.8, 2.6), ("panel", 0.8, 2.6), ("stress", 3.0, 0.6),
+                 ("crack", 1.6, 0.8), ("slip", 1.0, 2.0))
+    FALL = Beats(("handover", 0.8, 0.0), ("pull", 1.8, 0.9), ("drop1", 0.45, 0.0),
+                 ("drop2", 0.55, 0.0), ("settle", 0.1, 2.0), ("toll", 0.6, 2.8))
+    COMP = Beats(("show", 1.0, 0.6), ("loads", 0.8, 2.6), ("mark", 0.6, 2.4),
+                 ("drop", 1.2, 0.6), ("verdict", 0.6, 2.8))
+
+    def durations(self):
+        return {"build": self.BUILD.total, "physics": self.PHYS.total,
+                "fall": self.FALL.total, "compare": self.COMP.total}
+
     def b_camera(self, t):
-        k = prog(t, 5.0, B_ZOOM_END)
+        k = self.BUILD.p(t, "zoom")
         return (lerp(W / 2, self.fail_x, k), lerp(H / 2 - 20, UP_Y + 8, k), lerp(1.0, 5.2, k))
 
     def b_content(self, f, t, label_alpha=1.0):
+        b = self.BUILD
         zoomed = f.zoom > 2.2
-        self.structure(f, prog(t, 0.3, 1.6), prog(t, 1.4, 2.4), prog(t, 2.3, 3.4),
-                       prog(t, 3.2, 4.4), skip_fail=zoomed)
-        a = prog(t, 4.0, 4.6)
+        self.structure(f, b.p(t, "walls"), b.p(t, "roof"), b.p(t, "rods"), b.p(t, "walks"),
+                       skip_fail=zoomed)
+        a = b.p(t, "people")
         self.people(f, GROUND_Y, 230, 1050, a)
         self.people(f, LO_Y - DECK_H, 320, 960, a, n=14, seed=5)
         self.people(f, UP_Y - DECK_H, 320, 960, a, n=12, seed=7)
+        z_end = b.end("zoom")
         if zoomed:
-            self.connection(f, pulse=(t - B_ZOOM_END) if t > B_ZOOM_END else 0)
-        la = prog(t, 3.6, 4.3) * (1 - prog(t, 4.9, 5.3))
+            self.connection(f, pulse=(t - z_end) if t > z_end else 0)
+        la = b.p(t, "labels") * b.until(t, "zoom")
         L = self.labels
         f.label(L.get("roof", "roof"), 700, ROOF_Y - 17, 860, 70, la)
         f.label(L.get("rods", "hanger rods"), self.rods[-1] + 4, 230, 1010, 230, la)
         f.label(self.levels[0], 520, UP_Y - 5, 380, 270, la)
         f.label(self.levels[1], 520, LO_Y - 5, 380, 480, la)
-        lb = prog(t, 7.8, 8.4) * label_alpha
+        lb = b.p(t, "node") * label_alpha
         f.label(L.get("beam", "beam"), self.fail_x + 18, UP_Y + 4, 900, 250, lb, size=19)
         f.label(L.get("nut", "the connection"), self.fail_x - 4, UP_Y + BEAM_H + 2, 300, 520,
                 lb, RED, size=19)
 
-    def build(self, t, T):
+    def build(self, t, T=None):
+        b = self.BUILD
         f = Frame(*self.b_camera(t))
         f.grid(prog(t, 0, 0.8))
         self.b_content(f, t)
-        cap = self.captions.get("establish") if t < 5 else self.captions.get("connection")
-        f.caption(cap or "", prog(t, 0.8, 1.4) if cap else 0)
+        zoom_at = b.start("zoom")
+        cap = self.captions.get("establish") if t < zoom_at else self.captions.get("connection")
+        f.caption(cap or "", (prog(t, 0.8, 1.4) * b.until(t, "zoom", 0.3)) if t < zoom_at
+                  else prog(t, zoom_at + 0.3, zoom_at + 0.8))
         return f.done()
 
-    PHYS_CAM = (None, UP_Y + 14, 6.0)
-
-    def physics(self, t, T, lead=1.2):
-        """Starts on build's last frame when lead > 0 (one continuous shot)."""
-        k = ease(prog(t, 0, lead)) if lead else 1
-        bx, by, bz = self.b_camera(99)
+    def physics(self, t, T=None, lead=True):
+        """Starts on build's last frame (one continuous shot) when lead."""
+        k = self.PHYS.p(t, "lead") if lead else 1
+        bx, by, bz = self.b_camera(999)
         f = Frame(lerp(bx, self.fail_x, k), lerp(by, UP_Y + 14, k), lerp(bz, 6.0, k))
         f.grid(1)
-        tt = t - lead * 0.5
         if k < 1:
             g = Frame(f.cx, f.cy, f.zoom)
             g.grid(1)
-            self.b_content(g, 99, label_alpha=1 - prog(t, 0, 0.6))
-            self._physics_body(f, tt, T)
+            self.b_content(g, 999, label_alpha=1 - prog(t, 0, 0.6))
+            self._physics_body(f, t)
             return Image.blend(g.done(), f.done(), k)
-        return self._physics_body(f, tt, T).done()
+        return self._physics_body(f, t).done()
 
-    def _physics_body(self, f, t, T):
-        stress = prog(t, 3.5, 7.0)
-        crack = prog(t, 6.2, 8.0)
-        slip = 14 * prog(t, 8.0, 9.0) ** 2
+    def _physics_body(self, f, t):
+        b = self.PHYS
+        stress = b.p(t, "stress")
+        crack = b.p(t, "crack")
+        slip = 14 * b.p(t, "slip") ** 2
         x, y = self.fail_x, UP_Y
         f.rect(WALK_X0, y - DECK_H + slip, WALK_X1, y + slip, LINE, None, 1.5)
         self.connection(f, stress, crack, slip=slip)
-        a1 = prog(t, 0.6, 1.4)
+        a1 = b.p(t, "upper")
         f.arrow(x - 16, y - 30, x - 16, y - 2, AMBER, 6, 16, a1)
         f.text(self.levels[0], 520, 140, 22, AMBER, "Inter-Bold.otf", screen=True, alpha=a1, anchor="rs")
         f.text("its own weight", 520, 166, 18, LINE, "Inter-Medium.otf", screen=True, alpha=a1, anchor="rs")
-        a2 = prog(t, 1.8, 2.6)
+        a2 = b.p(t, "lower")
         f.arrow(x + 12, y + 32, x + 12, y + 56, AMBER, 6, 16, a2)
         f.text(self.levels[1], 740, 540, 22, AMBER, "Inter-Bold.otf", screen=True, alpha=a2)
         f.text("hangs from THIS beam", 740, 566, 18, LINE, "Inter-Medium.otf", screen=True, alpha=a2)
-        a3 = prog(t, 3.0, 3.8)
+        a3 = b.p(t, "sum")
         f.arrow(x - 4, y + BEAM_H + 4, x - 4, y + BEAM_H + 22, RED, 10, 22, a3)
         f.text(self.mult, 590, 470, 70, RED, "InterDisplay-Black.otf", screen=True, alpha=a3, anchor="rs")
         f.text(self.mult_label, 590, 504, 22, RED, "Inter-Bold.otf", screen=True, alpha=a3, anchor="rs")
-        p = prog(t, 4.0, 4.8)
-        d, b = self.dvb.get("designed", {}), self.dvb.get("built", {})
+        p = b.p(t, "panel")
+        d, bb = self.dvb.get("designed", {}), self.dvb.get("built", {})
         f.d.rectangle([40 * SS, 250 * SS, 330 * SS, 400 * SS], fill=(0, 0, 0, int(150 * p)))
         f.text(d.get("title", "AS DESIGNED"), 58, 278, 16, CYAN, "Inter-Bold.otf", screen=True, alpha=p)
         f.text(d.get("load", ""), 58, 304, 20, LINE, "Inter-Medium.otf", screen=True, alpha=p)
-        f.text(b.get("title", "AS BUILT"), 58, 344, 16, RED, "Inter-Bold.otf", screen=True, alpha=p)
-        f.text(b.get("load", ""), 58, 370, 20, LINE, "Inter-Medium.otf", screen=True, alpha=p)
+        f.text(bb.get("title", "AS BUILT"), 58, 344, 16, RED, "Inter-Bold.otf", screen=True, alpha=p)
+        f.text(bb.get("load", ""), 58, 370, 20, LINE, "Inter-Medium.otf", screen=True, alpha=p)
         if crack > 0:
             f.text("the nut pulls through the steel", W - 40, 120, 24, RED, "Inter-Bold.otf",
-                   screen=True, alpha=prog(t, 6.4, 7.0), anchor="rs")
+                   screen=True, alpha=prog(t, b.start("crack") + 0.2, b.start("crack") + 0.8), anchor="rs")
         f.caption(self.captions.get("physics", ""), prog(t, 0.2, 0.8))
         return f
 
-    def fall(self, t, T, lead=1.6):
-        """Continues from physics: pull back to the whole structure, then the
-        failure chain in the kit's order: upper deck onto lower, both down."""
-        k = ease(prog(t, 0, lead))
+    _phys_last = None
+
+    def fall(self, t, T=None):
+        """Starts on physics' exact last frame, pulls back, holds a beat on
+        the whole structure, then the failure chain in the kit's order:
+        upper deck onto lower, both down."""
+        b = self.FALL
+        k = b.p(t, "pull")
         f = Frame(lerp(self.fail_x, W / 2, k), lerp(UP_Y + 14, H / 2 + 40, k), lerp(6.0, 0.95, k))
         f.grid(1)
-        t0 = lead + 0.6                       # the connection lets go
+        t0 = b.start("drop1")
         gap = LO_Y - UP_Y - BEAM_H - DECK_H
-        s1 = prog(t, t0, t0 + 0.45) ** 1.6    # upper deck falls the gap
-        s2 = prog(t, t0 + 0.45, t0 + 1.0) ** 1.6
+        s1 = b.p(t, "drop1") ** 1.6
+        s2 = b.p(t, "drop2") ** 1.6
         drop_lo = (GROUND_Y - LO_Y - BEAM_H) * s2
         drop_up = gap * s1 + drop_lo
         tilt = 1 - s1 if t > t0 else 0
-        shake = 4 * math.sin(t * 70) * max(0, 1 - abs(t - (t0 + 1.0)) * 3) if t > t0 + 0.9 else 0
+        hit = b.end("drop2")
+        shake = 4 * math.sin(t * 70) * max(0, 1 - abs(t - hit) * 3) if t > hit - 0.1 else 0
         f.cx += shake
-        self.structure(f, drop_up=drop_up, drop_lo=drop_lo, tilt=tilt * 0.6,
-                       highlight=(t - lead) if lead < t < t0 + 0.2 else 0)
+        zoomed = f.zoom > 2.2
+        self.structure(f, drop_up=drop_up, drop_lo=drop_lo, tilt=tilt * 0.6, skip_fail=zoomed,
+                       highlight=(t - b.end("pull")) if b.end("pull") < t < t0 + 0.2 else 0)
+        if zoomed:
+            self.connection(f, 1, 1, slip=14)
         self.people(f, GROUND_Y, 230, 1050, 1)
         self.people(f, LO_Y - DECK_H, 320, 960, 1, n=14, seed=5, drop=drop_lo, tumble=s2)
         self.people(f, UP_Y - DECK_H, 320, 960, 1, n=12, seed=7, drop=drop_up, tumble=s2)
-        self.dust(f, t - (t0 + 1.0), WALK_X0, WALK_X1, GROUND_Y - 20)
+        self.dust(f, t - hit, WALK_X0, WALK_X1, GROUND_Y - 20)
         nums = self.sheet.get("numbers", [])
-        if nums and t > t0 + 2.0:
-            a = prog(t, t0 + 2.0, t0 + 2.6)
+        if nums:
+            a = b.p(t, "toll")
             f.text(nums[0]["value"], 1180, 300, 96, RED, "InterDisplay-Black.otf", anchor="rs",
                    screen=True, alpha=a)
             f.text(nums[0]["label"], 1180, 336, 24, LINE, "Inter-Bold.otf", anchor="rs",
                    screen=True, alpha=a)
-        f.caption(self.captions.get("fall", ""), prog(t, 0.3, 0.9))
-        return f.done()
+        f.caption(self.captions.get("fall", ""), prog(t, b.end("pull"), b.end("pull") + 0.5))
+        img = f.done()
+        h = b.p(t, "handover")
+        if h < 1:
+            if self._phys_last is None:
+                self._phys_last = self.physics(self.PHYS.total - 1 / 30)
+            img = Image.blend(self._phys_last, img, h)
+        return img
 
-    def compare(self, t, T):
-        fall = prog(t, 5.0, 6.2)
+    def compare(self, t, T=None):
+        b = self.COMP
+        fall = b.p(t, "drop")
         gap = LO_Y - UP_Y - BEAM_H - DECK_H
         drop_lo = (GROUND_Y - LO_Y - BEAM_H) * prog(fall, 0.55, 1.0)
         drop_up = gap * min(1, fall / 0.55) + drop_lo
@@ -292,11 +326,11 @@ class HangingWalkways:
         right = Frame(W / 2, H / 2 - 10, 0.52)
         right.grid(0.6)
         self.structure(right, built=True, drop_up=drop_up, drop_lo=drop_lo,
-                       highlight=(t - 2.5) if 2.5 < t < 5.0 else 0)
-        self.dust(right, t - 6.2, WALK_X0, WALK_X1, GROUND_Y - 20, amount=0.6)
+                       highlight=(t - b.start("mark")) if b.start("mark") < t < b.start("drop") else 0)
+        self.dust(right, t - b.end("drop"), WALK_X0, WALK_X1, GROUND_Y - 20, amount=0.6)
         for fr, labels in ((left, [("1×", CYAN), ("1×", CYAN)]),
                            (right, [(self.mult, RED), ("1×", AMBER)])):
-            a = prog(t, 1.4, 2.2) * (1 - fall)
+            a = b.p(t, "loads") * (1 - fall)
             for (s, col), y in zip(labels, (UP_Y, LO_Y)):
                 fr.text(s, self.fail_x + 40, y + 30, 40, col, "InterDisplay-Black.otf", alpha=a)
         out = Image.new("RGB", (W, H), BG)
@@ -306,13 +340,13 @@ class HangingWalkways:
         f.img = out.resize((W * SS, H * SS))
         f.d = ImageDraw.Draw(f.img, "RGBA")
         f.d.line([(W * SS / 2, 0), (W * SS / 2, H * SS)], fill=LINE, width=2 * SS)
-        d, b = self.dvb.get("designed", {}), self.dvb.get("built", {})
+        d, bb = self.dvb.get("designed", {}), self.dvb.get("built", {})
         f.text(d.get("title", "AS DESIGNED"), W / 4, 92, 24, CYAN, "Inter-Bold.otf", anchor="mm", screen=True)
         f.text(d.get("detail", ""), W / 4, 120, 17, LINE, "Inter-Medium.otf", anchor="mm", screen=True)
-        f.text(b.get("title", "AS BUILT"), 3 * W / 4, 92, 24, RED, "Inter-Bold.otf", anchor="mm", screen=True)
-        f.text(b.get("detail", ""), 3 * W / 4, 120, 17, LINE, "Inter-Medium.otf", anchor="mm", screen=True)
-        if t > 6.4:
-            a = prog(t, 6.4, 7.0)
+        f.text(bb.get("title", "AS BUILT"), 3 * W / 4, 92, 24, RED, "Inter-Bold.otf", anchor="mm", screen=True)
+        f.text(bb.get("detail", ""), 3 * W / 4, 120, 17, LINE, "Inter-Medium.otf", anchor="mm", screen=True)
+        a = b.p(t, "verdict")
+        if a > 0:
             f.text("HOLDS", W / 4 + 22, 600, 34, GREEN, "Inter-Bold.otf", anchor="mm", screen=True, alpha=a)
             f.text("FAILS", 3 * W / 4 + 22, 600, 34, RED, "Inter-Bold.otf", anchor="mm", screen=True, alpha=a)
             cx, cy = (W / 4 - 70) * SS, 600 * SS
