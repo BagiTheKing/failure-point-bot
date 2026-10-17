@@ -156,7 +156,7 @@ def fetch_recent_videos(limit=50):
         out = []
         for i in range(0, len(ids), 50):
             chunk = ids[i:i + 50]
-            vids = yt.videos().list(part="snippet,statistics,contentDetails",
+            vids = yt.videos().list(part="snippet,statistics,contentDetails,status",
                                     id=",".join(chunk)).execute()
             for v in vids.get("items", []):
                 stats = v.get("statistics", {})
@@ -170,6 +170,8 @@ def fetch_recent_videos(limit=50):
                     "description": v["snippet"].get("description", ""),
                     # Read by published_history's same-day duplicate guard.
                     "publishedAt": v["snippet"].get("publishedAt", ""),
+                    # a scheduled upload's publish time (upload_gate.py)
+                    "publishAt": v.get("status", {}).get("publishAt", ""),
                     "likes": int(stats.get("likeCount", 0) or 0),
                     "views": int(stats.get("viewCount", 0) or 0),
                     "duration": v["contentDetails"].get("duration", ""),

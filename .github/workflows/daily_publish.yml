@@ -9,6 +9,10 @@ on:
     - cron: '23 15 * * 0,1,5'
   workflow_dispatch:
     inputs:
+      ignore_spacing:
+        description: 'Upload even if the channel posted in the last 48 hours'
+        type: boolean
+        default: false
       skip_upload:
         description: 'Render only, do not upload (dry run)'
         type: boolean
@@ -44,11 +48,37 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-publish:
+  # Nothing goes out within 48 hours of anything else on the channel, Shorts
+  # and long videos alike (owner, 2026-10-17; src/upload_gate.py).
+  gate:
     # Scheduled runs wait for the repository variable PIPELINE_ENABLED=true
     # (Settings > Secrets and variables > Actions > Variables), so a fresh
     # copy without its secrets does not fail on a timer every day.
     if: github.event_name != 'schedule' || vars.PIPELINE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      go: ${{ steps.spacing.outputs.go }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 48-hour spacing (src/upload_gate.py)
+        id: spacing
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          SKIP_UPLOAD: ${{ inputs.skip_upload && '1' || '0' }}
+          IGNORE_SPACING: ${{ inputs.ignore_spacing && '1' || '0' }}
+        run: |
+          pip install -q google-api-python-client google-auth
+          python src/upload_gate.py
+
+  build-and-publish:
+    needs: gate
+    if: needs.gate.outputs.go == 'true'
     runs-on: ubuntu-latest
     # This was the only workflow with no ceiling, so a hung run inherited
     # GitHub's 6-hour default. On 2026-08-19 two runs had to be killed by hand

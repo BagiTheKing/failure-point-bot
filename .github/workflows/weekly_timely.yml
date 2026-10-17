@@ -31,6 +31,10 @@ on:
     - cron: '40 7 * * 2,4,6'
   workflow_dispatch:
     inputs:
+      ignore_spacing:
+        description: 'Upload even if the channel posted in the last 48 hours'
+        type: boolean
+        default: false
       skip_upload:
         description: 'Render only, do not upload (dry run)'
         type: boolean
@@ -68,8 +72,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: read
+      contents: read
     outputs:
-      go: ${{ steps.check.outputs.go }}
+      go: ${{ steps.decide.outputs.go }}
     steps:
       - id: check
         env:
@@ -86,6 +91,25 @@ jobs:
             fi
           fi
           echo "go=$go" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        if: steps.check.outputs.go == 'true'
+      - uses: actions/setup-python@v5
+        if: steps.check.outputs.go == 'true'
+        with:
+          python-version: '3.11'
+      - name: 48-hour spacing (src/upload_gate.py)
+        id: spacing
+        if: steps.check.outputs.go == 'true'
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          SKIP_UPLOAD: ${{ (inputs.skip_upload || inputs.topic_only || (inputs.story_stage != '' && inputs.story_stage != 'full')) && '1' || '0' }}
+          IGNORE_SPACING: ${{ inputs.ignore_spacing && '1' || '0' }}
+        run: |
+          pip install -q google-api-python-client google-auth
+          python src/upload_gate.py
+      - id: decide
+        run: echo "go=${{ steps.check.outputs.go == 'true' && steps.spacing.outputs.go == 'true' }}" >> "$GITHUB_OUTPUT"
 
   build-and-publish:
     needs: gate
@@ -275,7 +299,8 @@ jobs:
           # Shorts cut from this video after it uploads (src/longform_clips.py):
           # the teaser and the main event, each linking back to the full
           # video. Same privacy as the video itself. 0 turns them off.
-          LONGFORM_CLIPS: '4'
+          # one highlight Short, published 48 h after the video (owner, 2026-10-17)
+          LONGFORM_CLIPS: '1'
           TOPIC_ONLY: ${{ inputs.topic_only && '1' || '0' }}
           STORY_TOPIC: ${{ inputs.story_topic }}
           STORY_STAGE: ${{ inputs.story_stage || 'full' }}

@@ -849,16 +849,16 @@ def publish_clips(scenes, script, video_id):
     except Exception as e:
         print(f"⚠️ Clips skipped ({type(e).__name__}: {e}).")
         return
-    # The first clip goes public with the video; each next one is scheduled
-    # CLIP_GAP_HOURS after the one before (owner, 2026-10-14), so the clips
-    # reach the Shorts feed one by one instead of competing with each other.
-    gap = float(os.getenv("CLIP_GAP_HOURS", "6"))
+    # Nothing goes out within MIN_HOURS_BETWEEN_UPLOADS of anything else
+    # (owner, 2026-10-17; upload_gate.py): the first clip is scheduled that
+    # long after the video, each next one that long after the one before.
+    gap = float(os.getenv("CLIP_GAP_HOURS", os.getenv("MIN_HOURS_BETWEEN_UPLOADS", "48")))
     public = os.getenv("PRIVACY_STATUS", "public") == "public"
     start = datetime.datetime.now(datetime.timezone.utc)
     for k, clip in enumerate(clips):
         publish_at = None
-        if public and k and gap > 0:
-            publish_at = (start + datetime.timedelta(hours=gap * k)).strftime(
+        if public and gap > 0:
+            publish_at = (start + datetime.timedelta(hours=gap * (k + 1))).strftime(
                 "%Y-%m-%dT%H:%M:%SZ")
             print(f"🗓️  Clip {k + 1} scheduled for {publish_at}.")
         clip_title, clip_description, comment = clip_metadata(
