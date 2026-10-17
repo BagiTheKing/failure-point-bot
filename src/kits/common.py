@@ -192,7 +192,8 @@ def overlay_3d(sheet, frame_img, frame_no, anchors, t):
                  fill=color + (int(255 * alpha),), width=2 * SS)
         f.d.ellipse([p[0] * SS - 5 * SS, p[1] * SS - 5 * SS, p[0] * SS + 5 * SS, p[1] * SS + 5 * SS],
                     fill=color + (int(255 * alpha),))
-        pill(f, text, tx, ty, color, 19, "la" if tx > p[0] else "ra", alpha)
+        # text grows away from the screen edge it sits nearest
+        pill(f, text, tx, ty, color, 19, "la" if tx < W / 2 or tx > p[0] else "ra", alpha)
 
     # establish
     a = prog(t, 2.0, 2.6) * (1 - prog(t, 6.0, 6.6))
