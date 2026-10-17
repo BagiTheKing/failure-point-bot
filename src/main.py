@@ -21,7 +21,7 @@ from topic_reach import is_saturated, vet
 from audio_engine import generate_audio_pipeline
 from visual_engine import generate_visual_pipeline
 from video_engine import generate_video_pipeline
-from shorts_archive import add_archive_frames, archive_credits
+from shorts_archive import archive_credits, fill_real_images
 from shorts_facts import SHORTS_FACTS, research_short
 from youtube_publisher import upload_video_to_youtube
 
@@ -415,31 +415,27 @@ MIN_PREFERRED_FRAMES = float(os.getenv("MIN_PREFERRED_FRAMES", "0.6"))
 
 
 def check_visual_quality(script_data: dict) -> None:
-    """Halts before upload when the frames did not come from the good generator.
+    """Halts before upload when a story scene came out on a low-quality
+    frame: the keyless fallback generator, or a designed placeholder.
 
-    Only applies when Workers AI is actually configured. With no Cloudflare
-    credentials Pollinations IS the intended generator, and refusing to publish
-    would be refusing to publish at all.
-    """
-    from visual_engine import cloudflare_available
-    if not cloudflare_available() or MIN_PREFERRED_FRAMES <= 0:
+    Real pictures, Workers AI frames and real pictures reused from the same
+    story are all acceptable; nothing else is (owner, 2026-10-17: "I can't
+    accept the lower quality images"). The next-file card is typography over
+    its frame and does not count. MIN_PREFERRED_FRAMES=0 switches the check
+    off."""
+    if MIN_PREFERRED_FRAMES <= 0:
         return
-
-    scenes = script_data.get("scenes") or []
-    if not scenes:
+    scenes = [s for s in script_data.get("scenes") or [] if not s.get("is_outro")]
+    bad = [i for i, s in enumerate(scenes)
+           if str(s.get("image_source") or "").startswith("pollinations")
+           or s.get("image_source") == "designed-fallback"]
+    if not bad:
         return
-    preferred = sum(1 for s in scenes if s.get("image_source") == "workers-ai")
-    share = preferred / len(scenes)
-    if share >= MIN_PREFERRED_FRAMES:
-        return
-
-    print(f"\n❌ Halted: only {preferred}/{len(scenes)} frames came from Workers "
-          f"AI (floor is {MIN_PREFERRED_FRAMES:.0%}).")
+    print(f"\n❌ Halted: {len(bad)} of {len(scenes)} scene(s) have no real "
+          f"picture and no good generated frame.")
     print("   Cloudflare's free allocation is 10,000 neurons a day and resets at "
-          "00:00 UTC. Three runs of five frames is roughly all of it, so a manual "
-          "run stacked on the day's scheduled one will land here.")
-    print("   Publishing this would put a visibly worse video on the channel "
-          "under the same title and thumbnail as a good one.")
+          "00:00 UTC; with real pictures first a Short needs only a few frames.")
+    print("   Publishing this would put a visibly worse video on the channel.")
     print("   Wait for the reset, or set MIN_PREFERRED_FRAMES=0 to publish anyway.")
     raise SystemExit(1)
 
@@ -674,8 +670,10 @@ def main():
     # Phase 2: assets
     script_data = generate_audio_pipeline(script_data, build_dir,
                                           voice=_pick_kokoro_voice())
+    # Real pictures first; the generator only draws the scenes left empty
+    # (owner, 2026-10-17).
+    fill_real_images(script_data, build_dir)
     script_data = generate_visual_pipeline(script_data, build_dir)
-    add_archive_frames(script_data, build_dir)
     draw_outro_card(script_data, build_dir)
 
     usable = [s for s in script_data["scenes"]

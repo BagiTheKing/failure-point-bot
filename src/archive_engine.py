@@ -239,6 +239,42 @@ def article_lead_image(article_title: str):
     return found[0] if found else None
 
 
+def article_images(article_title: str, limit: int = 50) -> list:
+    """Every free picture a Wikipedia article uses, as Commons candidates,
+    best first. An article about a disaster carries the photographs editors
+    chose for it: the structure before, the wreckage after, the people, the
+    inquiry's diagrams. It is the most reliably relevant real imagery there
+    is, so every video draws on it before anything is generated.
+
+    Only files hosted on Commons are kept: English Wikipedia hosts its
+    fair-use files itself, and this channel may not reuse those."""
+    if not article_title:
+        return []
+    try:
+        r = _polite_get("https://en.wikipedia.org/w/api.php", params={
+            "action": "query", "format": "json", "titles": article_title,
+            "redirects": 1, "generator": "images", "gimlimit": limit,
+            "prop": "imageinfo", "iiprop": "url|size|mime|extmetadata",
+            "iiurlwidth": 1600}, timeout=30)
+        r.raise_for_status()
+        pages = (r.json().get("query") or {}).get("pages") or {}
+    except Exception as e:
+        print(f"⚠️ Article images lookup failed for {article_title!r}: {e}")
+        return []
+    free = {}
+    for key, page in pages.items():
+        if page.get("imagerepository") != "shared":
+            continue
+        info = (page.get("imageinfo") or [{}])[0]
+        meta = info.get("extmetadata") or {}
+        lic = _strip_html((meta.get("LicenseShortName") or {}).get("value", "")).lower()
+        nonfree = str((meta.get("NonFree") or {}).get("value", "")).lower()
+        if nonfree in ("true", "1") or "fair use" in lic or "non-free" in lic:
+            continue
+        free[key] = page
+    return _candidates(free)
+
+
 def _fit_frame(img: Image.Image, w: int, h: int) -> Image.Image:
     """Fills w x h. Near-16:9 sources get a centred cover crop; everything else
     (portraits of people, tall paintings) sits over a blurred, darkened

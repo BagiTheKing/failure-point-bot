@@ -45,7 +45,8 @@ import time
 
 from PIL import Image
 
-from archive_engine import (search_archives, search_commons,
+from archive_engine import (search_archives, search_commons, article_images,
+                            article_lead_image,
                             download_archival_image, format_credit,
                             pexels_available, fetch_broll_video,
                             extract_poster_frame, search_archival_video,
@@ -369,7 +370,35 @@ def _is_war_scene(scene):
     return bool(words & WAR_WORDS)
 
 
-def generate_longform_visuals(scenes: list, output_dir: str = "build", topic: str = None):
+def _story_pool(topic, source_titles, era):
+    """Real pictures for the whole story, most relevant first: each source
+    article's lead image and other pictures, then a Commons search on the
+    event's name. Scenes whose own archive_query finds nothing draw from it
+    before anything is generated (owner, 2026-10-17: AI only when there is
+    no real picture for the scene)."""
+    out, seen = [], set()
+
+    def add(cands):
+        for c in cands or []:
+            if c and c.get("url") and c["url"] not in seen and _era_appropriate(c, era):
+                seen.add(c["url"])
+                out.append(c)
+
+    for title in source_titles or []:
+        try:
+            add([article_lead_image(title)])
+            add(article_images(title))
+        except Exception as e:
+            print(f"   ↩️  Pictures of {title!r} unavailable ({type(e).__name__}).")
+    name = re.split(r"\s*\(|,|:\s| — ", topic or "", maxsplit=1)[0].strip()
+    name = re.sub(r"^the\s+", "", name, flags=re.I)
+    if name:
+        add(search_archives(name, limit=20))
+    return out
+
+
+def generate_longform_visuals(scenes: list, output_dir: str = "build", topic: str = None,
+                              source_titles=None):
     """Fills each scene with image_paths (1-3 frames), possibly a video_path
     (muted b-roll), and a credit string when a real archival photo was used.
 
@@ -402,6 +431,8 @@ def generate_longform_visuals(scenes: list, output_dir: str = "build", topic: st
     real_pool = []
     era0 = next((sc.get("era_year") for sc in scenes if sc.get("era_year")), None)
     war_pool = _WarPool(topic, era0)
+    story_pool = _story_pool(topic, source_titles, era0)
+    print(f"🗄️  {len(story_pool)} real picture(s) found for the story as a whole.")
 
     for idx, scene in enumerate(scenes):
         wanted = _shots_for(scene.get("duration", 0))
@@ -500,6 +531,24 @@ def generate_longform_visuals(scenes: list, output_dir: str = "build", topic: st
                 print(f"📜 Scene {idx}: {len(images)} archival image(s) "
                       f"for {query!r}")
 
+        # ---- 1b) The story's own pictures, before anything is generated ----
+        # One per empty scene, so the pool is spread over the whole video.
+        if not images:
+            for cand in story_pool:
+                if cand.get("url") in used_urls:
+                    continue
+                path = os.path.join(output_dir, f"lf_scene_{idx:03d}_0.jpg")
+                used_urls.add(cand.get("url"))
+                if download_archival_image(cand, path, KB_W, KB_H):
+                    images.append(path)
+                    credits.append(format_credit(cand))
+                    archival_used += 1
+                    scene["is_real"] = True
+                    real_pool.append(path)
+                    print(f"📜 Scene {idx}: a real picture of the story "
+                          f"({cand.get('title', '')[:60]})")
+                    break
+
         # ---- 2) Muted stock b-roll, timeless subjects only (optional) ----
         # Spaced through the video rather than granted first-come, so clips
         # and stills stay interleaved instead of clustering at the front.
@@ -522,7 +571,14 @@ def generate_longform_visuals(scenes: list, output_dir: str = "build", topic: st
                     continue
                 os.remove(video_path)
 
-        # ---- 3) Generated frames fill whatever is still missing ----
+        # ---- 3) Generated frames only for a scene with no real picture ----
+        # A scene with a real picture holds it (one slow move) rather than
+        # cutting to a generated one; a scene with none gets ONE generated
+        # frame, never re-angled variants of the same prompt.
+        if images:
+            wanted = len(images)
+        else:
+            wanted = 1
         while len(images) < wanted:
             if api_calls:
                 time.sleep(THROTTLE_SECONDS)
@@ -570,7 +626,10 @@ def generate_longform_visuals(scenes: list, output_dir: str = "build", topic: st
             scene["credit"] = credits
 
     total_frames = sum(len(s.get("image_paths") or []) for s in scenes)
-    workers_ai_generated = sum(1 for s in generated_sources if s == "workers-ai")
+    # a real picture standing in for a frame the generator could not draw is
+    # acceptable quality; only the low-quality fallbacks count against it
+    workers_ai_generated = sum(1 for s in generated_sources
+                               if s in ("workers-ai", "reused-archival"))
     print(f"✅ Visuals complete: {total_frames} frames for {len(scenes)} scenes "
           f"({archival_used} archival, {api_calls} generated, "
           f"{archival_video_used} real archival video, "

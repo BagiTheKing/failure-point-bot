@@ -263,6 +263,14 @@ def _is_valid_image(content: bytes) -> bool:
         return False
 
 
+# The keyless Pollinations fallback renders visibly worse than Workers AI.
+# Off by default on this channel (owner, 2026-10-17: "I can't accept the
+# lower quality images"): a scene the good generator cannot draw takes a real
+# picture from the story instead. ALLOW_POLLINATIONS=1 turns it back on, and
+# without Cloudflare credentials at all it is the only generator there is.
+ALLOW_POLLINATIONS = os.getenv("ALLOW_POLLINATIONS", "0") == "1"
+
+
 def download_image(prompt: str, output_path: str, max_retries: int = GEN_MAX_RETRIES,
                    width: int = WIDTH, height: int = HEIGHT, era_year=None) -> bool:
     """Defaults to the 1080x1920 Shorts frame. The long-form pipeline passes
@@ -281,6 +289,8 @@ def download_image(prompt: str, output_path: str, max_retries: int = GEN_MAX_RET
     seed = random.randint(0, 999_999)  # new seed per scene -> no duplicate frames
     gen_w, gen_h = _generation_size(width, height)
 
+    if not cloudflare_available() and not ALLOW_POLLINATIONS:
+        return ""
     if cloudflare_available():
         for cf_attempt in range(2):
             blob = cloudflare_generate(final_prompt, gen_w, gen_h)
@@ -291,6 +301,10 @@ def download_image(prompt: str, output_path: str, max_retries: int = GEN_MAX_RET
                 return "workers-ai"
             if cf_attempt == 0:
                 time.sleep(4)
+        if not ALLOW_POLLINATIONS:
+            print("   ↩️ Workers AI unavailable — no frame generated (the "
+                  "low-quality fallback is off).")
+            return ""
         print("   ↩️ Workers AI unavailable — using Pollinations for this frame.")
 
     # A live run once returned HTTP 500 to all thirty generation requests,
@@ -374,7 +388,10 @@ def make_fallback_image(output_path: str, seed: int = 0,
 # EXTRA_SHOTS_MAX more than the first. The real archive pictures
 # (shorts_archive.py) add to these.
 SHOT_PICTURE_SECONDS = float(os.getenv("SHORTS_PICTURE_SECONDS", "3.5"))
-EXTRA_SHOTS_MAX = int(os.getenv("SHORTS_EXTRA_PICTURES", "3"))
+# 0 since 2026-10-17: extra pictures were re-angled generations of the same
+# prompt, which read on screen as the same picture three times. A scene with
+# no real picture gets ONE generated frame and holds it with a slow move.
+EXTRA_SHOTS_MAX = int(os.getenv("SHORTS_EXTRA_PICTURES", "0"))
 
 
 def _vary_prompt(prompt: str, shot: int) -> str:
@@ -398,9 +415,20 @@ def generate_visual_pipeline(script_data: dict, output_dir: str = "build") -> di
     if era_year:
         print(f"🕰️  Era anchor: ~{era_year}")
 
+    # Real pictures placed by shorts_archive.fill_real_images, for scenes
+    # the generator cannot draw: a real picture from the same story beats
+    # both a low-quality frame and a designed placeholder.
+    real_pool = [p for sc in scenes for p in (sc.get("archive_paths") or [])]
+    generated = 0
+
     for idx, scene in enumerate(scenes):
+        if scene.get("image_source") == "archive" and scene.get("image_path"):
+            continue          # real pictures already — nothing to generate
         image_path = os.path.join(output_dir, f"scene_{idx}.jpg")
         prompt = scene.get("image_prompt", "dark atmospheric historical scene, cinematic")
+        if generated:
+            time.sleep(3)
+        generated += 1
 
         # A scene may date itself. The outro card is the one that does, and it
         # has to: it advertises the NEXT episode, which is a different period
@@ -417,6 +445,21 @@ def generate_visual_pipeline(script_data: dict, output_dir: str = "build") -> di
         source = download_image(prompt, image_path, era_year=scene_era)
         if source:
             print(f"📸 Saved {image_path} [{source}]")
+        elif real_pool and not scene.get("is_outro"):
+            # not the neighbours' pictures, so the reuse does not read as a
+            # repeat
+            near = set()
+            for j in (idx - 1, idx + 1):
+                if 0 <= j < len(scenes):
+                    near.update(scenes[j].get("image_paths") or [])
+            pick = next((p for p in real_pool if p not in near), real_pool[idx % len(real_pool)])
+            print(f"♻️  Scene {idx}: no generated frame — a real picture from "
+                  f"this story instead.")
+            scene["image_path"] = pick
+            scene["image_paths"] = [pick]
+            scene["archive_paths"] = [pick]
+            scene["image_source"] = "reused-archival"
+            continue
         else:
             print(f"⚠️ Scene {idx}: all attempts failed — using designed fallback frame.")
             make_fallback_image(image_path, seed=idx)
@@ -441,14 +484,10 @@ def generate_visual_pipeline(script_data: dict, output_dir: str = "build") -> di
         # merely on whether a frame came back.
         scene["image_source"] = source
 
-        if idx < len(scenes) - 1:
-            time.sleep(6)  # stay under Pollinations' anonymous rate limit
 
-    sources = [s.get("image_source", "") for s in scenes]
-    preferred = sum(1 for s in sources if s == "workers-ai")
-    if scenes and preferred < len(scenes):
-        print(f"🎨 {preferred}/{len(scenes)} frames from Workers AI; the rest: "
-              f"{', '.join(sorted(set(s for s in sources if s != 'workers-ai')))}")
+    from collections import Counter
+    counts = Counter(s.get("image_source", "") for s in scenes)
+    print("🎨 Scene pictures: " + ", ".join(f"{n} {k}" for k, n in counts.most_common()))
 
     print("✅ Visual pipeline complete.")
     return script_data

@@ -675,8 +675,12 @@ def main():
 
     # Phase 2: assets
     scenes = generate_audio_pipeline({"scenes": scenes}, BUILD_DIR)["scenes"]
+    import urllib.parse
+    src = script.get("source_url") or ""
+    source_titles = ([urllib.parse.unquote(src.rsplit("/wiki/", 1)[1]).replace("_", " ")]
+                     if "/wiki/" in src else [])
     scenes, workers_ai_generated, total_generated = generate_longform_visuals(
-        scenes, BUILD_DIR, topic=script.get("topic"))
+        scenes, BUILD_DIR, topic=script.get("topic"), source_titles=source_titles)
 
     try:
         import animate_engine

@@ -392,56 +392,36 @@ PUNCH_ZOOM = 1.38
 _ARCHIVE_MOTIONS = (0, 1)
 
 
+# Shortest a picture may hold the screen: below this a cut reads as flicker.
+MIN_SHOT_SECONDS = 2.4
+
+
 def plan_shots(scene: dict, clip_len: float, idx: int):
     """[(image_path, motion)] for one scene: motion is a Ken Burns style
-    (0-3), PUNCH, or None for the static next-file card."""
+    (0-3) or None for the static next-file card.
+
+    Every shot is a DIFFERENT picture (owner, 2026-10-17: each scene showed
+    "3 of the same generation"). The scene is cut only as many times as it
+    has distinct pictures; one picture holds the whole scene with one slow
+    move rather than being punched into and replayed. Real archive pictures
+    sit over a blurred copy of themselves, so they only zoom."""
     image = scene["image_path"]
     if scene.get("is_outro"):
         return [(image, None)]
-    archive = scene.get("archive_path")
-    base = idx % 4
-    if archive and scene.get("image_source") == "designed-fallback":
-        # The generator failed this scene: the real picture takes its place.
-        image, archive, base = archive, None, _ARCHIVE_MOTIONS[idx % 2]
-
-    n = max(1, min(MAX_SHOTS, max(round(clip_len / SHOT_SECONDS),
-                                  math.ceil(clip_len / MAX_SHOT_SECONDS))))
-    if archive and n < 2 and clip_len >= 2.4:
-        n = 2                     # a real picture is worth a quick cut
-    paintings = [p for p in (scene.get("image_paths") or [image]) if p]
-    if image not in paintings:
-        paintings = [image] + paintings
-    archives = [a for a in (scene.get("archive_paths") or ([archive] if archive else []))
-                if a and a != image]
-    if len(paintings) + len(archives) > 2:
-        # Enough pictures for every shot to be a new one: painting, real
-        # picture, painting, ... each with its own move; punch-ins only once
-        # the pictures run out.
-        distinct, a, p = [], list(archives), list(paintings)
-        while a or p:
-            if p:
-                distinct.append((p.pop(0), (base + len(distinct)) % 4))
-            if a:
-                distinct.append((a.pop(0), _ARCHIVE_MOTIONS[len(distinct) % 2]))
-        n = max(n, min(MAX_SHOTS, len(distinct))) if clip_len >= 2.4 * len(distinct) else n
-        pool = distinct + [(img, PUNCH) for img, _ in distinct]
-    elif archive:
-        pool = [(image, base), (archive, _ARCHIVE_MOTIONS[idx % 2]),
-                (image, PUNCH), (archive, PUNCH)]
-    else:
-        pool = [(image, base), (image, PUNCH), (image, (base + 2) % 4),
-                (image, PUNCH)]
-    # A scene longer than four shots: go round again, each wide shot with a
-    # different move from the one it repeats.
-    while len(pool) < n:
-        k = len(pool)
-        shot, motion = pool[k % 4]
-        if shot == archive and motion != PUNCH:
-            motion = _ARCHIVE_MOTIONS[(_ARCHIVE_MOTIONS.index(motion) + 1) % 2]
-        elif motion != PUNCH:
-            motion = (motion + 1) % 4
-        pool.append((shot, motion))
-    return pool[:n]
+    archives = set(scene.get("archive_paths")
+                   or ([scene["archive_path"]] if scene.get("archive_path") else []))
+    if scene.get("image_source") == "designed-fallback" and archives:
+        image = next(iter(archives))
+    distinct = []
+    for p in [image] + list(scene.get("image_paths") or []) + list(scene.get("archive_paths") or []):
+        if p and p not in distinct:
+            distinct.append(p)
+    n = max(1, min(MAX_SHOTS, len(distinct), int(clip_len // MIN_SHOT_SECONDS) or 1))
+    shots = []
+    for k, p in enumerate(distinct[:n]):
+        motion = _ARCHIVE_MOTIONS[(idx + k) % 2] if p in archives else (idx + k) % 4
+        shots.append((p, motion))
+    return shots
 
 
 def _shot_frames(clip_len: float, n: int):

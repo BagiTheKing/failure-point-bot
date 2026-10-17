@@ -144,12 +144,14 @@ part itself (the bridge span, the dam wall, the cracked bolt, the valve), not pe
 cinematic oil painting, visible expressive brushwork, rich texture, muted color \
 palette with one accent color, highly detailed, no text, no watermark"
 
-ARCHIVE QUERIES (real pictures beside the paintings):
-- For the two or three scenes whose subject has a real photograph or period \
-artwork (the ship, the person, the battle, the building, the place), give an \
-archive_query: 2-4 words to search Wikimedia Commons with, naming that exact \
-subject ("Vasa ship", "Silver Bridge", "Tay Bridge"). No dates, no generic \
-words ("engineers", "disaster"). Leave it "" for every other scene.
+ARCHIVE QUERIES (real pictures come FIRST; a scene is only painted when no real \
+picture of it exists):
+- EVERY scene gets an archive_query: 2-4 words to search Wikimedia Commons with, \
+naming the real, photographable subject of that scene: the structure, vessel, \
+machine, plant, place or person ("Silver Bridge", "Asch Building", "Vasa ship", \
+"Hyatt Regency Kansas City"). Prefer the event's own named subject; a scene about \
+a detail still names the thing it is a detail of. No dates, no generic words \
+("engineers", "disaster", "fire").
 
 TITLE RULES (the title is the second filter, after the hook):
 - No ALL CAPS words. The user message states the hard character limit; it is a
@@ -228,7 +230,7 @@ OUTPUT: Only a valid JSON object, no markdown fences, with this exact shape:
   "next_tease": "only when the user message names a NEXT story: at most 12 words teasing it",
   "tags": ["8-12 specific search tags, including the proper nouns from the story"],
   "scenes": [
-    {"narration": "...", "image_prompt": "...", "archive_query": ""}
+    {"narration": "...", "image_prompt": "...", "archive_query": "Silver Bridge"}
   ]
 }"""
 

@@ -218,3 +218,70 @@ class RecordedNewsLaneFailure(unittest.TestCase):
         problem = S.article_problem(
             "School roof collapse (2002): a primary school roof collapsed", art, 2010)
         self.assertIn("2025", problem or "")
+
+
+class RealPicturesFirst(unittest.TestCase):
+    """Owner, 2026-10-17: AI pictures only when a scene has no real picture,
+    never the same generated picture shown three times in a scene, and never
+    the low-quality fallback generator."""
+
+    def setUp(self):
+        import shorts_archive as S
+        self.S = S
+        self.real = (S.download_archival_image, S.search_archives)
+        S.download_archival_image = lambda cand, path, w, h, fit=None: True
+        S.search_archives = lambda q, limit=12: []
+
+    def tearDown(self):
+        self.S.download_archival_image, self.S.search_archives = self.real
+
+    def _script(self, n=5, dur=7.0):
+        return {"topic": "The Silver Bridge collapse (1967), where",
+                "scenes": [{"narration": "x", "duration": dur,
+                            "archive_query": ""} for _ in range(n)]
+                + [{"is_outro": True, "duration": 5}]}
+
+    def test_pool_is_spread_over_every_scene_before_seconds(self):
+        pool = [{"url": f"u{i}", "title": f"Silver Bridge {i}"} for i in range(6)]
+        script = self._script()
+        placed = self.S.fill_real_images(script, "build", pool=pool)
+        story = [s for s in script["scenes"] if not s.get("is_outro")]
+        self.assertEqual(placed, 6)
+        self.assertTrue(all(s.get("image_source") == "archive" for s in story))
+        self.assertTrue(all(len(s["image_paths"]) >= 1 for s in story))
+        self.assertNotIn("image_source", script["scenes"][-1])
+
+    def test_scene_with_no_real_picture_is_left_for_generation(self):
+        script = self._script(n=3)
+        self.S.fill_real_images(script, "build",
+                                pool=[{"url": "u0", "title": "Silver Bridge"}])
+        sources = [s.get("image_source") for s in script["scenes"][:3]]
+        self.assertEqual(sources.count("archive"), 1)
+
+    def test_every_shot_is_a_different_picture(self):
+        import video_engine as V
+        one = V.plan_shots({"image_path": "a.jpg", "image_paths": ["a.jpg"]}, 12.0, 0)
+        self.assertEqual(len(one), 1)
+        three = V.plan_shots({"image_path": "a.jpg", "image_paths": ["a.jpg", "b.jpg", "c.jpg"],
+                              "archive_paths": ["a.jpg", "b.jpg", "c.jpg"]}, 12.0, 0)
+        self.assertEqual([p for p, _ in three], ["a.jpg", "b.jpg", "c.jpg"])
+
+    def test_no_low_quality_fallback_without_workers_ai(self):
+        import visual_engine as VE
+        real = VE.cloudflare_available
+        VE.cloudflare_available = lambda: False
+        try:
+            self.assertEqual(VE.download_image("a bridge", "/nonexistent.jpg"), "")
+        finally:
+            VE.cloudflare_available = real
+
+    def test_quality_gate(self):
+        import main as Mn
+        ok = {"scenes": [{"image_source": "archive"}, {"image_source": "workers-ai"},
+                         {"image_source": "reused-archival"},
+                         {"is_outro": True, "image_source": "designed-fallback"}]}
+        Mn.check_visual_quality(ok)            # passes silently
+        bad = {"scenes": [{"image_source": "archive"},
+                          {"image_source": "pollinations/turbo"}]}
+        with self.assertRaises(SystemExit):
+            Mn.check_visual_quality(bad)

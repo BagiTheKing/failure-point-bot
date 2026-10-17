@@ -3319,6 +3319,9 @@ def generate_longform_script(topic: str = None, enforce_history: bool = False,
         # the story's places, main one first: the thumbnail map points there
         # (10 Oct, Gaza 1987: its one map scene was Tunis, so was the thumbnail)
         "places": [p for p in ((story or {}).get("plan") or {}).get("places") or [] if p],
+        # the story's Wikipedia article: its pictures are the video's first
+        # choice for every scene (longform_visual._story_pool)
+        "source_url": ((story or {}).get("sheet") or {}).get("source") or "",
         "chapters": chapters,
         "word_count": words,
         "era_year": era_year,
