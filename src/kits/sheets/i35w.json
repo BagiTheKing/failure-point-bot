@@ -1,0 +1,225 @@
+{
+  "story": "I-35W Mississippi River bridge collapse",
+  "sources": {
+    "ntsb": "NTSB Highway Accident Report HAR-08/03, Collapse of I-35W Highway Bridge, Minneapolis, Minnesota, August 1, 2007 (US government, public domain)"
+  },
+  "verify": [
+    "construction load on the deck: NTSB gives the weight in pounds (about 578,700 lb); check the exact figure in HAR-08/03 before publishing"
+  ],
+  "kit": {
+    "family": "structure",
+    "variant": "truss_bridge",
+    "deck": "top",
+    "spans": [
+      266,
+      456,
+      266
+    ],
+    "panels": 28,
+    "failed_node": 10,
+    "failed_node_label": "U10",
+    "load_near_node": true,
+    "river": true,
+    "labels": {
+      "deck": "8-lane roadway deck",
+      "truss": "steel deck truss",
+      "piers": "piers",
+      "river": "Mississippi River",
+      "node": "joint U10: gusset plates",
+      "plate": "gusset plate: the steel sheet that joins the beams",
+      "load": "sand, gravel and machines for resurfacing"
+    }
+  },
+  "model_3d": {
+    "note": "schematic proportions for the 3D model; never shown as numbers on screen",
+    "span_m": [
+      81,
+      139,
+      81
+    ],
+    "deck_width_m": 34,
+    "truss_depth_m": [
+      9,
+      18
+    ],
+    "water_level_m": -20
+  },
+  "disaster": {
+    "place_date": "MINNEAPOLIS · 1 AUGUST 2007 · 6:05 PM",
+    "place": "I-35W bridge over the Mississippi, evening rush hour",
+    "caption": "An eight-lane highway bridge fell into the Mississippi at rush hour.",
+    "photo_article": "I-35W Mississippi River bridge"
+  },
+  "design_vs_built": {
+    "designed": {
+      "title": "WHAT IT NEEDED",
+      "detail": "gusset plates about twice as thick",
+      "load": "plates sized for the real forces"
+    },
+    "built": {
+      "title": "AS BUILT, 1967",
+      "detail": "½-inch plates at U10, a design error",
+      "load": "plates half as strong as needed"
+    },
+    "multiplier": "½",
+    "multiplier_label": "HALF THE STEEL IT NEEDED",
+    "plate_built": "½ inch",
+    "plate_needed": "about 1 inch",
+    "source": "ntsb"
+  },
+  "added_loads": [
+    {
+      "year": "1977",
+      "what": "2 inches of concrete added to the deck",
+      "source": "ntsb"
+    },
+    {
+      "year": "1998",
+      "what": "heavier barriers",
+      "source": "ntsb"
+    },
+    {
+      "year": "2007",
+      "what": "resurfacing materials and machines parked over the weak joints",
+      "source": "ntsb"
+    }
+  ],
+  "failure_chain": [
+    {
+      "step": "The gusset plates at joint U10 tear apart",
+      "source": "ntsb"
+    },
+    {
+      "step": "The main span loses its support and drops into the river",
+      "source": "ntsb"
+    },
+    {
+      "step": "The side spans follow, onto the riverbanks",
+      "source": "ntsb"
+    }
+  ],
+  "numbers": [
+    {
+      "value": "13",
+      "label": "PEOPLE KILLED",
+      "source": "ntsb"
+    },
+    {
+      "value": "145",
+      "label": "INJURED",
+      "source": "ntsb"
+    },
+    {
+      "value": "111",
+      "label": "vehicles on the bridge",
+      "source": "ntsb"
+    }
+  ],
+  "clock": {
+    "from_seconds": 50,
+    "label_before": "6:04:{s:02d}",
+    "label_at": "6:05:00",
+    "day": "PM · WEDNESDAY 1 AUGUST 2007",
+    "event": "THE GUSSET PLATES AT U10 GIVE WAY"
+  },
+  "timeline": [
+    {
+      "date": "1967",
+      "title": "Bridge opens",
+      "sub": "plates half as thick as needed",
+      "kind": "warning",
+      "source": "ntsb"
+    },
+    {
+      "date": "1977",
+      "title": "Deck made thicker",
+      "sub": "+2 in of concrete",
+      "kind": "warning",
+      "source": "ntsb"
+    },
+    {
+      "date": "2003",
+      "title": "Plates photographed bowed",
+      "sub": "at the U10 joints",
+      "kind": "warning",
+      "source": "ntsb"
+    },
+    {
+      "date": "1 AUG 2007",
+      "title": "Bridge falls",
+      "sub": "6:05 pm",
+      "kind": "failure",
+      "source": "ntsb"
+    }
+  ],
+  "today": {
+    "title": "COULD IT HAPPEN TODAY?",
+    "lines": [
+      "After the collapse, gusset plates were added to US bridge load ratings.",
+      "Adding weight to an old bridge now means re-checking its joints.",
+      "The beams were strong enough. The plates holding them together were not."
+    ],
+    "source": "ntsb"
+  },
+  "shots": [
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photo",
+      "seconds": 6,
+      "caption": "An eight-lane highway bridge fell into the Mississippi at rush hour."
+    },
+    {
+      "part": 2,
+      "tool": "2d",
+      "clip": "establish",
+      "caption": "A steel deck truss: beams joined at steel plates, called gussets."
+    },
+    {
+      "part": 3,
+      "tool": "2d",
+      "clip": "connection",
+      "caption": "Look at one joint: U10."
+    },
+    {
+      "part": 3,
+      "tool": "2d",
+      "clip": "physics",
+      "seconds": 10,
+      "caption": "The plates holding the beams were half as thick as they needed to be."
+    },
+    {
+      "part": 4,
+      "tool": "2d",
+      "clip": "clock",
+      "seconds": 4.5
+    },
+    {
+      "part": 4,
+      "tool": "2d",
+      "clip": "fall",
+      "seconds": 8,
+      "caption": "At 6:05 pm the plates at U10 tore apart."
+    },
+    {
+      "part": 5,
+      "tool": "2d",
+      "clip": "timeline",
+      "seconds": 6.5,
+      "caption": "For 40 years, weight was added. In 2003, the plates were photographed bowed."
+    },
+    {
+      "part": 6,
+      "tool": "2d",
+      "clip": "compare",
+      "seconds": 9,
+      "caption": "Plates twice as thick would have held."
+    },
+    {
+      "part": 7,
+      "tool": "2d",
+      "clip": "today",
+      "seconds": 8
+    }
+  ]
+}
