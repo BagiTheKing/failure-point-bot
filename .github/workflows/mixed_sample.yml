@@ -84,7 +84,16 @@ jobs:
           sys.path.insert(0, "src")
           from archive_engine import article_images, article_lead_image, download_archival_image, format_credit
           title = json.load(open(os.environ["SHEET"]))["disaster"]["photo_article"]
-          cands = [c for c in [article_lead_image(title)] + article_images(title) if c]
+          import time
+          from archive_engine import search_archives
+          cands = []
+          for attempt in range(3):           # Wikipedia sometimes answers empty: retry
+              cands = [c for c in [article_lead_image(title)] + article_images(title) if c]
+              if cands:
+                  break
+              time.sleep(10 * (attempt + 1))
+          if not cands:                      # then Commons and the Library of Congress
+              cands = search_archives(title.replace(" collapse", ""), limit=10)
           print(f"{len(cands)} candidate photo(s) for {title!r}")
           for c in cands:
               if download_archival_image(c, "out/photo.jpg", 2560, 1440):
@@ -95,35 +104,36 @@ jobs:
           else:
               print("no free photo found")
           PY
-      - name: AI dramatization from our own pre-fall 3D frame
+      - name: AI collapse, starting from our own last 3D frame
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          SHEET: src/kits/sheets/${{ inputs.sheet }}
         run: |
           python - <<'PY'
-          import os, shutil, sys
+          import json, os, sys
           sys.path.insert(0, "src")
-          frame = "raw/0655.png"           # 21.8 s: wide shot, just before the fall
-          out = "out/ai_fall.mp4"
-          ok = False
-          if os.getenv("HF_TOKEN") and os.path.exists(frame):
-              try:
-                  import animate_engine
-                  ok = animate_engine.animate(
-                      frame,
-                      "The upper walkway suddenly breaks loose from its steel rods and falls "
-                      "straight down flat onto the lower walkway, and both crash down to the "
-                      "lobby floor, dust and debris rise, people run. Static camera.",
-                      out, 6.0)
-              except Exception as e:
-                  print(f"AI video failed: {type(e).__name__}: {str(e)[:200]}")
-          if not ok:
-              print("AI video unavailable (free quota): using the clip made earlier from the 3D model")
-              shutil.copy("tools/demo_assets/ai_fall_fallback.mp4", out)
+          sheet = json.load(open(os.environ["SHEET"]))
+          n = sheet.get("model_3d", {}).get("ai_start_frame")
+          frame = f"raw/{n:04d}.png" if n else ""
+          if not (os.getenv("HF_TOKEN") and frame and os.path.exists(frame)):
+              print("no AI clip: the accurate 3D fall stands in")
+              sys.exit(0)
+          import animate_engine
+          try:
+              ok = animate_engine.animate(frame, sheet["model_3d"].get("ai_prompt") or (
+                  "The upper walkway suddenly breaks loose from its steel rods and falls "
+                  "straight down flat onto the lower walkway, and both crash down to the "
+                  "lobby floor, dust and debris rise, people run. Static camera."),
+                  "out/ai_fall.mp4", 6.0)
+              print("AI clip made from", frame if ok else "nothing (no output)")
+          except Exception as e:
+              print(f"no AI clip ({type(e).__name__}: {str(e)[:200]}): the accurate 3D fall stands in")
           PY
       - name: Assemble
         run: |
           P=""; [ -f out/photo.jpg ] && P="--photo out/photo.jpg"
-          python tools/mixed_sample.py src/kits/sheets/${{ inputs.sheet }} raw out $P --ai out/ai_fall.mp4
+          A=""; [ -f out/ai_fall.mp4 ] && A="--ai out/ai_fall.mp4"
+          python tools/mixed_sample.py src/kits/sheets/${{ inputs.sheet }} raw out $P $A
       - uses: actions/upload-artifact@v4
         with:
           name: mixed-sample

@@ -29,7 +29,9 @@
       12.0,
       5.0
     ],
-    "roof_z": 19.5
+    "roof_z": 19.5,
+    "ai_start_frame": 655,
+    "ai_note": "the AI clip starts from this rendered 3D frame (21.8 s: wide shot, held still just before the fall), so the scene runs on without a cut"
   },
   "disaster": {
     "place_date": "KANSAS CITY · 17 JULY 1981 · 7:05 PM",
