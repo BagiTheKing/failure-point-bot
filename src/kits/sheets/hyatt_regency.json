@@ -1,0 +1,204 @@
+{
+  "story": "Hyatt Regency walkway collapse",
+  "sources": {
+    "nbs": "NBS investigation of the Kansas City Hyatt Regency walkways collapse (1982), as summarised on Wikipedia, 'Hyatt Regency walkway collapse'"
+  },
+  "kit": {
+    "family": "structure",
+    "variant": "hanging_walkways",
+    "levels": [
+      "4th-floor walkway",
+      "2nd-floor walkway"
+    ],
+    "rod_lines": 3,
+    "failed_line": 1,
+    "labels": {
+      "roof": "roof trusses",
+      "rods": "steel hanger rods",
+      "beam": "box beam (two steel channels welded)",
+      "nut": "one nut holds everything",
+      "upper_rod": "UPPER ROD · roof to 4th floor",
+      "lower_rod": "LOWER ROD · 4th floor to 2nd floor"
+    }
+  },
+  "model_3d": {
+    "note": "schematic proportions for the 3D model; never shown as numbers on screen",
+    "walk_length": 36.0,
+    "walk_width": 2.6,
+    "level_z": [
+      12.0,
+      5.0
+    ],
+    "roof_z": 19.5
+  },
+  "disaster": {
+    "place_date": "KANSAS CITY · 17 JULY 1981 · 7:05 PM",
+    "place": "Hyatt Regency hotel atrium",
+    "caption": "Two walkways fell into a crowded hotel lobby.",
+    "photo_article": "Hyatt Regency walkway collapse"
+  },
+  "design_vs_built": {
+    "designed": {
+      "title": "AS DESIGNED",
+      "detail": "one continuous rod",
+      "load": "1 walkway per nut"
+    },
+    "built": {
+      "title": "AS BUILT",
+      "detail": "two rods, one beam carries both",
+      "load": "2 walkways on one nut"
+    },
+    "multiplier": "2×",
+    "multiplier_label": "LOAD ON ONE NUT",
+    "source": "nbs"
+  },
+  "failure_chain": [
+    {
+      "step": "The nut and rod pull through the bottom of the 4th-floor box beam at the middle rod",
+      "source": "nbs"
+    },
+    {
+      "step": "The 4th-floor walkway drops onto the 2nd-floor walkway",
+      "source": "nbs"
+    },
+    {
+      "step": "Both walkways fall to the crowded lobby floor",
+      "source": "nbs"
+    }
+  ],
+  "numbers": [
+    {
+      "value": "114",
+      "label": "PEOPLE KILLED",
+      "source": "nbs"
+    },
+    {
+      "value": "216",
+      "label": "INJURED",
+      "source": "nbs"
+    },
+    {
+      "value": "1,600",
+      "label": "people in the atrium, at a tea dance",
+      "source": "nbs"
+    }
+  ],
+  "clock": {
+    "from_seconds": 50,
+    "label_before": "7:04:{s:02d}",
+    "label_at": "7:05:00",
+    "day": "PM · FRIDAY 17 JULY 1981",
+    "event": "THE 4TH-FLOOR CONNECTION FAILS"
+  },
+  "timeline": [
+    {
+      "date": "1979",
+      "title": "Rod design changed",
+      "sub": "two rods instead of one",
+      "kind": "warning",
+      "source": "nbs"
+    },
+    {
+      "date": "OCT 1979",
+      "title": "Atrium roof collapses",
+      "sub": "during construction",
+      "kind": "warning",
+      "source": "nbs"
+    },
+    {
+      "date": "1 JUL 1980",
+      "title": "Hotel opens",
+      "sub": "",
+      "kind": "event",
+      "source": "nbs"
+    },
+    {
+      "date": "17 JUL 1981",
+      "title": "Walkways fall",
+      "sub": "7:05 pm",
+      "kind": "failure",
+      "source": "nbs"
+    }
+  ],
+  "today": {
+    "title": "COULD IT HAPPEN TODAY?",
+    "lines": [
+      "The engineers of record lost their licences.",
+      "A change to a connection now needs the design engineer's own check.",
+      "The weak point was never the steel: it was a detail nobody re-checked."
+    ],
+    "source": "nbs"
+  },
+  "shots": [
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photo",
+      "seconds": 6,
+      "caption": "Two walkways fell into a crowded hotel lobby."
+    },
+    {
+      "part": 2,
+      "tool": "3d",
+      "clip": "establish",
+      "caption": "Each walkway hung from steel rods fixed to the roof."
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "load_path",
+      "caption": "The 2nd-floor walkway did not hang from the roof. It hung from the walkway above."
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "connection",
+      "caption": "Look closely at one connection."
+    },
+    {
+      "part": 3,
+      "tool": "2d",
+      "clip": "physics",
+      "seconds": 9.6,
+      "caption": "A change to the rods doubled the load on this one nut."
+    },
+    {
+      "part": 4,
+      "tool": "2d",
+      "clip": "clock",
+      "seconds": 4.5
+    },
+    {
+      "part": 4,
+      "tool": "3d",
+      "clip": "fall",
+      "caption": "At 7:05 pm the nut pulled through the steel."
+    },
+    {
+      "part": 4,
+      "tool": "ai_video",
+      "clip": "dramatization",
+      "seconds": 6
+    },
+    {
+      "part": 5,
+      "tool": "2d",
+      "clip": "timeline",
+      "seconds": 6.5,
+      "caption": "There were warnings."
+    },
+    {
+      "part": 6,
+      "tool": "2d",
+      "clip": "compare",
+      "seconds": 9,
+      "caption": "One continuous rod would have held."
+    },
+    {
+      "part": 7,
+      "tool": "2d",
+      "clip": "today",
+      "seconds": 8
+    }
+  ]
+}
