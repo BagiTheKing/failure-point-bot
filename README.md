@@ -14,13 +14,19 @@ lives in this repository: everything comes from GitHub Actions secrets.
 
 | Workflow | Schedule (UTC) | What it does |
 |---|---|---|
-| `daily_publish.yml` | Sun, Mon, Fri 15:23 | One Short from the topic pool (`src/topics.py`) |
+| `daily_publish.yml` | manual only | One standalone Short from the topic pool (`src/topics.py`). Each long video already brings its own highlight Short |
 | `weekly_longform.yml` | Wed 09:00 | Long video, **encore lane**: expands the best-performing Short, else the rotation |
 | `weekly_timely.yml` | Tue, Thu, Sat 07:40 | Long video, **news lane**: an engineering failure in this week's news picks a historical failure of the same kind; a quiet week takes this week's anniversary |
 | `topic_scout.yml` | daily 07:05 | Researches the next story for each lane ahead of time |
 | `rotate_thumbnails.yml` | daily 12:17 | Rotates each long video's thumbnail variants |
 | `reconcile_playlist.yml` | Sun 06:00 | Keeps the series playlist complete |
 | `tests.yml` | on push | Offline regression tests (`python -m unittest discover tests`) |
+
+**The channel never posts twice within 48 hours** (`src/upload_gate.py`): a
+long video, then its highlight Short 48 hours later, then the next long video
+48 hours after that. Every publishing workflow checks the channel first and
+stands down inside the window; tick `ignore_spacing` on a manual run to
+override.
 
 **Scheduled runs are off until you switch them on** (step 5 below), so the
 repository does not fail on a timer while secrets are still missing. Every
