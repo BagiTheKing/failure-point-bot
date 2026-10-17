@@ -19,6 +19,18 @@ CYAN = ManimColor.from_rgb((70, 210, 255))
 GRIDC = ManimColor.from_rgb((27, 56, 96))
 
 config.background_color = BG
+
+import os
+import manimpango
+_FONTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "fonts")
+for _f in ("Inter-Bold.otf", "Inter-SemiBold.otf"):
+    manimpango.register_font(os.path.join(_FONTS, _f))
+
+
+def T(s, size, color):
+    """Text in the channel font. Rendered at a normal size, then scaled, so
+    labels stay crisp when the camera is zoomed in."""
+    return Text(s, font="Inter", weight="BOLD", font_size=size, color=color)
 config.pixel_width, config.pixel_height, config.frame_rate = 1280, 720, 30
 
 S = 90.0          # px per Manim unit, so the A-F world coordinates carry over
@@ -79,8 +91,7 @@ class HyattBeat(MovingCameraScene):
         self.play(Create(upper), Create(lower), run_time=1.0)
         self.play(FadeIn(w4), FadeIn(w2), FadeIn(nuts4), FadeIn(nuts2), run_time=0.8)
         self.play(FadeIn(people, lag_ratio=0.02), run_time=0.8)
-        cap = Text("Each walkway hung from steel rods fixed to the roof.", font_size=22,
-                   color=LINE).to_edge(DOWN, buff=0.4)
+        cap = T("Each walkway hung from steel rods fixed to the roof.", 22, LINE).to_edge(DOWN, buff=0.4)
         self.play(FadeIn(cap), run_time=0.4)
         self.wait(0.6)
 
@@ -91,14 +102,14 @@ class HyattBeat(MovingCameraScene):
         z = 1 / 6
         a1 = Arrow(P(624, W4_Y - 32), P(624, W4_Y - 2), color=AMBER, buff=0,
                    stroke_width=5, max_tip_length_to_length_ratio=0.3)
-        t1 = Text("4th-floor walkway", font_size=22 * z * 1.4, color=AMBER).next_to(a1, LEFT, 0.05)
+        t1 = T("4th-floor walkway", 22, AMBER).scale(z).next_to(a1, LEFT, 0.05)
         a2 = Arrow(P(652, W4_Y + 34), P(652, W4_Y + 60), color=AMBER, buff=0, stroke_width=5,
                    max_tip_length_to_length_ratio=0.3)
-        t2 = Text("2nd-floor walkway", font_size=22 * z * 1.4, color=AMBER).next_to(a2, RIGHT, 0.05)
-        self.play(Create(a1), Write(t1), run_time=0.9)
-        self.play(Create(a2), Write(t2), run_time=0.9)
+        t2 = T("2nd-floor walkway", 22, AMBER).scale(z).next_to(a2, RIGHT, 0.05)
+        self.play(Create(a1), FadeIn(t1), run_time=0.9)
+        self.play(Create(a2), FadeIn(t2), run_time=0.9)
         nut = nuts4[1]
-        big = Text("2× LOAD ON ONE NUT", font_size=30 * z * 1.4, color=RED).move_to(P(560, W4_Y + 50))
+        big = T("2× LOAD ON ONE NUT", 30, RED).scale(z).move_to(P(620, W4_Y + 48))
         self.play(nut.animate.set_color(RED), FadeIn(big), w4[2].animate.set_stroke(RED),
                   run_time=1.2)
         self.wait(0.5)
@@ -116,6 +127,7 @@ class HyattBeat(MovingCameraScene):
         both = VGroup(upper4, w2, nuts2, mid_people)
         self.play(both.animate.shift(DOWN * (GROUND_Y - W2_Y - 20) / S), run_time=0.45,
                   rate_func=rate_functions.ease_in_quad)
-        end = Text("114 killed · 216 injured", font_size=34, color=RED).to_edge(UP, buff=0.9)
+        self.remove(lower)          # the lower rods end up under the debris
+        end = T("114 KILLED · 216 INJURED", 34, RED).move_to(P(640, 250))
         self.play(FadeIn(end), run_time=0.6)
         self.wait(1.2)
