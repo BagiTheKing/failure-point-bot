@@ -1,0 +1,54 @@
+name: Style samples
+
+# Manual. Renders the A-F visual style samples (tools/style_samples.py) with
+# the real archive photo of the Hyatt Regency walkway collapse in sample A.
+# Nothing is uploaded to YouTube; the reel is kept as an artifact.
+on:
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: pip install -r requirements.txt
+      - name: Fetch the real photo
+        env:
+          WIKIMEDIA_TOKEN: ${{ secrets.WIKIMEDIA_TOKEN }}
+        run: |
+          mkdir -p out
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, "src")
+          from archive_engine import (article_images, article_lead_image,
+                                      download_archival_image, format_credit)
+          title = "Hyatt Regency walkway collapse"
+          cands = [c for c in [article_lead_image(title)] + article_images(title) if c]
+          for c in cands:
+              if download_archival_image(c, "out/photo.jpg", 2560, 1440):
+                  print("photo:", format_credit(c))
+                  open("out/photo_credit.txt", "w").write(format_credit(c) + "\n")
+                  break
+          else:
+              print("no free photo found; sample A uses the placeholder")
+          PY
+      - name: Render
+        run: |
+          if [ -f out/photo.jpg ]; then P="--photo out/photo.jpg"; else P=""; fi
+          python tools/style_samples.py out $P
+      - uses: actions/upload-artifact@v4
+        with:
+          name: style-samples
+          path: |
+            out/style_samples_A_to_F.mp4
+            out/sample_*.mp4
+            out/photo_credit.txt
+          retention-days: 14
