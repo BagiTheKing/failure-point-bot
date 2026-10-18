@@ -251,8 +251,13 @@ def pick_photos(sheet, got, pool, call):
             "each photo in one list at most; \"photo\" is the single strongest image of the "
             "event; \"today_photos\" only what the place looks like after (a replacement, a "
             "memorial).")
-    reply = call(pool, system, user, max_tokens=1500,
-                 expect={k: list for k in (*ARCHIVE, "reject")})
+    def shape(data):                         # empty lists are fine: a shot may get no photo
+        if not isinstance(data, dict) or not isinstance(data.get("photo"), list) or not data["photo"]:
+            return "no photo list"
+        bad = [k for k in (*ARCHIVE, "reject") if k in data and not isinstance(data[k], list)]
+        return f"{bad[0]} is not a list" if bad else None
+    # room for the thinking models to reason before they answer
+    reply = call(pool, system, user, max_tokens=4000, expect=shape)
     if not isinstance(reply, dict):
         return None
     used, out = set(), {}
