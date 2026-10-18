@@ -76,7 +76,7 @@ SHOTS = [
 ]
 # ~1,260 words: 8-10 minutes in the am_echo voice with the pauses (owner, 2026-10-18)
 
-LIMITS = {"label": 48, "caption": 90, "title": 28}
+LIMITS = {"label": 48, "caption": 90, "title": 28, "big_label": 34, "sub": 44, "today": 90}
 
 
 def _template(variant):
@@ -101,7 +101,7 @@ def _template(variant):
                   "day": "<AM or PM · WEEKDAY DAY MONTH YEAR>",
                   "event": "<WHAT FAILS, in capitals>"},
         "timeline": [{"date": "", "title": "", "sub": "", "kind": "warning|event|failure"}],
-        "today": {"title": "COULD IT HAPPEN TODAY?", "lines": ["", "", "<the lesson>"]},
+        "today": {"title": "COULD IT HAPPEN TODAY?", "lines": ["", "", "<could it happen again now>"]},
         "ai_prompt": "<how the collapse looks, physically accurate, plain words, "
                      "ending with 'Static camera.'>",
         "photo_article": "<the Wikipedia article title of the event>",
@@ -132,7 +132,15 @@ def prompt(topic, facts_text, variant):
         "happened.\n"
         "- Labels under 48 characters, captions under 90.\n"
         "- design_vs_built.multiplier is THE one figure that explains the failure "
-        "(e.g. 2× the load, ½ the thickness), short enough to fill the screen.\n"
+        "(e.g. 2× the load, ½ the thickness), short enough to fill the screen; "
+        "multiplier_label under 34 characters.\n"
+        "- design_vs_built contrasts what sound engineering called for with what "
+        "stood there. If the mistake was in the design itself, say so: titles "
+        "WHAT IT NEEDED / WHAT IT HAD, and never call the faulty design adequate. "
+        "plate_needed is a figure from the fact sheet, or empty if it gives none.\n"
+        "- timeline: titles under 28 characters, subs under 44.\n"
+        "- today.lines (each under 90 characters) say what changed since and "
+        "whether it could happen again. Do not repeat the cause there.\n"
         "- Kit parameters the facts do not give: use the kit's usual values "
         "(hanging walkways: 3 rod lines, the middle one failed; truss bridge: "
         "28 panels).\n"
@@ -193,6 +201,17 @@ def check(reply, variant, source_text):
             problems.append(f"shots.{clip}.narration is too short ({len(nar.split())} words, about {words} wanted)")
         if len(sh.get("caption", "")) > LIMITS["caption"]:
             problems.append(f"shots.{clip}.caption is over {LIMITS['caption']} characters")
+    dvb = reply.get("design_vs_built") or {}
+    shorts = [("design_vs_built.multiplier_label", dvb.get("multiplier_label", ""), "big_label"),
+              ("big_3d.label", (reply.get("big_3d") or {}).get("label", ""), "big_label")]
+    for i, e in enumerate(reply.get("timeline") or []):
+        shorts += [(f"timeline[{i}].title", e.get("title", ""), "title"),
+                   (f"timeline[{i}].sub", e.get("sub", ""), "sub")]
+    shorts += [(f"today.lines[{i}]", line, "today")
+               for i, line in enumerate((reply.get("today") or {}).get("lines") or [])]
+    for where, text, limit in shorts:
+        if len(text or "") > LIMITS[limit]:
+            problems.append(f"{where} is over {LIMITS[limit]} characters")
     for name, text in (k.get("labels") or {}).items():
         if len(text) > LIMITS["label"]:
             problems.append(f"kit.labels.{name} is over {LIMITS['label']} characters")

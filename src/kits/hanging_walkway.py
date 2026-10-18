@@ -19,7 +19,7 @@ import random
 from PIL import Image, ImageDraw
 
 from kits.blueprint import (W, H, SS, BG, LINE, DIM, RED, AMBER, CYAN, GREEN,
-                            ease, prog, lerp, mix, Frame, Beats, KitTiming)
+                            ease, prog, lerp, mix, Frame, Beats, KitTiming, fit)
 
 # side elevation, world units = screen px at zoom 1
 ROOF_Y, UP_Y, LO_Y, GROUND_Y = 120, 330, 540, 650
@@ -251,7 +251,7 @@ class HangingWalkways(KitTiming):
         a3 = b.p(t, "sum")
         f.arrow(x - 4, y + BEAM_H + 4, x - 4, y + BEAM_H + 22, RED, 10, 22, a3)
         f.text(self.mult, 590, 470, 70, RED, "InterDisplay-Black.otf", screen=True, alpha=a3, anchor="rs")
-        f.text(self.mult_label, 590, 504, 22, RED, "Inter-Bold.otf", screen=True, alpha=a3, anchor="rs")
+        f.text(self.mult_label, 590, 504, fit(self.mult_label, 22, "Inter-Bold.otf", 300), RED, "Inter-Bold.otf", screen=True, alpha=a3, anchor="rs")
         p = b.p(t, "panel")
         d, bb = self.dvb.get("designed", {}), self.dvb.get("built", {})
         f.d.rectangle([40 * SS, 250 * SS, 330 * SS, 400 * SS], fill=(0, 0, 0, int(150 * p)))

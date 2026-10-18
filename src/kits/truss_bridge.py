@@ -19,7 +19,7 @@ import random
 from PIL import Image, ImageDraw
 
 from kits.blueprint import (W, H, SS, BG, LINE, DIM, RED, AMBER, CYAN, GREEN,
-                            ease, prog, lerp, mix, Frame, Beats, KitTiming)
+                            ease, prog, lerp, mix, Frame, Beats, KitTiming, fit)
 
 X0, X1 = 100, 1180          # abutments
 DECK_Y = 300                # roadway level
@@ -348,20 +348,22 @@ class TrussBridge(KitTiming):
         f.text("the beams push in", 470, 150, 22, AMBER, "Inter-Bold.otf", screen=True, alpha=a1, anchor="rs")
         a2 = b.p(t, "up")
         f.arrow(x, y + 46, x, y + 18, AMBER, 6, 14, a2)
-        f.text("the truss below pushes up", 760, 560, 22, AMBER, "Inter-Bold.otf", screen=True, alpha=a2)
-        f.text("all of it through one steel plate", 760, 586, 18, LINE, "Inter-Medium.otf", screen=True, alpha=a2)
+        f.text("the truss below pushes up", 915, 560, 22, AMBER, "Inter-Bold.otf", screen=True, alpha=a2)
+        f.text("all of it through one steel plate", 915, 586, 18, LINE, "Inter-Medium.otf", screen=True, alpha=a2)
         p = b.p(t, "thick")
         d = self.dvb
         f.d.rectangle([40 * SS, 230 * SS, 360 * SS, 420 * SS], fill=(0, 0, 0, int(160 * p)))
         f.text("PLATE THICKNESS", 58, 258, 16, CYAN, "Inter-Bold.otf", screen=True, alpha=p)
         f.d.rectangle([58 * SS, 290 * SS, (58 + 272 * p) * SS, 300 * SS], fill=CYAN + (int(255 * p),))
-        f.text(f"needed: {d.get('plate_needed', '')}", 58, 308, 18, LINE, "Inter-Medium.otf", screen=True, alpha=p)
+        need = f"needed: {d.get('plate_needed') or 'thicker than built'}"
+        f.text(need, 58, 308, fit(need, 18, "Inter-Medium.otf", 290), LINE, "Inter-Medium.otf", screen=True, alpha=p)
         q = prog(t, b.start("thick") + 0.9, b.start("thick") + 1.6)
         f.d.rectangle([58 * SS, 350 * SS, (58 + 136 * q) * SS, 360 * SS], fill=RED + (int(255 * q),))
         f.text(f"built: {d.get('plate_built', '')}", 58, 368, 18, LINE, "Inter-Medium.otf", screen=True, alpha=q)
         a3 = b.p(t, "half")
         f.text(d.get("multiplier", "½"), 1200, 470, 76, RED, "InterDisplay-Black.otf", screen=True, alpha=a3, anchor="rs")
-        f.text(d.get("multiplier_label", ""), 1200, 504, 20, RED, "Inter-Bold.otf", screen=True, alpha=a3, anchor="rs")
+        ml = d.get("multiplier_label", "")
+        f.text(ml, 1200, 504, fit(ml, 20, "Inter-Bold.otf", 300), RED, "Inter-Bold.otf", screen=True, alpha=a3, anchor="rs")
         q = prog(t, b.start("bow") - 0.4, b.start("bow"))
         if q > 0:
             bx, by = 1000, 170

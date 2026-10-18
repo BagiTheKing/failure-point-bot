@@ -76,6 +76,14 @@ class SheetWriterTest(unittest.TestCase):
         r["disaster"]["place"] = "<where, one line>"
         self.assertTrue(any("placeholder" in p for p in SW.check(r, "hanging_walkways", SOURCE)))
 
+    def test_long_screen_text_is_refused(self):
+        r = reply()
+        r["timeline"][0]["sub"] = "x" * 60
+        r["design_vs_built"]["multiplier_label"] = "INCREASE IN STATIC LOAD FROM ADDED CONCRETE"
+        problems = SW.check(r, "hanging_walkways", SOURCE)
+        self.assertTrue(any("timeline[0].sub" in p for p in problems))
+        self.assertTrue(any("multiplier_label" in p for p in problems))
+
     def test_kit_parameters_are_checked(self):
         r = reply()
         r["kit"]["failed_line"] = 5

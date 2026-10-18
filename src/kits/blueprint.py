@@ -42,6 +42,13 @@ def font(name, size):
     return _fonts[key]
 
 
+def fit(s, size, name, max_w, floor=11):
+    """The largest size up to `size` at which `s` is at most max_w wide."""
+    while size > floor and font(name, size).getlength(s) > max_w * SS:
+        size -= 1
+    return size
+
+
 def ease(t):
     t = max(0.0, min(1.0, t))
     return t * t * (3 - 2 * t)

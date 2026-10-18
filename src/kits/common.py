@@ -14,7 +14,7 @@ Blocks every kit shares, filled from the animation sheet:
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
 from kits.blueprint import (W, H, SS, BG, LINE, DIM, RED, AMBER, CYAN, GRID_MAJOR,
-                            ease, prog, lerp, Frame, font)
+                            ease, prog, lerp, Frame, font, fit)
 
 _photo_cache = {}
 
@@ -117,6 +117,8 @@ def timeline(sheet):
         p = prog(t, 0.3, T - 1.6)
         f.poly([(x0, y), (x1, y)], GRID_MAJOR, 6)
         f.poly([(x0, y), (x1, y)], CYAN, 6, p)
+        # neighbours on the same side of the line sit two steps apart
+        room = min(360, 2 * 0.86 * (x1 - x0) / max(1, n - 1) - 24)
         for i, e in enumerate(events):
             pos = 0.08 + 0.86 * i / max(1, n - 1)
             x = lerp(x0, x1, pos)
@@ -129,9 +131,11 @@ def timeline(sheet):
                 up = i % 2 == 0
                 ty = y - 70 if up else y + 50
                 f.text(e["date"], x, ty, 18, col, "Inter-Bold.otf", anchor="mm")
-                f.text(e["title"], x, ty + 26, 19, LINE, "Inter-SemiBold.otf", anchor="mm")
+                f.text(e["title"], x, ty + 26, fit(e["title"], 19, "Inter-SemiBold.otf", room),
+                       LINE, "Inter-SemiBold.otf", anchor="mm")
                 if e.get("sub"):
-                    f.text(e["sub"], x, ty + 50, 15, DIM, "Inter-Medium.otf", anchor="mm")
+                    f.text(e["sub"], x, ty + 50, fit(e["sub"], 15, "Inter-Medium.otf", room),
+                           DIM, "Inter-Medium.otf", anchor="mm")
         f.caption(cap, prog(t, 1.4, 2.0))
         return f.done()
     return clip
