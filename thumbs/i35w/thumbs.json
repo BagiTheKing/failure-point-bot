@@ -1,0 +1,16 @@
+{
+ "figures": {
+  "big": "½ INCH",
+  "dead": "13",
+  "part": "STEEL PLATE"
+ },
+ "made": {
+  "wreck": "out/thumb_wreck.jpg",
+  "split": "out/thumb_split.jpg",
+  "fall": "out/thumb_fall.jpg"
+ },
+ "photo": {
+  "title": "I-35W-rescue-Minneapolis-20070801",
+  "credit": "I-35W-rescue-Minneapolis-20070801 — Eric from Minneapolis — CC BY-SA 2.0 (via Wikimedia Commons)"
+ }
+}
