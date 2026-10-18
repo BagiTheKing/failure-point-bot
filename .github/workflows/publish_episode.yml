@@ -26,7 +26,7 @@ on:
         default: ""
 
 permissions:
-  contents: read
+  contents: write
   actions: read
 
 jobs:
@@ -70,3 +70,23 @@ jobs:
           python tools/publish_episode.py ep --title "$TITLE" --thumb "${{ inputs.thumb }}" \
             --publish-at "${{ inputs.publish_at }}"
           cat ep/published.json
+      - name: Register the three thumbnails for rotation (3 days each, the best kept)
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          VID=$(python -c "import json;print(json.load(open('ep/published.json'))['video_id'])")
+          mkdir -p rotate
+          n=1
+          for t in "${{ inputs.thumb }}" model xray drawing; do
+            [ -f "ep/thumb_$t.jpg" ] || continue
+            ls rotate | grep -q "_$t.jpg" && continue
+            cp "ep/thumb_$t.jpg" "rotate/${n}_$t.jpg"; n=$((n+1))
+          done
+          git fetch -q origin thumb-rotation
+          git worktree add -q rot origin/thumb-rotation
+          ROT_DIR=rot python tools/thumb_rotation.py register "$VID" rotate
+          cd rot
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Register $VID for thumbnail rotation"
+          git push -q origin HEAD:thumb-rotation

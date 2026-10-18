@@ -20,10 +20,10 @@ concurrency:
 
 jobs:
   rotate:
-    # Scheduled runs wait for the repository variable PIPELINE_ENABLED=true
-    # (Settings > Secrets and variables > Actions > Variables), so a fresh
-    # copy without its secrets does not fail on a timer every day.
-    if: github.event_name != 'schedule' || vars.PIPELINE_ENABLED == 'true'
+    # The rotation runs on its own (owner, 2026-10-19), not behind
+    # PIPELINE_ENABLED, which would also start the old weekly uploads; set the
+    # repository variable ROTATION_ENABLED=false to pause it.
+    if: github.event_name != 'schedule' || vars.ROTATION_ENABLED != 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
