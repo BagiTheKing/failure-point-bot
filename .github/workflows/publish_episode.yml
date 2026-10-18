@@ -1,0 +1,72 @@
+name: Publish episode
+
+# Manual, and only on the owner's go: uploads a finished Episode sample run
+# to the channel with the chosen thumbnail and a description built from the
+# episode (chapters, sources, photo and music credits). The 48-hour spacing
+# rule is checked first (src/upload_gate.py).
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Episode sample run to publish (its full-quality episode artifact)"
+        required: true
+      name:
+        description: "The episode's name (artifact episode-<name>, thumbnails at preview-media thumbs/<thumbs>/)"
+        required: true
+      thumbs:
+        description: "Folder under preview-media thumbs/"
+        default: "i35w"
+      title:
+        required: true
+      thumb:
+        description: "wreck, split or fall"
+        default: "split"
+      publish_at:
+        description: "RFC 3339 UTC time to go public (blank = public now)"
+        default: ""
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: episode-${{ inputs.name }}
+          path: ep
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+      - name: Thumbnails
+        run: |
+          git fetch -q origin preview-media
+          for t in wreck split fall; do
+            git show "origin/preview-media:thumbs/${{ inputs.thumbs }}/thumb_$t.jpg" > ep/thumb_$t.jpg 2>/dev/null || rm -f ep/thumb_$t.jpg
+          done
+          ls -la ep
+      - name: 48-hour spacing
+        id: gate
+        working-directory: src
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python upload_gate.py
+      - name: Publish
+        if: steps.gate.outputs.go == 'true'
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          TITLE: ${{ inputs.title }}
+        run: |
+          python tools/publish_episode.py ep --title "$TITLE" --thumb "${{ inputs.thumb }}" \
+            --publish-at "${{ inputs.publish_at }}"
+          cat ep/published.json
