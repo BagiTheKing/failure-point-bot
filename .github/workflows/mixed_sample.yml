@@ -42,7 +42,7 @@ jobs:
         run: |
           FIRST=$(( ${{ matrix.shard }} * 30 + 1 ))
           LAST=$(( FIRST + 29 ))
-          python -m kits.hanging_walkway_3d kits/sheets/${{ inputs.sheet }} ../raw \
+          python -m kits.render3d kits/sheets/${{ inputs.sheet }} ../raw \
             --first $FIRST --last $LAST --samples ${{ inputs.samples }}
       - uses: actions/upload-artifact@v4
         with:

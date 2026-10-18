@@ -31,7 +31,84 @@
     ],
     "roof_z": 19.5,
     "ai_start_frame": 655,
-    "ai_note": "the AI clip starts from this rendered 3D frame (21.8 s: wide shot, held still just before the fall), so the scene runs on without a cut"
+    "ai_note": "the AI clip starts from this rendered 3D frame (21.8 s: wide shot, held still just before the fall), so the scene runs on without a cut",
+    "labels_3d": [
+      {
+        "anchor": "upper_deck",
+        "text": "4th-floor walkway",
+        "color": "cyan",
+        "t": [
+          2.0,
+          6.0
+        ],
+        "at": [
+          140,
+          150
+        ]
+      },
+      {
+        "anchor": "lower_deck",
+        "text": "2nd-floor walkway",
+        "color": "cyan",
+        "t": [
+          2.0,
+          6.0
+        ],
+        "at": [
+          140,
+          420
+        ]
+      },
+      {
+        "anchor": "lower_rods_mid",
+        "text": "the 2nd-floor walkway hangs from these rods",
+        "color": "amber",
+        "t": [
+          9.2,
+          12.4
+        ],
+        "at": [
+          820,
+          300
+        ]
+      },
+      {
+        "anchor": "upper_rod",
+        "text": "UPPER ROD · roof to 4th floor",
+        "color": "cyan",
+        "t": [
+          15.4,
+          19.4
+        ],
+        "at": [
+          760,
+          150
+        ]
+      },
+      {
+        "anchor": "lower_rod",
+        "text": "LOWER ROD · 4th floor to 2nd floor",
+        "color": "cyan",
+        "t": [
+          15.4,
+          19.4
+        ],
+        "at": [
+          760,
+          520
+        ]
+      }
+    ],
+    "big_3d": {
+      "anchor": "nut",
+      "text": "2×",
+      "label": "LOAD ON ONE NUT",
+      "t": [
+        16.6,
+        19.4
+      ]
+    },
+    "ai_prompt": "The upper walkway's middle support lets go: the whole upper walkway drops straight down, flat, onto the lower walkway, and both fall together, flat, onto the crowded lobby floor. Dust and debris rise, people run. Static camera."
   },
   "disaster": {
     "place_date": "KANSAS CITY · 17 JULY 1981 · 7:05 PM",

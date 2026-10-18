@@ -42,7 +42,86 @@
       9,
       18
     ],
-    "water_level_m": -20
+    "water_level_m": -32,
+    "ai_start_frame": 655,
+    "ai_note": "the AI clip starts from this rendered 3D frame (21.8 s: wide shot held still just before the fall)",
+    "ai_prompt": "The steel deck truss bridge fails at a joint in its main span: the whole main span drops almost flat into the river with a huge splash, the side spans break at the piers and fall onto the banks, cars tumble, water and dust rise. Static camera.",
+    "labels_3d": [
+      {
+        "anchor": "deck",
+        "text": "8-lane roadway deck",
+        "color": "cyan",
+        "t": [
+          2.0,
+          6.0
+        ],
+        "at": [
+          140,
+          130
+        ]
+      },
+      {
+        "anchor": "truss",
+        "text": "steel deck truss",
+        "color": "cyan",
+        "t": [
+          2.6,
+          6.0
+        ],
+        "at": [
+          700,
+          560
+        ]
+      },
+      {
+        "anchor": "load",
+        "text": "sand, gravel and machines for resurfacing",
+        "color": "amber",
+        "t": [
+          9.0,
+          12.4
+        ],
+        "at": [
+          640,
+          120
+        ]
+      },
+      {
+        "anchor": "diag",
+        "text": "these beams all meet at one joint: U10",
+        "color": "amber",
+        "t": [
+          10.0,
+          12.4
+        ],
+        "at": [
+          760,
+          560
+        ]
+      },
+      {
+        "anchor": "node",
+        "text": "GUSSET PLATE · ½ inch thick",
+        "color": "cyan",
+        "t": [
+          15.4,
+          19.4
+        ],
+        "at": [
+          780,
+          180
+        ]
+      }
+    ],
+    "big_3d": {
+      "anchor": "node",
+      "text": "½",
+      "label": "HALF THE STEEL IT NEEDED",
+      "t": [
+        16.8,
+        19.4
+      ]
+    }
   },
   "disaster": {
     "place_date": "MINNEAPOLIS · 1 AUGUST 2007 · 6:05 PM",
@@ -171,15 +250,21 @@
     },
     {
       "part": 2,
-      "tool": "2d",
+      "tool": "3d",
       "clip": "establish",
-      "caption": "A steel deck truss: beams joined at steel plates, called gussets."
+      "caption": "An eight-lane highway on a steel deck truss, 40 years old."
     },
     {
       "part": 3,
-      "tool": "2d",
+      "tool": "3d",
+      "clip": "load_path",
+      "caption": "That day, resurfacing materials were parked right over one joint."
+    },
+    {
+      "part": 3,
+      "tool": "3d",
       "clip": "connection",
-      "caption": "Look at one joint: U10."
+      "caption": "Look at the steel plate that holds that joint together."
     },
     {
       "part": 3,
@@ -196,10 +281,16 @@
     },
     {
       "part": 4,
-      "tool": "2d",
+      "tool": "3d",
       "clip": "fall",
       "seconds": 8,
       "caption": "At 6:05 pm the plates at U10 tore apart."
+    },
+    {
+      "part": 4,
+      "tool": "ai_video",
+      "clip": "dramatization",
+      "seconds": 6
     },
     {
       "part": 5,

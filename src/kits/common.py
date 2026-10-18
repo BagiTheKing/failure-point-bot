@@ -168,13 +168,29 @@ def pill(f, s, x, y, color=CYAN, size=20, anchor="la", alpha=1.0):
     f.d.text((px, py), s, font=fnt, fill=color + (int(255 * alpha),))
 
 
+COLORS = {"cyan": CYAN, "amber": AMBER, "red": RED, "white": LINE}
+
+# The 3D shot windows (seconds) every 3D model uses: establish, load path,
+# connection, then the pull-back where the AI collapse (or the 3D fall) takes over.
+SHOTS_3D = {"establish": (0, 7), "load_path": (7, 13), "connection": (13, 20), "fall": (20, 28)}
+CAPTION_WINDOWS = {"establish": (0.6, 6.4), "load_path": (8.0, 12.6),
+                   "connection": (13.6, 19.6), "fall": (20.4, 26.0)}
+
+
 def overlay_3d(sheet, frame_img, frame_no, anchors, t):
-    """Captions and part labels over one rendered 3D frame (t in seconds)."""
+    """Captions and part labels over one rendered 3D frame (t in seconds).
+    What to label, when and where comes from the sheet's model_3d block:
+
+        "labels_3d": [{"anchor": "nut", "text": "...", "color": "cyan",
+                       "t": [15.4, 19.4], "at": [760, 150]}, ...]
+        "big_3d":    {"anchor": "nut", "text": "2×", "label": "...", "t": [16.6, 19.4]}
+
+    Anchors are the parts' screen positions recorded at render time, so the
+    labels follow the 3D model as the camera moves."""
     img = frame_img.convert("RGB").resize((W * SS, H * SS))
     f = Frame()
     f.img, f.d = img, ImageDraw.Draw(img, "RGBA")
-    L = sheet["kit"].get("labels", {})
-    levels = sheet["kit"].get("levels", ["upper", "lower"])
+    m = sheet.get("model_3d", {})
     caps = {s["clip"]: s.get("caption", "") for s in sheet.get("shots", [])}
     A = anchors.get(str(frame_no)) or anchors.get(frame_no) or {}
 
@@ -195,28 +211,21 @@ def overlay_3d(sheet, frame_img, frame_no, anchors, t):
         # text grows away from the screen edge it sits nearest
         pill(f, text, tx, ty, color, 19, "la" if tx < W / 2 or tx > p[0] else "ra", alpha)
 
-    # establish
-    a = prog(t, 2.0, 2.6) * (1 - prog(t, 6.0, 6.6))
-    lead("upper_deck", levels[0], 140, 150, CYAN, a)
-    lead("lower_deck", levels[1], 140, 420, CYAN, a)
-    # load path
-    a = prog(t, 9.2, 9.8) * (1 - prog(t, 12.4, 12.9))
-    lead("lower_rods_mid", f"the {levels[1]} hangs from these rods", 820, 300, AMBER, a)
-    # connection
-    a = prog(t, 15.4, 16.0) * (1 - prog(t, 19.4, 19.9))
-    lead("upper_rod", L.get("upper_rod", "upper rod"), 760, 150, CYAN, a)
-    lead("lower_rod", L.get("lower_rod", "lower rod"), 760, 520, CYAN, a)
-    dvb = sheet.get("design_vs_built", {})
-    b = prog(t, 16.6, 17.2) * (1 - prog(t, 19.4, 19.9))
-    if b > 0:
-        p = at("nut")
+    for lab in m.get("labels_3d", []):
+        t0, t1 = lab["t"]
+        a = prog(t, t0, t0 + 0.6) * (1 - prog(t, t1, t1 + 0.5))
+        lead(lab["anchor"], lab["text"], lab["at"][0], lab["at"][1],
+             COLORS.get(lab.get("color", "cyan"), CYAN), a)
+    big = m.get("big_3d")
+    if big:
+        t0, t1 = big["t"]
+        b = prog(t, t0, t0 + 0.6) * (1 - prog(t, t1, t1 + 0.5))
+        p = at(big["anchor"]) if b > 0 else None
         if p:
-            f.text(dvb.get("multiplier", "2×"), p[0] - 60, p[1] + 10, 80, RED,
-                   "InterDisplay-Black.otf", screen=True, alpha=b, anchor="rs")
-            pill(f, dvb.get("multiplier_label", ""), p[0] - 60, p[1] + 26, RED, 20, "ra", b)
-    # captions per shot
-    for clip, (t0, t1) in (("establish", (0.6, 6.4)), ("load_path", (8.0, 12.6)),
-                           ("connection", (13.6, 19.6)), ("fall", (20.4, 26.0))):
+            f.text(big["text"], p[0] - 60, p[1] + 10, 80, RED, "InterDisplay-Black.otf",
+                   screen=True, alpha=b, anchor="rs")
+            pill(f, big.get("label", ""), p[0] - 60, p[1] + 26, RED, 20, "ra", b)
+    for clip, (c0, c1) in CAPTION_WINDOWS.items():
         if caps.get(clip):
-            f.caption(caps[clip], prog(t, t0, t0 + 0.5) * (1 - prog(t, t1 - 0.4, t1)))
+            f.caption(caps[clip], prog(t, c0, c0 + 0.5) * (1 - prog(t, c1 - 0.4, c1)))
     return f.done()
