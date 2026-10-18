@@ -455,11 +455,14 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
     # a long opening shot borrows spare wreckage photos so no picture holds for long
     seconds = slots["photo"] + d
     lead = pictures("photo")
-    spare = photos.get("aftermath") or []
+    # spare wreckage only: never photos of officials visiting
+    spare = [p for p in photos.get("aftermath") or []
+             if not re.search(_WEAK, " ".join(str(p.get(k, "")) for k in ("title", "credit", "about")).lower())]
     if len(lead) < seconds / 8 and len(spare) > 4:
         borrow = min(len(spare) - 4, int(seconds / 8) - len(lead))
         lead += [{"path": p["path"], "credit": _short_credit(p["credit"])} for p in spare[-borrow:]]
-        photos = {**photos, "aftermath": spare[:-borrow]}
+        taken = {p["path"] for p in spare[-borrow:]}
+        photos = {**photos, "aftermath": [p for p in photos["aftermath"] if p["path"] not in taken]}
     add2d("photo", common.photo(sheet, reel(clips[:1] + lead, seconds), tint_out=False,
                                 toll_at=(narration.PAD_IN + toll_t) if toll_shot == "photo" else None,
                                 quiet=bool(intro)),
