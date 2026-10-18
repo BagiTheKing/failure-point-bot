@@ -31,8 +31,7 @@ def reply():
                             "built": {"title": "AS BUILT", "detail": "two rods", "load": "2 walkways"},
                             "multiplier": "2×", "multiplier_label": "LOAD ON ONE NUT"},
         "numbers": [{"value": "114", "label": "PEOPLE KILLED"}, {"value": "216", "label": "INJURED"}],
-        "clock": {"from_seconds": 50, "label_before": "7:04:{s:02d}", "label_at": "7:05:00",
-                  "day": "PM · FRIDAY 17 JULY 1981", "event": "THE CONNECTION FAILS"},
+        "clock": {"at": "7:05", "day": "PM · FRIDAY 17 JULY 1981", "event": "THE CONNECTION FAILS"},
         "timeline": [{"date": "1979", "title": "Rod design changed", "sub": "", "kind": "warning"},
                      {"date": "OCT 1979", "title": "Roof collapses", "sub": "", "kind": "warning"},
                      {"date": "17 JUL 1981", "title": "Walkways fall", "sub": "", "kind": "failure"}],
@@ -54,6 +53,12 @@ class SheetWriterTest(unittest.TestCase):
         self.assertEqual(sheet["model_3d"]["big_3d"]["anchor"], "nut")
         # only the 3D slots the writer filled get a label
         self.assertEqual({l["anchor"] for l in sheet["model_3d"]["labels_3d"]}, {"upper_deck"})
+
+    def test_clock_counts_down_to_the_moment(self):
+        c = SW.assemble(reply(), "hanging_walkways")["clock"]
+        self.assertEqual(c["label_before"].format(s=55), "7:04:55")
+        self.assertEqual(c["label_at"], "7:05:00")
+        self.assertEqual(SW.clock_of({"at": "6:00"})["label_before"].format(s=50), "5:59:50")
 
     def test_invented_figure_is_refused(self):
         r = reply()

@@ -65,11 +65,16 @@ KITS = {
 # budget for each shot, so the pacing holds (step 5b stretches the pictures
 # to the voice).
 SHOTS = [
-    (1, "archive", "photo", 45), (2, "3d", "establish", 40), (3, "3d", "load_path", 35),
-    (3, "3d", "connection", 30), (3, "2d", "physics", 90), (4, "2d", "clock", 15),
-    (4, "3d", "fall", 20), (4, "ai_video", "dramatization", 30), (5, "2d", "timeline", 70),
-    (6, "2d", "compare", 55), (7, "2d", "today", 60),
+    (1, "archive", "photo", 60), (1, "archive", "photos_disaster", 90),
+    (2, "3d", "establish", 60), (2, "2d", "build", 110),
+    (3, "3d", "load_path", 60), (3, "3d", "connection", 50), (3, "2d", "physics", 170),
+    (4, "2d", "clock", 20), (4, "3d", "fall", 25), (4, "ai_video", "dramatization", 45),
+    (4, "archive", "aftermath", 80),
+    (5, "2d", "timeline", 120), (5, "archive", "investigation", 90),
+    (6, "2d", "compare", 120),
+    (7, "archive", "today_photos", 70), (7, "2d", "today", 80),
 ]
+# ~1,260 words: 8-10 minutes in the am_santa voice with the pauses (owner, 2026-10-18)
 
 LIMITS = {"label": 48, "caption": 90, "title": 28}
 
@@ -80,8 +85,8 @@ def _template(variant):
         "kit": {"variant": variant, **{p: f"<{d}>" for p, d in k["params"].items()},
                 "labels": {name: "<short label, under 48 characters>" for name in k["labels"]}},
         "labels_3d": {a: "<label for this part in the 3D view>" for a, *_ in k["labels_3d"]},
-        "big_3d": {"text": "<the one figure that explains it, e.g. 2× or ½>",
-                   "label": "<what that figure means, in capitals>"},
+        "big_3d": {"text": "<the design_vs_built multiplier again, e.g. 2× or ½>",
+                   "label": "<the multiplier label again>"},
         "disaster": {"place_date": "<CITY · DAY MONTH YEAR · TIME>", "place": "<where, one line>",
                      "caption": "<one line: what happened>"},
         "design_vs_built": {
@@ -92,8 +97,8 @@ def _template(variant):
             "plate_needed": "<only for gusset failures: thickness it needed>"},
         "numbers": [{"value": "<deaths>", "label": "PEOPLE KILLED"},
                     {"value": "", "label": "INJURED"}, {"value": "", "label": ""}],
-        "clock": {"from_seconds": 50, "label_before": "<H:MM:{s:02d}, the minute before>",
-                  "label_at": "<H:MM:00, the moment>", "day": "<AM/PM · WEEKDAY DAY MONTH YEAR>",
+        "clock": {"at": "<the moment of failure as H:MM, e.g. 7:05>",
+                  "day": "<AM or PM · WEEKDAY DAY MONTH YEAR>",
                   "event": "<WHAT FAILS, in capitals>"},
         "timeline": [{"date": "", "title": "", "sub": "", "kind": "warning|event|failure"}],
         "today": {"title": "COULD IT HAPPEN TODAY?", "lines": ["", "", "<the lesson>"]},
@@ -125,7 +130,14 @@ def prompt(topic, facts_text, variant):
         "- The dramatization shot's narration is what the people there lived, in "
         "plain words; its ai_prompt describes the collapse as it physically "
         "happened.\n"
-        "- Labels under 48 characters, captions under 90.\n\n"
+        "- Labels under 48 characters, captions under 90.\n"
+        "- design_vs_built.multiplier is THE one figure that explains the failure "
+        "(e.g. 2× the load, ½ the thickness), short enough to fill the screen.\n"
+        "- Kit parameters the facts do not give: use the kit's usual values "
+        "(hanging walkways: 3 rod lines, the middle one failed; truss bridge: "
+        "28 panels).\n"
+        "- The archive shots (photo, photos_disaster, aftermath, investigation, "
+        "today_photos) are narrated over real photographs: say what they show.\n\n"
         "Output ONLY JSON in exactly this shape (replace every <...>):\n"
         + json.dumps(_template(variant), ensure_ascii=False, indent=1))
 
@@ -188,8 +200,10 @@ def check(reply, variant, source_text):
         if text.startswith("<") and text.endswith(">"):
             problems.append(f"a placeholder was left: {text[:50]!r}")
             break
-    clock = reply.get("clock") or {}
-    skip = {clock.get("label_before", ""), json.dumps(reply.get("kit", {}).get("spans", ""))}
+    skip = {json.dumps(reply.get("kit", {}).get("spans", ""))}
+    at = (reply.get("clock") or {}).get("at", "")
+    if not re.fullmatch(r"\d{1,2}:\d{2}", at.strip()):
+        problems.append("clock.at must be the moment as H:MM, e.g. 7:05")
     missing = sorted({f for t in _strings(reply) if t not in skip
                       for f in _figures(t) if f.rstrip(".,").replace(",", "") not in src
                       and len(f.rstrip(".,")) > 1})
@@ -198,6 +212,15 @@ def check(reply, variant, source_text):
     if not (reply.get("timeline") and 3 <= len(reply["timeline"]) <= 6):
         problems.append("timeline needs 3 to 6 entries")
     return problems
+
+
+def clock_of(c):
+    """The kit's clock from the writer's moment: counts the last 10 seconds."""
+    h, m = (c.get("at") or "0:00").strip().split(":")[:2]
+    h, m = int(h), int(m)
+    before = f"{h}:{m - 1:02d}" if m else f"{(h - 1) or 12}:59"
+    return {"from_seconds": 50, "label_before": before + ":{s:02d}",
+            "label_at": f"{h}:{m:02d}:00", "day": c.get("day", ""), "event": c.get("event", "")}
 
 
 def assemble(reply, variant, facts_source="", source_name="source"):
@@ -236,7 +259,7 @@ def assemble(reply, variant, facts_source="", source_name="source"):
         "disaster": {**r.get("disaster", {}), "photo_article": r.get("photo_article", "")},
         "design_vs_built": {**r.get("design_vs_built", {}), "source": tag},
         "numbers": [{**n, "source": tag} for n in r.get("numbers", []) if n.get("value")],
-        "clock": r.get("clock", {}),
+        "clock": clock_of(r.get("clock", {})),
         "timeline": r.get("timeline", []),
         "today": {**r.get("today", {}), "source": tag},
         "shots": shots,
