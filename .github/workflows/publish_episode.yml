@@ -19,8 +19,8 @@ on:
       title:
         required: true
       thumb:
-        description: "wreck, split or fall"
-        default: "split"
+        description: "model (3D), drawing (2D) or xray (3D + 2D)"
+        default: "xray"
       publish_at:
         description: "RFC 3339 UTC time to go public (blank = public now)"
         default: ""
@@ -49,7 +49,7 @@ jobs:
       - name: Thumbnails
         run: |
           git fetch -q origin preview-media
-          for t in wreck split fall; do
+          for t in model drawing xray; do
             git show "origin/preview-media:thumbs/${{ inputs.thumbs }}/thumb_$t.jpg" > ep/thumb_$t.jpg 2>/dev/null || rm -f ep/thumb_$t.jpg
           done
           ls -la ep

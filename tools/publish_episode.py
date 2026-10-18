@@ -3,7 +3,7 @@ Publishes a finished episode to the channel: the video, the chosen
 thumbnail, and a description built from the episode itself (hook, chapters,
 sources, photo and footage credits, the music credits CC BY requires).
 
-    python tools/publish_episode.py EPISODE_DIR --title "..." --thumb split [--publish-at 2026-10-19T18:00:00Z]
+    python tools/publish_episode.py EPISODE_DIR --title "..." --thumb xray [--publish-at 2026-10-19T18:00:00Z]
 
 EPISODE_DIR holds episode.mp4, episode.json, timed_sheet.json and the
 thumbnails (thumb_*.jpg). --dry-run writes description.txt and stops.
@@ -58,7 +58,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("episode_dir")
     ap.add_argument("--title", required=True)
-    ap.add_argument("--thumb", default="split", help="wreck, split or fall")
+    ap.add_argument("--thumb", default="xray", help="model, drawing or xray")
     ap.add_argument("--publish-at", default="", help="RFC 3339 UTC; blank = public now")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
