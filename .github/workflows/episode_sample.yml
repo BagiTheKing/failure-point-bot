@@ -1,0 +1,201 @@
+name: Episode sample
+
+# Manual. One full 8-10 minute episode from an animation sheet (steps 5b/5c):
+# every shot voiced in am_echo, the kits and the 3D camera timed to the
+# voice, real photos for the archive shots, the 3D model rendered across
+# many runners, the AI collapse made from our own last 3D frame, all cut
+# together by src/episode.py. Results go to preview-media (episodes/<name>/)
+# and the run's artifacts; nothing is uploaded to YouTube.
+on:
+  workflow_dispatch:
+    inputs:
+      sheet:
+        description: "Sheet: a repo path, or preview-media:<path> (e.g. preview-media:sheets/i35w/sheet.json)"
+        default: "preview-media:sheets/i35w/sheet.json"
+      name:
+        description: "Name under episodes/ on preview-media"
+        default: "i35w"
+      samples:
+        description: "3D render samples per pixel"
+        default: "16"
+      ai:
+        description: "Make the AI collapse clip (uses the day's free quota)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      shards: ${{ steps.plan.outputs.shards }}
+      per: ${{ steps.plan.outputs.per }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
+      - name: Cache Kokoro model files
+        uses: actions/cache@v4
+        with:
+          path: models
+          key: kokoro-v1.0-model-files
+      - name: Fetch Kokoro model files (cache miss only)
+        run: |
+          mkdir -p models
+          [ -f models/kokoro-v1.0.onnx ] || curl -sSL -o models/kokoro-v1.0.onnx "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
+          [ -f models/voices-v1.0.bin ] || curl -sSL -o models/voices-v1.0.bin "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
+      - run: pip install -r requirements.txt
+      - name: Fetch the sheet
+        env:
+          SHEET: ${{ inputs.sheet }}
+        run: |
+          mkdir -p prep
+          case "$SHEET" in
+            preview-media:*)
+              git fetch -q origin preview-media
+              git show "origin/preview-media:${SHEET#preview-media:}" > prep/sheet.json ;;
+            *) cp "$SHEET" prep/sheet.json ;;
+          esac
+      - name: Voice, timing, photos
+        env:
+          KOKORO_VOICE: am_echo
+          WIKIMEDIA_TOKEN: ${{ secrets.WIKIMEDIA_TOKEN }}
+        run: python tools/episode_sample.py prepare prep/sheet.json prep
+      - id: plan
+        run: |
+          echo "shards=$(python -c 'import json;print(json.dumps(json.load(open("prep/shards.json"))["shards"]))')" >> "$GITHUB_OUTPUT"
+          echo "per=$(python -c 'import json;print(json.load(open("prep/shards.json"))["per"])')" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prep
+          path: prep/
+          retention-days: 3
+
+  render3d:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.prepare.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install bpy pillow
+      - uses: actions/download-artifact@v4
+        with:
+          name: prep
+          path: prep
+      - name: Render this shard's frames
+        working-directory: src
+        run: |
+          PER=${{ needs.prepare.outputs.per }}
+          FIRST=$(( ${{ matrix.shard }} * PER + 1 ))
+          LAST=$(( FIRST + PER - 1 ))
+          python -m kits.render3d ../prep/timed_sheet.json ../raw \
+            --first $FIRST --last $LAST --samples ${{ inputs.samples }}
+      - name: Ship as JPEG (a tenth of the size)
+        run: |
+          python - <<'PY'
+          import glob, os
+          from PIL import Image
+          for p in glob.glob("raw/*.png"):
+              Image.open(p).convert("RGB").save(p[:-4] + ".jpg", quality=94)
+              os.remove(p)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frames3d-${{ matrix.shard }}
+          path: raw/
+          retention-days: 2
+
+  assemble:
+    needs: [prepare, render3d]
+    if: always() && needs.prepare.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: prep
+          path: prep
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: frames3d-*
+          path: raw
+          merge-multiple: true
+      - name: AI collapse, starting from our own last 3D frame
+        if: inputs.ai
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json, os, sys
+          sys.path.insert(0, "src")
+          sheet = json.load(open("prep/timed_sheet.json"))
+          from kits.timemap import ai_start_frame
+          from kits.assemble import find_frame
+          frame = find_frame("raw", ai_start_frame(sheet))
+          prompt = sheet.get("model_3d", {}).get("ai_prompt")
+          if not (os.getenv("HF_TOKEN") and frame and prompt):
+              print("no AI clip: the accurate 3D fall stands in")
+              sys.exit(0)
+          import animate_engine
+          try:
+              ok = animate_engine.animate(frame, prompt, "prep/ai_fall.mp4", 6.0)
+              print("AI clip made from", frame if ok else "nothing (no output)")
+          except Exception as e:
+              print(f"no AI clip ({type(e).__name__}: {str(e)[:200]}): the accurate 3D fall stands in")
+          PY
+      - name: Assemble the episode
+        run: |
+          A=""; [ -f prep/ai_fall.mp4 ] && A="--ai prep/ai_fall.mp4"
+          python tools/episode_sample.py assemble prep raw $A
+      - uses: actions/upload-artifact@v4
+        with:
+          name: episode-${{ inputs.name }}
+          path: |
+            prep/episode.mp4
+            prep/episode.json
+            prep/timed_sheet.json
+          retention-days: 14
+      - name: Push to preview-media
+        run: |
+          mkdir -p pm && cd pm
+          git init -q -b preview-media
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch -q origin preview-media && git checkout -q -B preview-media origin/preview-media || true
+          mkdir -p episodes/${{ inputs.name }}
+          cp ../prep/episode.json ../prep/timed_sheet.json episodes/${{ inputs.name }}/
+          # GitHub refuses files over 100 MB: a smaller copy for review if needed
+          # (the full-quality file is the run's artifact)
+          SIZE=$(stat -c %s ../prep/episode.mp4)
+          if [ "$SIZE" -gt 95000000 ]; then
+            DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 ../prep/episode.mp4)
+            KBPS=$(python3 -c "print(int(88e6 * 8 / float('$DUR') / 1000) - 160)")
+            ffmpeg -v error -y -i ../prep/episode.mp4 -c:v libx264 -b:v ${KBPS}k -maxrate ${KBPS}k \
+              -bufsize $((KBPS * 2))k -c:a aac -b:a 128k episodes/${{ inputs.name }}/episode.mp4
+          else
+            cp ../prep/episode.mp4 episodes/${{ inputs.name }}/
+          fi
+          git add -A
+          git commit -q -m "Episode sample: ${{ inputs.name }} (run ${{ github.run_number }})"
+          git push -q origin preview-media

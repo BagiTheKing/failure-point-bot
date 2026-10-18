@@ -17,97 +17,17 @@ import glob
 import json
 import os
 import shutil
-import subprocess
 import sys
-
-from PIL import Image, ImageDraw
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src"))
 from kits import common  # noqa: E402
-from kits.blueprint import W, H, FPS, SS, LINE, ease, prog, render_clip, encode, Frame, font  # noqa: E402
+from kits.blueprint import FPS, render_clip  # noqa: E402
 from kits.hanging_walkway import HangingWalkways  # noqa: E402
 from kits.truss_bridge import TrussBridge  # noqa: E402
 from kits import timemap  # noqa: E402
+from kits.assemble import frames_of, render_3d_part, dramatization, join  # noqa: E402
 
 KITS = {"hanging_walkways": HangingWalkways, "truss_bridge": TrussBridge}
-
-DISSOLVE = 0.8
-
-
-def frames_of(mp4, out_dir, cover=False):
-    """cover: fill the frame (crop the overflow) instead of letterboxing, so
-    a clip made from one of our frames keeps that frame's framing."""
-    os.makedirs(out_dir, exist_ok=True)
-    fit = (f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H}" if cover else
-           f"scale={W}:{H}:force_original_aspect_ratio=decrease,"
-           f"pad={W}:{H}:(ow-iw)/2:(oh-ih)/2:color=0x091629")
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", mp4, "-vf", f"{fit},fps={FPS}",
-                    os.path.join(out_dir, "%05d.png")], check=True)
-    return sorted(glob.glob(os.path.join(out_dir, "*.png")))
-
-
-def render_3d_part(sheet, raw, anchors, first_sec, last_sec, out_dir):
-    os.makedirs(out_dir, exist_ok=True)
-    files = []
-    for n in range(int(round(first_sec * FPS)) + 1, int(round(last_sec * FPS)) + 1):
-        src = os.path.join(raw, f"{n:04d}.png")
-        if not os.path.exists(src):
-            continue
-        img = common.overlay_3d(sheet, Image.open(src), n, anchors, (n - 1) / FPS)
-        p = os.path.join(out_dir, f"{len(files):05d}.png")
-        img.save(p)
-        files.append(p)
-    return files
-
-
-def dramatization(clip, out_dir, caption=""):
-    """The AI clip, tagged as a dramatization so nobody takes it for footage.
-    It carries on the 3D shot's caption, so nothing pops at the hand-over."""
-    files = frames_of(clip, out_dir + "_src", cover=True)
-    os.makedirs(out_dir, exist_ok=True)
-    out = []
-    for i, p in enumerate(files):
-        f = Frame()
-        f.img = Image.open(p).convert("RGB").resize((W * SS, H * SS))
-        f.d = ImageDraw.Draw(f.img, "RGBA")
-        common.pill(f, "DRAMATIZATION", W - 40, 36, LINE, 15, "ra", 0.9)
-        if caption:
-            f.caption(caption, 1 - prog(i / FPS, 2.6, 3.0))
-        q = os.path.join(out_dir, f"{i:05d}.png")
-        f.done().save(q)
-        out.append(q)
-    return out
-
-
-def join(segments, out_mp4, work):
-    """segments: [(frame files, transition into the next)], the transition
-    'cut', 'dissolve' or ('dissolve', seconds)."""
-    reel = os.path.join(work, "_reel")
-    os.makedirs(reel, exist_ok=True)
-    seq, skip = [], 0
-    for i, (files, trans) in enumerate(segments):
-        files = files[skip:]
-        skip = 0
-        nxt = segments[i + 1][0] if i + 1 < len(segments) else None
-        secs = trans[1] if isinstance(trans, tuple) else DISSOLVE
-        k = max(1, int(secs * FPS))
-        if nxt and trans != "cut" and len(files) > k and len(nxt) > k:
-            seq += files[:-k]
-            seq += [(a, b, (j + 1) / (k + 1)) for j, (a, b) in enumerate(zip(files[-k:], nxt[:k]))]
-            skip = k
-        else:
-            seq += files
-    for j, item in enumerate(seq):
-        dst = os.path.join(reel, f"{j:05d}.png")
-        if isinstance(item, tuple):
-            a, b, w = item
-            Image.blend(Image.open(a).convert("RGB"), Image.open(b).convert("RGB"), ease(w)).save(dst)
-        else:
-            shutil.copyfile(item, dst)
-    encode(reel, out_mp4)
-    shutil.rmtree(reel)
-    print(f"{out_mp4}: {len(seq) / FPS:.1f} s")
-
 
 def main():
     ap = argparse.ArgumentParser()

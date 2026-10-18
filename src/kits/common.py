@@ -33,11 +33,12 @@ def _cover(path):
     return _photo_cache[path]
 
 
-def ken_burns(path, t):
+def ken_burns(path, t, drift=1):
+    """A slow push-in on a photo, drifting right (drift 1) or left (-1)."""
     img = _cover(path)
     z = 1.0 + 0.12 * t
     cw, ch = img.width / z, img.height / z
-    x0 = (img.width - cw) / 2 + 0.03 * img.width * t
+    x0 = (img.width - cw) / 2 + 0.03 * img.width * t * drift
     y0 = (img.height - ch) / 2
     img = img.crop((int(x0), int(y0), int(x0 + cw), int(y0 + ch))).resize((W * SS, H * SS), Image.LANCZOS)
     img = Image.blend(img, Image.new("RGB", img.size, (0, 0, 0)), 0.28)
@@ -149,8 +150,10 @@ def today(sheet):
         f.grid(0.6)
         f.text(d["title"], W / 2, 200, 40, CYAN, "InterDisplay-Black.otf", anchor="mm",
                alpha=prog(t, 0.2, 0.8))
+        # the lines come in one by one across the shot, as the voice reaches them
+        step = max(1.6, (T - 2.5) / max(1, len(d["lines"])))
         for i, line in enumerate(d["lines"]):
-            a = prog(t, 1.0 + i * 1.6, 1.6 + i * 1.6)
+            a = prog(t, 1.0 + i * step, 1.6 + i * step)
             f.text(line, W / 2, 300 + i * 64, 26, LINE if i < len(d["lines"]) - 1 else AMBER,
                    "Inter-SemiBold.otf", anchor="mm", alpha=a)
         return f.done()
