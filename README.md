@@ -10,3 +10,4 @@ merge into `main`.
 | `i35w_mixed_v1.mp4` | I-35W (2007): real photo, 3D bridge analysis (load parked over joint U10, the gusset plate heating), 2D plate physics with pauses, the AI collapse into the river continuing from the last 3D frame, timeline, compare, today. 86 s |
 
 - i35w_full_episode_v1.mp4 — first full 8:15 episode (AI-written sheet, am_echo voice, 3D fall, 14 photos; credits in the .json)
+- i35w_full_episode_v2.mp4 — v2: 30 s cold open, animated title and death toll, timeline on the spoken dates, score, watermark, writer-picked photos
