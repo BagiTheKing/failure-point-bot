@@ -2,15 +2,12 @@
  "figures": {
   "big": "½ INCH",
   "dead": "13",
-  "part": "STEEL PLATE"
+  "part": "STEEL PLATE",
+  "block": "THE POINT OF FAILURE · I-35W · JOINT U10"
  },
  "made": {
-  "wreck": "out/thumb_wreck.jpg",
-  "split": "out/thumb_split.jpg",
-  "fall": "out/thumb_fall.jpg"
- },
- "photo": {
-  "title": "I-35W-rescue-Minneapolis-20070801",
-  "credit": "I-35W-rescue-Minneapolis-20070801 — Eric from Minneapolis — CC BY-SA 2.0 (via Wikimedia Commons)"
+  "model": "out/thumb_model.jpg",
+  "drawing": "out/thumb_drawing.jpg",
+  "xray": "out/thumb_xray.jpg"
  }
 }
