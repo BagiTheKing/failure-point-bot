@@ -180,11 +180,26 @@ def drawing_frame(sheet, which="tear"):
             setattr(Frame, n, fn)
 
 
+def _follow_down(img, ax, ay):
+    """The joint's anchor is where it stood before the fall; mid-collapse the
+    span is lower. Walk down the picture from there to the first bright steel
+    or deck (the water and sky are dark) and put the ring on it."""
+    g = img.convert("L")
+    x = int(ax * g.width)
+    for y in range(int(ay * g.height), int(g.height * 0.95), 2):
+        box = g.crop((max(0, x - 6), y, min(g.width, x + 6), y + 4))
+        if sum(box.getdata()) / max(1, box.width * box.height) > 140:
+            return (y + 6) / g.height
+    return ay
+
+
 def model(fall3d, anchor, f, out, zoom=1.45):
     """Close in on the failing span and set it low in the frame, under the
     words; the ring follows the joint through the crop."""
     src = Image.open(fall3d)
     ax, ay = (anchor[0], anchor[1]) if anchor else (0.5, 0.5)
+    if anchor:
+        ay = _follow_down(src, ax, ay)
     cx, cy = ax, ay - 0.16 / zoom                      # the joint lands about two thirds down
     img = _grid(_grade(_cover(src, cx=cx, cy=cy, zoom=zoom), 1.3, 1.0), 18)
     img = _scrim(img, top=0.5, left=0.5, strength=225)
