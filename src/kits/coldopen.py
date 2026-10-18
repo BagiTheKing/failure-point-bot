@@ -55,7 +55,8 @@ def plan(items, T, seed=7):
             mixed.append(("p", (photos[pi], 0)))
             pi += 1
     order = mixed
-    tail = [("m", p) for p in ours[-3:]] if ours else []
+    # the collapse itself, in motion: the first pieces of the fall, in order
+    tail = [("m", p) for p in ours[:3]] if ours else []
     cuts, t = [], 0.0
     budget = T - sum(BEAT for _ in tail)
     seq = order or tail

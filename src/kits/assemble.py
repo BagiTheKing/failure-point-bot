@@ -138,9 +138,14 @@ def reel(items, seconds, caption="", fade=0.8):
         plan.append([t0, dur, v])
         t0 += dur
     rest = seconds - t0
-    n = max(1, min(len(photos), round(rest / 6.0))) if photos and rest >= 3.0 else 0
+    n = max(1, round(rest / 7.0)) if photos and rest >= 3.0 else 0
     if n:
-        for p in photos[:n]:
+        # too few photos for the time: each comes back as a closer look at
+        # another part of it, rather than one picture held for half a minute
+        for k in range(n):
+            p = photos[k % len(photos)]
+            if k >= len(photos):
+                p = {**p, "focus": (k // len(photos)) % 3}
             plan.append([t0, rest / n, p])
             t0 += rest / n
     elif plan and rest > 0:                 # nothing left to show: the footage holds
@@ -157,7 +162,7 @@ def reel(items, seconds, caption="", fade=0.8):
         if not item.get("path"):
             return common.placeholder(local)
         return common.ken_burns(item["path"], min(1.0, local / (plan[k][1] + fade)),
-                                1 if k % 2 == 0 else -1)
+                                1 if k % 2 == 0 else -1, item.get("focus"))
 
     def clip(t, T):
         k = next((j for j, (a, d, _) in enumerate(plan) if t < a + d), len(plan) - 1)

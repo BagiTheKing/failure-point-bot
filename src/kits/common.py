@@ -35,12 +35,14 @@ def _cover(path):
     return _photo_cache[path]
 
 
-def ken_burns(path, t, drift=1):
-    """A slow push-in on a photo, drifting right (drift 1) or left (-1)."""
+def ken_burns(path, t, drift=1, focus=None):
+    """A slow push-in on a photo, drifting right (drift 1) or left (-1).
+    focus 0/1/2: a closer look at the left, right or middle of it."""
     img = _cover(path)
-    z = 1.0 + 0.12 * t
+    z = 1.0 + 0.12 * t + (0.35 if focus is not None else 0.0)
     cw, ch = img.width / z, img.height / z
-    x0 = (img.width - cw) / 2 + 0.03 * img.width * t * drift
+    cx = {None: 0.5, 0: 0.33, 1: 0.67, 2: 0.5}[focus]
+    x0 = min(max(0.0, img.width * cx - cw / 2 + 0.03 * img.width * t * drift), img.width - cw)
     y0 = (img.height - ch) / 2
     img = img.crop((int(x0), int(y0), int(x0 + cw), int(y0 + ch))).resize((W * SS, H * SS), Image.LANCZOS)
     img = Image.blend(img, Image.new("RGB", img.size, (0, 0, 0)), 0.28)

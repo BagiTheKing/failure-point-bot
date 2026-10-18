@@ -447,7 +447,7 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
     hook_T = 0.0
     if hook.get("lines") and takes:
         lines, hook_T = hook_schedule(hook["lines"], takes)
-        f0, f1 = tm.frame(20.0), tm.frame(28.0)
+        f0, f1 = tm.frame(21.6), tm.frame(28.0)        # from the last still moment through the fall
         fall3d = [p for p in (find_frame(raw3d, n) for n in range(f0, f1 + 1)) if p]
         pics = (pictures("photo") + (photos.get("aftermath") and pictures("aftermath") or [])
                 + (photos.get("photos_disaster") and pictures("photos_disaster") or []))[:8]
@@ -457,9 +457,16 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
                                 hook.get("title", ""), hook.get("sub", "")),
               hook_T, "cut", [(f"hook_{i}", a - narration.PAD_IN) for i, (a, _, _) in enumerate(lines)])
 
-    # part 1: real footage first (security cameras before anything), then photos
+    # part 1: real footage first (security cameras before anything), then photos;
+    # a long opening shot borrows spare wreckage photos so no picture holds for long
     seconds = slots["photo"] + d
-    add2d("photo", common.photo(sheet, reel(clips[:1] + pictures("photo"), seconds), tint_out=False,
+    lead = pictures("photo")
+    spare = photos.get("aftermath") or []
+    if len(lead) < seconds / 8 and len(spare) > 4:
+        borrow = min(len(spare) - 4, int(seconds / 8) - len(lead))
+        lead += [{"path": p["path"], "credit": _short_credit(p["credit"])} for p in spare[-borrow:]]
+        photos = {**photos, "aftermath": spare[:-borrow]}
+    add2d("photo", common.photo(sheet, reel(clips[:1] + lead, seconds), tint_out=False,
                                 toll_at=(narration.PAD_IN + toll_t) if toll_shot == "photo" else None),
           seconds, "dissolve", [("photo", 0)])
     archive("photos_disaster", "dissolve", clips[1:])
