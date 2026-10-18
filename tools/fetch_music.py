@@ -4,6 +4,7 @@ the credit sidecar their licence requires (music/README.md), by title:
 
     python tools/fetch_music.py "Mechanolith" "Volatile Reaction"
     python tools/fetch_music.py --list dark      # titles whose feel matches
+    python tools/fetch_music.py --score          # every track the score uses
 
 Titles come from incompetech's own catalogue (pieces.json), so a misspelt or
 missing title is reported rather than guessed.
@@ -56,7 +57,13 @@ def fetch(title, pieces):
 
 if __name__ == "__main__":
     pieces = catalogue()
-    if sys.argv[1:2] == ["--list"]:
+    if sys.argv[1:2] == ["--score"]:            # every Kevin MacLeod track src/score.py uses
+        sys.path.insert(0, os.path.join(HERE, "..", "src"))
+        import score
+        for name in score.TRACKS:
+            if name.endswith(" - Kevin MacLeod.mp3"):
+                fetch(name[: -len(" - Kevin MacLeod.mp3")], pieces)
+    elif sys.argv[1:2] == ["--list"]:
         want = (sys.argv[2] if len(sys.argv) > 2 else "dark").lower()
         for p in pieces:
             if want in json.dumps(p).lower():

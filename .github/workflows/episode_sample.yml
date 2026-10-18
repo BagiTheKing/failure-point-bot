@@ -209,8 +209,8 @@ jobs:
           merge-multiple: true
           run-id: ${{ inputs.reuse_run || github.run_id }}
           github-token: ${{ github.token }}
-      - name: The intro track (owner's pick, Kevin MacLeod, CC BY)
-        run: python tools/fetch_music.py "Impact Prelude"
+      - name: The score's tracks (Kevin MacLeod, CC BY, with their credits)
+        run: python tools/fetch_music.py --score
       - name: AI collapse, starting from our own last 3D frame
         if: inputs.ai
         env:

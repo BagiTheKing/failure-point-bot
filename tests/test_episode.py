@@ -60,6 +60,19 @@ class EpisodeTimingTest(unittest.TestCase):
         self.assertEqual([c["title"] for c in shots["today_photos"]], ["Saint Anthony Falls Bridge"])
         self.assertEqual([c["title"] for c in shots["photos_disaster"]], ["Bridge before"])
 
+    def test_timeline_lands_on_spoken_dates_and_slots_the_rest(self):
+        s = sheet()
+        s["timeline"] = [{"date": d} for d in ("1977", "1990", "1998", "2001", "JUNE 2003", "JANUARY 2007")]
+        text = "Warnings came. In 1990 it was rated deficient. In 2001 a study. In June 2003 photos. In January 2007 cancelled."
+        words = [{"word": w, "start": i * 0.5} for i, w in enumerate(text.split())]
+        got = [round(t - narration.PAD_IN, 2) for t in episode.timeline_reveal(s, words)]
+        said = {w["word"].strip(".,"): w["start"] for w in words}
+        self.assertEqual(got[1], said["1990"])
+        self.assertEqual(got[3], said["2001"])
+        self.assertEqual(got[4], said["June"])
+        self.assertEqual(got[5], said["January"])
+        self.assertTrue(got[0] < got[1] and got[1] < got[2] < got[3])   # unsaid ones slot in, in order
+
     def test_credit_is_short(self):
         self.assertEqual(episode._short_credit(
             "I-35W collapse — Kevin Rofidal, USCG — Public domain (via Wikimedia Commons)"),

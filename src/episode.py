@@ -761,24 +761,43 @@ def with_toll(fn, sheet, at):
 
 
 def timeline_reveal(sheet, words):
-    """The second each timeline event appears: when the narrator says its
-    date (its year, or month and year), in order; None if the dates cannot
-    be found in the narration."""
-    if not words:
+    """The second each timeline event appears: on the word where the
+    narrator says its date (month and year, or the year). A date the
+    narration never says (the first I-35W cut listed 1977 and 1998 but
+    never spoke them, and every event fell back to an even spread) slots in
+    between the spoken dates around it. None when no date is spoken."""
+    events = sheet.get("timeline") or []
+    if not words or not events:
         return None
-    out, last = [], 0.0
-    for e in sheet.get("timeline") or []:
+    found, after = [], 0.0
+    for e in events:
         date = str(e.get("date", ""))
         years = re.findall(r"\b(1[89]\d\d|20\d\d)\b", date)
         t = None
         if years:
-            later = [w for w in words if w["start"] >= last - 0.01]
-            t = narration.find_word(later, f"{date.title()}", years[0])
-        if t is None:
-            return None
-        last = max(last, t)
-        out.append(narration.PAD_IN + last)
-    return out
+            later = [w for w in words if w["start"] >= after - 0.01]
+            t = narration.find_word(later, date.title(), years[0])
+        if t is not None:
+            after = t
+        found.append(t)
+    known = [i for i, t in enumerate(found) if t is not None]
+    if not known:
+        return None
+    out = list(found)
+    for i in range(len(out)):
+        if out[i] is not None:
+            continue
+        before = max((k for k in known if k < i), default=None)
+        nxt = min((k for k in known if k > i), default=None)
+        if before is None:                       # before the first spoken date
+            out[i] = max(0.6, found[nxt] - 1.2 * (nxt - i))
+        elif nxt is None:                        # after the last one
+            out[i] = found[before] + 1.5 * (i - before)
+        else:                                    # shared out between its neighbours
+            out[i] = found[before] + (found[nxt] - found[before]) * (i - before) / (nxt - before)
+    for i in range(1, len(out)):                 # never backwards
+        out[i] = max(out[i], out[i - 1] + 0.4)
+    return [narration.PAD_IN + t for t in out]
 
 
 def hook_schedule(lines, takes, start=1.4, gap=0.85, tail=1.8, shortest=24.0):

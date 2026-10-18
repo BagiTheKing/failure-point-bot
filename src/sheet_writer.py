@@ -147,6 +147,8 @@ def prompt(topic, facts_text, variant):
         "stood there. If the mistake was in the design itself, say so: titles "
         "WHAT IT NEEDED / WHAT IT HAD, and never call the faulty design adequate. "
         "plate_needed is a figure from the fact sheet, or empty if it gives none.\n"
+        "- Every timeline date is said in the timeline shot's narration, in the "
+        "same words (the picture shows each event as its date is spoken).\n"
         "- timeline: 3 to 6 moments in THIS structure's own story (design "
         "changes, earlier damage, inspections, warnings, decisions), not other "
         "disasters; titles under 28 characters, subs under 44.\n"
@@ -280,6 +282,11 @@ def check(reply, variant, source_text):
     if missing:
         problems.append("figures not in the fact sheet: " + ", ".join(missing[:8]))
     problems += hook_problems(reply.get("hook") or {}, source_text)
+    tl_text = ((reply.get("shots") or {}).get("timeline") or {}).get("narration", "")
+    unsaid = [e.get("date", "") for e in reply.get("timeline") or []
+              if not any(y in tl_text for y in re.findall(r"\b(?:1[89]|20)\d\d\b", str(e.get("date", ""))))]
+    if unsaid:
+        problems.append("timeline dates never said in the timeline narration: " + ", ".join(unsaid))
     if not (reply.get("timeline") and 3 <= len(reply["timeline"]) <= 6):
         problems.append("timeline needs 3 to 6 entries")
     return problems

@@ -41,7 +41,8 @@ def reply():
                  "lines": ["Kansas City, 17 July 1981, 7:05 pm.", "Two walkways fall into a crowded atrium.",
                            "114 people are killed.", "The cause was one changed rod."]},
         "photo_article": "Hyatt Regency walkway collapse",
-        "shots": {clip: {"caption": "A short line.", "narration": words(w)}
+        "shots": {clip: {"caption": "A short line.",
+                         "narration": words(w) + (" In 1979 and October 1979, then 1981." if clip == "timeline" else "")}
                   for _, _, clip, w in SW.SHOTS},
     }
 
@@ -78,6 +79,11 @@ class SheetWriterTest(unittest.TestCase):
         r = reply()
         r["disaster"]["place"] = "<where, one line>"
         self.assertTrue(any("placeholder" in p for p in SW.check(r, "hanging_walkways", SOURCE)))
+
+    def test_timeline_dates_must_be_said(self):
+        r = reply()
+        r["shots"]["timeline"]["narration"] = " ".join(["word"] * 150)
+        self.assertTrue(any("never said" in p for p in SW.check(r, "hanging_walkways", SOURCE)))
 
     def test_long_screen_text_is_refused(self):
         r = reply()

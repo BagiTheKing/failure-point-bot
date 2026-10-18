@@ -27,13 +27,16 @@ XFADE = 2.5
 # one track per part of the 7-part structure, the cold open first
 # owner's pick from the audition, 2026-10-18 (tools/fetch_music.py fetches it)
 COLD_OPEN = os.getenv("INTRO_TRACK", "Impact Prelude - Kevin MacLeod.mp3")
-PARTS = {1: "A Singular Perversion - Darkness - Kevin MacLeod.mp3",
-         2: "Measured Paces - Kevin MacLeod.mp3",
-         3: "Measured Paces - Kevin MacLeod.mp3",
-         4: "Epilog - Ghostpocalypse - Kevin MacLeod.mp3",
-         5: "Spirit of the Dead - Aakash Gandhi.mp3",
-         6: "Beyond the Lows - The Whole Other.mp3",
-         7: "March of the Mind - Kevin MacLeod.mp3"}
+PARTS = {1: "Lightless Dawn - Kevin MacLeod.mp3",          # the disaster: somber
+         2: "Hidden Wonders - Kevin MacLeod.mp3",          # the structure: mysterious, like the intro's
+         3: "Stay the Course - Kevin MacLeod.mp3",         # the physics: suspenseful, calm under the voice
+         4: "Volatile Reaction - Kevin MacLeod.mp3",       # second by second: intense
+         5: "Man Down - Kevin MacLeod.mp3",                # warnings and investigation: somber
+         6: "Tyrant - Kevin MacLeod.mp3",                  # how it should have worked: steady
+         7: "Leaving Home - Kevin MacLeod.mp3"}            # could it happen today: reflective
+# all Kevin MacLeod (incompetech.com, CC BY 4.0), fetched with their credit
+# by tools/fetch_music.py: the owner turned down the old horror-style beds
+TRACKS = [COLD_OPEN] + sorted(set(PARTS.values()))
 OPEN_LEVEL = 0.55            # the cold open's music, before ducking
 BED_LEVEL = 0.10             # under the analysis
 DUCK = 0.55                  # how far the music drops while the voice speaks
