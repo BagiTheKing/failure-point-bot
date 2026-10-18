@@ -185,8 +185,10 @@ def gather_footage(sheet, out_dir, limit=3, longest=24.0):
     from archive_engine import (fetch_commons_video, footage_matches, format_credit, is_static,
                                 search_commons_video, _clip_seconds)
     d = sheet["disaster"]
-    name = d.get("place") or d.get("photo_article") or ""
-    article = d.get("photo_article") or name
+    # the short name ("I-35W Mississippi River bridge"), not the full place
+    # line ("..., Minneapolis, Minnesota"), or every word must match
+    article = d.get("photo_article") or d.get("place", "").split(",")[0]
+    name = re.sub(r"\s+(collapse|disaster|explosion|failure)$", "", article.strip(), flags=re.I)
     year = _year(sheet)
     queries = [f"{name} {w}" for w in ("collapse surveillance", "security camera", "CCTV",
                                         "collapse video", "collapse")] + [article]
