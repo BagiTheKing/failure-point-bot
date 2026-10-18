@@ -3,7 +3,7 @@ name: Episode sample
 # Manual. One full 8-10 minute episode from an animation sheet (steps 5b/5c):
 # every shot voiced in am_echo, the kits and the 3D camera timed to the
 # voice, real photos for the archive shots, the 3D model rendered across
-# many runners, the AI collapse made from our own last 3D frame, all cut
+# many runners, its own 3D fall as the collapse (an AI clip on request), all cut
 # together by src/episode.py. Results go to preview-media (episodes/<name>/)
 # and the run's artifacts; nothing is uploaded to YouTube.
 on:
@@ -19,9 +19,9 @@ on:
         description: "3D render samples per pixel"
         default: "16"
       ai:
-        description: "Make the AI collapse clip (uses the day's free quota)"
+        description: "Use an AI collapse clip instead of the 3D fall (uses the day's free quota)"
         type: boolean
-        default: true
+        default: false
 
 permissions:
   contents: write
@@ -66,7 +66,7 @@ jobs:
         env:
           KOKORO_VOICE: am_echo
           WIKIMEDIA_TOKEN: ${{ secrets.WIKIMEDIA_TOKEN }}
-        run: python tools/episode_sample.py prepare prep/sheet.json prep
+        run: python tools/episode_sample.py prepare prep/sheet.json prep ${{ inputs.ai && '--ai' || '' }}
       - id: plan
         run: |
           echo "shards=$(python -c 'import json;print(json.dumps(json.load(open("prep/shards.json"))["shards"]))')" >> "$GITHUB_OUTPUT"

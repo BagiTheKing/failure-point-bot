@@ -32,7 +32,7 @@ class EpisodeTimingTest(unittest.TestCase):
 
     def test_3d_shots_last_as_long_as_their_slots(self):
         slots = {c: 10.0 + i for i, (_, _, c, _) in enumerate(SW.SHOTS)}
-        s = episode.timing(sheet(), slots)
+        s = episode.timing(sheet(), slots, ai=True)
         tm, d = timemap.of(s), s["timing"]["dissolve"]
         self.assertAlmostEqual(tm.real(7.0), slots["establish"] + d)
         self.assertAlmostEqual(tm.real(20.0) - tm.real(7.0),
@@ -41,6 +41,12 @@ class EpisodeTimingTest(unittest.TestCase):
         fall = timemap.ai_start_frame(s) / FPS - tm.real(20.0)
         self.assertAlmostEqual(fall, slots["fall"] + episode.AI_BLEND, delta=1.5 / FPS)
         self.assertEqual(s["timing"]["kit"]["physics"], slots["physics"] + d)
+
+    def test_3d_fall_drops_as_the_dramatization_begins(self):
+        slots = {c: 10.0 + i for i, (_, _, c, _) in enumerate(SW.SHOTS)}
+        tm = timemap.of(episode.timing(sheet(), slots))
+        self.assertAlmostEqual(tm.real(22.0) - tm.real(20.0), slots["fall"])
+        self.assertAlmostEqual(tm.real(28.0) - tm.real(22.0), 9.0)
 
     def test_photos_go_where_their_titles_say(self):
         cands = [{"title": "I-35W bridge"}, {"title": "Collapsed span wreckage", "year": 2007},

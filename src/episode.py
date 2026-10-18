@@ -10,9 +10,10 @@ Steps 5b and 5c: one full 8-10 minute episode from an animation sheet.
                              voice along them
 
 The 3D model is rendered from the timed sheet (kits/render3d.py), and the AI
-collapse is made from its frame timemap.ai_start_frame(timed sheet), between
-prepare and build. Without an AI clip, the accurate 3D fall plays instead and
-the dramatization's narration runs over it.
+collapse, when asked for, is made from its frame timemap.ai_start_frame(timed
+sheet), between prepare and build. By default the 3D fall itself is the
+collapse (owner, 2026-10-18: it proved better than the AI clip), and the
+dramatization's narration runs over it.
 """
 
 import json
@@ -41,23 +42,32 @@ def kit_class(variant):
 # 1. The voice, and the slots it sets
 # --------------------------------------------------------------------------
 
-def timing(sheet, slots):
+def timing(sheet, slots, ai=False):
     """Writes the slots into the sheet: the 3D shot lengths (time map), the
     kit clip lengths, each shot's seconds. A clip that dissolves into the
     next runs DISSOLVE longer than its slot, so the slots alone add up to
     the episode and each voice starts with its own shot."""
     d = DISSOLVE
-    fall = slots["fall"] + AI_BLEND
+    if ai:
+        # the fall shot runs from the pull-back to the AI start (canonical
+        # 20 -> 21.8): pull 20-21.4 and two thirds of the hold 21.4-22
+        fall = slots["fall"] + AI_BLEND
+        pull, hold = fall * 1.4 / 1.8, fall * 0.6 / 1.8
+    else:
+        # the 3D fall (owner, 2026-10-18: better than the AI's): the pull-back
+        # and hold fill the fall shot, so the span drops just as the
+        # dramatization's narration begins; the drop slows a little, up to
+        # half again, to carry it
+        pull, hold = slots["fall"] * 1.4 / 2.0, slots["fall"] * 0.6 / 2.0
     sheet.setdefault("model_3d", {})["shot_seconds"] = {
         "establish": slots["establish"] + d,
         "load_path": slots["load_path"],
         "connection": slots["connection"] + d,
-        # the fall shot runs from the pull-back to the AI start (canonical
-        # 20 -> 21.8): pull 20-21.4 and two thirds of the hold 21.4-22
-        "pull": fall * 1.4 / 1.8,
-        "hold": fall * 0.6 / 1.8,
+        "pull": pull,
+        "hold": hold,
+        "drop": min(9.0, max(6.0, slots["dramatization"])),
     }
-    sheet["timing"] = {"slots": slots, "dissolve": d,
+    sheet["timing"] = {"slots": slots, "dissolve": d, "ai": ai,
                        "kit": {"build": slots["build"] + d, "physics": slots["physics"] + d,
                                "compare": slots["compare"] + d}}
     for sh in sheet["shots"]:
@@ -65,10 +75,11 @@ def timing(sheet, slots):
     return sheet
 
 
-def prepare(sheet, out_dir, voice=None):
-    """Voices the shots and times the sheet. Returns (timed sheet, voiced)."""
+def prepare(sheet, out_dir, voice=None, ai=False):
+    """Voices the shots and times the sheet. Returns (timed sheet, voiced).
+    ai: time the fall for an AI collapse clip instead of the 3D fall."""
     voiced = narration.record(sheet, os.path.join(out_dir, "voice"), voice)
-    sheet = timing(sheet, narration.slots_of(sheet, voiced))
+    sheet = timing(sheet, narration.slots_of(sheet, voiced), ai)
     json.dump(voiced, open(os.path.join(out_dir, "voiced.json"), "w"), indent=1)
     json.dump(sheet, open(os.path.join(out_dir, "timed_sheet.json"), "w"), indent=2, ensure_ascii=False)
     total = sum(sheet["timing"]["slots"].values())
@@ -230,7 +241,7 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None):
     add2d("physics", lambda t, T: kit.physics(t, T, lead=False), D["physics"], "dissolve",
           [("physics", 0)])
     add2d("clock", common.clock(sheet), slots["clock"], "cut", [("clock", 0)])
-    use_ai = bool(ai_clip and os.path.exists(ai_clip))
+    use_ai = bool(ai_clip and os.path.exists(ai_clip) and sheet["timing"].get("ai"))
     if use_ai:
         # the 3D shot stops on the very frame the AI clip was made from
         add3d("fall", tm.real(20.0), timemap.ai_start_frame(sheet) / FPS, ("dissolve", AI_BLEND),
@@ -242,7 +253,7 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None):
     else:
         # the accurate 3D fall, its settle held while the narration runs
         add3d("fall", tm.real(20.0), tm.real(28.0), "dissolve",
-              [("fall", 0), ("dramatization", slots["fall"])],
+              [("fall", 0), ("dramatization", tm.real(22.0) - tm.real(20.0))],
               fill_to=frames(slots["fall"] + slots["dramatization"] + d))
     archive("aftermath", "dissolve")
     add2d("timeline", common.timeline(sheet), slots["timeline"] + d, "dissolve", [("timeline", 0)])
