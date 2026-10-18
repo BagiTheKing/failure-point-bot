@@ -122,34 +122,68 @@ def to_mp4(files, mp4, keep=False):
     return mp4, len(files)
 
 
-def slideshow(photos, seconds, caption="", credits=None, fade=0.8):
-    """A clip of real photographs, each pushed in slowly, cross-fading into
-    the next, the shot's caption first and each photo's credit in a corner.
-    photos: image paths (ours or archive). Returns fn(t, T)."""
-    credits = credits or [""] * len(photos)
-    n = max(1, len(photos))
-    per = seconds / n
+def reel(items, seconds, caption="", fade=0.8):
+    """Real footage and photographs for one shot. items, in order:
+    {"frames": [png...], "credit", "tag"} for a video clip (it plays at its
+    own speed, first) and {"path", "credit"} for a photo (slowly pushed in;
+    the photos share whatever time the footage leaves). The shot's caption
+    shows first, each item's credit in a corner. Returns fn(t, T)."""
+    videos = [i for i in items if i.get("frames")]
+    photos = [i for i in items if not i.get("frames")]
+    plan, t0 = [], 0.0
+    for v in videos:
+        if t0 >= seconds - 0.5:
+            break
+        dur = min(len(v["frames"]) / FPS, seconds - t0)
+        plan.append([t0, dur, v])
+        t0 += dur
+    rest = seconds - t0
+    n = max(1, min(len(photos), round(rest / 6.0))) if photos and rest >= 3.0 else 0
+    if n:
+        for p in photos[:n]:
+            plan.append([t0, rest / n, p])
+            t0 += rest / n
+    elif plan and rest > 0:                 # nothing left to show: the footage holds
+        plan[-1][1] += rest
+    if not plan:
+        plan = [[0.0, seconds, {"path": None, "credit": ""}]]
 
-    def frame(i, t):
-        return common.ken_burns(photos[i], min(1.0, t / (per + fade)), 1 if i % 2 == 0 else -1)
+    def image(item, local, k):
+        if item.get("frames"):
+            fr = item["frames"]
+            img = Image.open(fr[min(len(fr) - 1, int(local * FPS))]).convert("RGB")
+            img = img.resize((W * SS, H * SS))
+            return Image.blend(img, Image.new("RGB", img.size, (0, 0, 0)), 0.12)
+        if not item.get("path"):
+            return common.placeholder(local)
+        return common.ken_burns(item["path"], min(1.0, local / (plan[k][1] + fade)),
+                                1 if k % 2 == 0 else -1)
 
     def clip(t, T):
-        i = min(n - 1, int(t / per))
-        local = t - i * per
-        img = frame(i, local)
-        if i + 1 < n and local > per - fade:
-            img = Image.blend(img, frame(i + 1, 0.0), ease((local - (per - fade)) / fade))
+        k = next((j for j, (a, d, _) in enumerate(plan) if t < a + d), len(plan) - 1)
+        a, d, item = plan[k]
+        img = image(item, t - a, k)
+        if k + 1 < len(plan) and t > a + d - fade:
+            img = Image.blend(img, image(plan[k + 1][2], 0.0, k + 1), ease((t - (a + d - fade)) / fade))
         f = Frame()
         f.img, f.d = img, ImageDraw.Draw(img, "RGBA")
-        if credits[i]:
-            from kits.blueprint import fit, DIM
-            c = credits[i]
+        from kits.blueprint import fit, DIM
+        if item.get("tag"):
+            common.pill(f, item["tag"], 40, 36, LINE, 15, "la", 0.9)
+        c = item.get("credit") or ""
+        if c:
             f.text(c, W - 24, H - 16, fit(c, 12, "Inter-Medium.otf", 560), DIM,
                    "Inter-Medium.otf", screen=True, anchor="rs", alpha=0.85)
         if caption:
             f.caption(caption, prog(t, 0.3, 1.0) * (1 - prog(t, 4.5, 5.1)))
         return f.done()
     return clip
+
+
+def slideshow(photos, seconds, caption="", credits=None, fade=0.8):
+    """Photographs only (see reel)."""
+    credits = credits or [""] * len(photos)
+    return reel([{"path": p, "credit": c} for p, c in zip(photos, credits)], seconds, caption, fade)
 
 
 def held(files, n_frames, out_dir, zoom=0.07):

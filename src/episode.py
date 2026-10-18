@@ -4,6 +4,7 @@ Steps 5b and 5c: one full 8-10 minute episode from an animation sheet.
     prepare(sheet, out)      voice every shot (am_echo), give each shot its
                              slot, time the kits and the 3D camera to it;
                              writes out/timed_sheet.json for the 3D render
+    gather_footage(sheet, out) real footage for part 1, security cameras first
     gather_photos(sheet, out) real photos for the archive shots
     build(...)               cuts the 16 shots together (sheet_writer.SHOTS)
                              with the channel's transitions and lays the
@@ -23,8 +24,8 @@ import shutil
 import subprocess
 
 from kits import common, timemap
-from kits.assemble import (DISSOLVE, find_frame, render_3d_part, dramatization, held,
-                           slideshow, to_mp4, xfade_join)
+from kits.assemble import (DISSOLVE, find_frame, frames_of, render_3d_part, dramatization,
+                           held, reel, to_mp4, xfade_join)
 from kits.blueprint import FPS, render_clip
 import narration
 
@@ -172,6 +173,53 @@ def gather_photos(sheet, out_dir, limit=16):
     return shots
 
 
+CCTV = r"cctv|surveillance|security cam|camera footage|dash ?cam|webcam|traffic cam|caught on"
+
+
+def gather_footage(sheet, out_dir, limit=3, longest=24.0):
+    """Real moving footage of the event for part 1, security-camera (CCTV)
+    footage first (owner, 2026-10-18), from Wikimedia Commons only, so it is
+    free to reuse. Writes out_dir/footage.json: [{"path", "seconds",
+    "credit", "cctv"}], best first; [] when there is none (most older
+    disasters), and the photos carry part 1 alone."""
+    from archive_engine import (fetch_commons_video, footage_matches, format_credit, is_static,
+                                search_commons_video, _clip_seconds)
+    d = sheet["disaster"]
+    name = d.get("place") or d.get("photo_article") or ""
+    article = d.get("photo_article") or name
+    year = _year(sheet)
+    queries = [f"{name} {w}" for w in ("collapse surveillance", "security camera", "CCTV",
+                                        "collapse video", "collapse")] + [article]
+    seen, cands = set(), []
+    for q in queries:
+        for c in search_commons_video(q, era=year):
+            if c["url"] in seen or not footage_matches(name, c["about"]):
+                continue
+            seen.add(c["url"])
+            c["cctv"] = bool(re.search(CCTV, c["about"]))
+            cands.append(c)
+    cands.sort(key=lambda c: not c["cctv"])             # security cameras first, stably
+    os.makedirs(os.path.join(out_dir, "footage"), exist_ok=True)
+    got = []
+    for c in cands:
+        if len(got) >= limit:
+            break
+        path = os.path.join(out_dir, "footage", f"{len(got):02d}.mp4")
+        # a short camera clip plays whole, from its first second
+        start = 0.0 if c["duration"] <= longest + 2 else None
+        if not fetch_commons_video(c, path, seconds=min(longest, c["duration"]), start=start):
+            continue
+        if is_static(path):
+            print(f"  still pictures, not footage: {c['title']}")
+            continue
+        got.append({"path": path, "seconds": round(_clip_seconds(path), 2),
+                    "credit": format_credit(c), "cctv": c["cctv"], "title": c["title"]})
+        print(f"  footage: {c['title']} ({got[-1]['seconds']:.0f} s{', CCTV' if c['cctv'] else ''})")
+    print(f"{len(got)} footage clip(s) for {name!r}")
+    json.dump(got, open(os.path.join(out_dir, "footage.json"), "w"), indent=1, ensure_ascii=False)
+    return got
+
+
 def _short_credit(credit):
     """'Title — Artist — CC BY-SA 3.0 (via Wikimedia Commons)' -> 'Photo: Artist · CC BY-SA 3.0'."""
     parts = [p.strip() for p in re.sub(r"\s*\(via [^)]*\)$", "", credit or "").split(" — ")]
@@ -184,8 +232,9 @@ def _short_credit(credit):
 # 3. The cut
 # --------------------------------------------------------------------------
 
-def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None):
-    """Cuts the episode together and lays the voice under it."""
+def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=None):
+    """Cuts the episode together and lays the voice under it. footage
+    (gather_footage) opens part 1, ahead of the photos."""
     os.makedirs(work, exist_ok=True)
     slots, d = sheet["timing"]["slots"], sheet["timing"]["dissolve"]
     kit = kit_class(sheet["kit"]["variant"])(sheet)
@@ -217,22 +266,31 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None):
         out = [find_frame(raw3d, tm.frame(c)) for c in canon]
         return [{"path": p, "credit": ""} for p in out if p]
 
-    def archive(name, trans):
-        pics = photos.get(name) or []
-        if not pics:                        # no free photo: our own 3D frames stand in
-            pics = {"aftermath": stills_3d(28.0), "investigation": stills_3d(17.0, 15.0),
-                    "today_photos": stills_3d(1.0, 4.0)}.get(name) or stills_3d(2.0, 5.0)
+    def stand_in(name):                    # no free photo: our own 3D frames stand in
+        return {"aftermath": stills_3d(28.0), "investigation": stills_3d(17.0, 15.0),
+                "today_photos": stills_3d(1.0, 4.0)}.get(name) or stills_3d(2.0, 5.0)
+
+    def pictures(name):
+        return [{"path": p["path"], "credit": _short_credit(p["credit"])}
+                for p in (photos.get(name) or stand_in(name))]
+
+    clips = []                               # the footage, decoded once
+    for i, c in enumerate(footage or []):
+        frames_dir = os.path.join(work, f"footage_{i}")
+        clips.append({"frames": frames_of(c["path"], frames_dir, cover=True),
+                      "credit": _short_credit(c["credit"]).replace("Photo:", "Footage:"),
+                      "tag": "SECURITY CAMERA FOOTAGE" if c.get("cctv") else "ARCHIVE FOOTAGE"})
+
+    def archive(name, trans, lead_clips=()):
         seconds = slots[name] + (d if trans != "cut" else 0)
-        n = max(1, min(len(pics), round(seconds / 6.0)))
-        pics = pics[:n]
-        add2d(name, slideshow([p["path"] for p in pics], seconds, caps.get(name, ""),
-                              [_short_credit(p["credit"]) for p in pics]),
+        add2d(name, reel(list(lead_clips) + pictures(name), seconds, caps.get(name, "")),
               seconds, trans, [(name, 0)])
 
-    lead = (photos.get("photo") or [{}])[0].get("path") or (stills_3d(3.0) or [{}])[0].get("path")
-    add2d("photo", common.photo(sheet, lead, tint_out=False), slots["photo"] + d,
-          "dissolve", [("photo", 0)])
-    archive("photos_disaster", "dissolve")
+    # part 1: real footage first (security cameras before anything), then photos
+    seconds = slots["photo"] + d
+    add2d("photo", common.photo(sheet, reel(clips[:1] + pictures("photo"), seconds), tint_out=False),
+          seconds, "dissolve", [("photo", 0)])
+    archive("photos_disaster", "dissolve", clips[1:])
     e1 = tm.real(7.0)
     add3d("establish", 0, e1, "dissolve", [("establish", 0)])
     add2d("build", kit.build, D["build"], "dissolve", [("build", 0)])
@@ -262,13 +320,13 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None):
     archive("today_photos", "dissolve")
     add2d("today", common.today(sheet), slots["today"], "cut", [("today", 0)])
 
-    reel = os.path.join(work, "reel.mp4")
-    starts = xfade_join([(m, n, tr) for m, n, tr, _ in segs], reel)
+    joined = os.path.join(work, "reel.mp4")
+    starts = xfade_join([(m, n, tr) for m, n, tr, _ in segs], joined)
     total = (starts[-1] + segs[-1][1]) / FPS
     placed = [(starts[i] / FPS + off, voiced[clip]["wav"])
               for i, (_, _, _, shots) in enumerate(segs) for clip, off in shots if clip in voiced]
     wav = narration.track(placed, total, os.path.join(work, "voice.wav"))
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", reel, "-i", wav, "-map", "0:v", "-map", "1:a",
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", wav, "-map", "0:v", "-map", "1:a",
                     "-c:v", "copy", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-c:a", "aac",
                     "-b:a", "192k", "-ar", "48000", out_mp4], check=True)
     chapters = chapters_of(sheet, segs, starts)

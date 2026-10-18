@@ -33,6 +33,11 @@ def prepare(sheet_path, out, ai=False):
     json.dump({"frames": frames, "per": FRAMES_PER_SHARD, "shards": shards},
               open(os.path.join(out, "shards.json"), "w"))
     try:
+        episode.gather_footage(sheet, out)
+    except Exception as e:                 # footage is a bonus: photos carry part 1
+        print(f"no footage ({type(e).__name__}: {e})")
+        json.dump([], open(os.path.join(out, "footage.json"), "w"))
+    try:
         episode.gather_photos(sheet, out)
     except Exception as e:                 # photos are a bonus: 3D stills stand in
         print(f"no photos ({type(e).__name__}: {e})")
@@ -45,9 +50,12 @@ def assemble(out, raw3d, ai):
     voiced = json.load(open(os.path.join(out, "voiced.json")))
     photos = json.load(open(os.path.join(out, "photos.json"))) if os.path.exists(
         os.path.join(out, "photos.json")) else {}
+    fp = os.path.join(out, "footage.json")
+    footage = json.load(open(fp)) if os.path.exists(fp) else []
     info = episode.build(sheet, raw3d, photos, voiced, os.path.join(out, "episode.mp4"),
-                         os.path.join(out, "_work"), ai)
-    info["credits"] = sorted({p["credit"] for v in photos.values() for p in v if p.get("credit")})
+                         os.path.join(out, "_work"), ai, footage)
+    info["credits"] = sorted({p["credit"] for v in photos.values() for p in v if p.get("credit")} |
+                             {c["credit"] for c in footage if c.get("credit")})
     info["ai_clip"] = bool(ai and os.path.exists(ai))
     json.dump(info, open(os.path.join(out, "episode.json"), "w"), indent=1, ensure_ascii=False)
     print("\n".join(info["chapters"]))

@@ -62,12 +62,30 @@ def blueprint_tint(img, k):
     return Image.blend(img, ImageOps.colorize(ImageOps.grayscale(img), BG, (150, 182, 232)), k)
 
 
+_shade_cache = []
+
+
+def _shade():
+    """A dark band up the bottom of the frame, so white text reads over footage."""
+    if not _shade_cache:
+        m = Image.new("L", (1, H * SS))
+        for y in range(H * SS):
+            m.putpixel((0, y), int(170 * max(0.0, (y / (H * SS) - 0.55) / 0.45) ** 1.2))
+        _shade_cache.append(m.resize((W * SS, H * SS)))
+    return _shade_cache[0]
+
+
 def photo(sheet, path, tint_out=True):
     d = sheet["disaster"]
     nums = sheet.get("numbers", [])
 
     def clip(t, T):
-        img = ken_burns(path, t / T) if path else placeholder(t / T)
+        # path: a photo, or a clip function drawing the background (footage)
+        if callable(path):
+            img = path(t, T).convert("RGB").resize((W * SS, H * SS))
+            img = Image.composite(Image.new("RGB", img.size, (0, 0, 0)), img, _shade())
+        else:
+            img = ken_burns(path, t / T) if path else placeholder(t / T)
         if tint_out:
             img = blueprint_tint(img, ease(prog(t, T - 1.0, T)))
         f = Frame()
