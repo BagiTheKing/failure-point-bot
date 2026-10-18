@@ -1,0 +1,291 @@
+{
+ "quotes": [
+  {
+   "text": "high unemployment, inflation and double-digit interest rates [that added] pressure on builders to win contracts and complete projects swiftly",
+   "speaker": "The Kansas City Star"
+  },
+  {
+   "text": "Notable structures around the country were failing at an alarming rate",
+   "speaker": "The Kansas City Star"
+  },
+  {
+   "text": "They said 'take what you want'. I don't know if all those people got their equipment back. But no one has ever asked for an accounting and no one has ever submitted a bill.",
+   "speaker": "Deputy Fire Chief Arnett Williams"
+  },
+  {
+   "text": "everyone wanting to walk away from responsibility",
+   "speaker": "Edward Pfrang"
+  },
+  {
+   "text": "the walkways had only minimal capacity to resist their own weight",
+   "speaker": "National Bureau of Standards final report"
+  },
+  {
+   "text": "any first-year engineering student could figure it out,",
+   "speaker": "Jack D. Gillum"
+  },
+  {
+   "text": "healing gesture to help Kansas City put the tragedy of the skywalks' collapse behind it.",
+   "speaker": "Hallmark"
+  },
+  {
+   "text": "possibly the safest in the country.",
+   "speaker": "local authorities"
+  },
+  {
+   "text": "Seldom has a city's establishment been so emotionally torn by catastrophe as Kansas City's was",
+   "speaker": "The New York Times"
+  },
+  {
+   "text": "virtually half the town was affected directly or indirectly by the horror of the tragedy",
+   "speaker": "owner of the Kansas City Star Company"
+  },
+  {
+   "text": "365 days a year",
+   "speaker": "Jack D. Gillum"
+  },
+  {
+   "text": "to scare the daylights out of them",
+   "speaker": "Jack D. Gillum"
+  }
+ ],
+ "numbers": [
+  {
+   "value": "114",
+   "what": "people killed in the walkway collapse"
+  },
+  {
+   "value": "216",
+   "what": "people injured in the walkway collapse"
+  },
+  {
+   "value": "40-story",
+   "what": "height of the Hyatt Regency Kansas City hotel"
+  },
+  {
+   "value": "2,700 square feet (250 m2)",
+   "what": "area of the hotel roof that collapsed during construction"
+  },
+  {
+   "value": "about 120 feet (37 m)",
+   "what": "length of the suspended walkways"
+  },
+  {
+   "value": "about 64,000 pounds (29,000 kg)",
+   "what": "weight of the suspended walkways"
+  },
+  {
+   "value": "About 1,600",
+   "what": "people gathered in the hotel's atrium for the tea dance"
+  },
+  {
+   "value": "14 hours",
+   "what": "duration of the rescue operation"
+  },
+  {
+   "value": "29",
+   "what": "survivors rescued from the rubble"
+  },
+  {
+   "value": "1.25-inch-diameter (32 mm)",
+   "what": "diameter of the steel hanger rods"
+  },
+  {
+   "value": "8-inch-wide (200 mm)",
+   "what": "width of the C-channel strips welded into box girders"
+  },
+  {
+   "value": "60%",
+   "what": "proportion of minimum load required by Kansas City building codes supported by the original design"
+  },
+  {
+   "value": "30%",
+   "what": "proportion of the actual combined load that the revised fourth-floor beams were strong enough to support"
+  },
+  {
+   "value": "at least $140 million",
+   "what": "amount actually awarded to victims and their families in legal claims"
+  },
+  {
+   "value": "$5 million",
+   "what": "cost of the hotel atrium reconstruction"
+  }
+ ],
+ "people": [
+  {
+   "name": "Jack D. Gillum",
+   "role": "Owner of Jack D. Gillum and Associates and engineer of record for the Hyatt project"
+  },
+  {
+   "name": "Daniel M. Duncan",
+   "role": "Engineer at Jack D. Gillum and Associates who accepted Havens Steel's proposed design plan via phone call"
+  },
+  {
+   "name": "Joseph Waeckerle",
+   "role": "Kansas City emergency medical director who directed the rescue operation"
+  },
+  {
+   "name": "Arnett Williams",
+   "role": "Kansas City Deputy Fire Chief during the rescue effort"
+  },
+  {
+   "name": "Mark Williams",
+   "role": "Final victim rescued from the rubble after more than nine hours"
+  },
+  {
+   "name": "Wayne G. Lischka",
+   "role": "Architectural engineer hired by The Kansas City Star who discovered the design change"
+  },
+  {
+   "name": "Edward Pfrang",
+   "role": "Lead investigator for the National Bureau of Standards"
+  }
+ ],
+ "places": [
+  "Hyatt Regency Hotel, Kansas City, Missouri",
+  "Kemper Arena",
+  "Hartford Civic Center",
+  "Lehigh University",
+  "Hospital Hill Park"
+ ],
+ "timeline": [
+  {
+   "date": "1978",
+   "event": "The Hartford Civic Center roof collapsed.",
+   "place": "Hartford Civic Center",
+   "people": []
+  },
+  {
+   "date": "May 1978",
+   "event": "Construction began on the fast-tracked 40-story Hyatt Regency Kansas City.",
+   "place": "Hyatt Regency Kansas City",
+   "people": []
+  },
+  {
+   "date": "During construction",
+   "event": "A section of 2,700 square feet of the hotel's roof partially collapsed.",
+   "place": "Hyatt Regency Kansas City",
+   "people": []
+  },
+  {
+   "date": "During design phase",
+   "event": "Engineer Daniel M. Duncan accepted Havens Steel's proposed design change via a phone call without performing necessary calculations or reviewing sketches.",
+   "place": "Kansas City, Missouri",
+   "people": [
+    "Daniel M. Duncan"
+   ]
+  },
+  {
+   "date": "During construction",
+   "event": "Onsite workers noticed beams bending but neglected to report it, rerouting their heavy wheelbarrows around the unsteady walkways.",
+   "place": "Hyatt Regency Kansas City",
+   "people": []
+  },
+  {
+   "date": "1979",
+   "event": "The Kemper Arena roof collapsed.",
+   "place": "Kemper Arena",
+   "people": []
+  },
+  {
+   "date": "July 1, 1980",
+   "event": "The Hyatt Regency Kansas City officially opened.",
+   "place": "Hyatt Regency Kansas City",
+   "people": []
+  },
+  {
+   "date": "July 17, 1981, at about 7:05 p.m.",
+   "event": "The fourth-floor walkway dropped several inches, paused, fell onto the second-floor walkway, and both crashed onto the crowded lobby floor during a tea dance.",
+   "place": "Hyatt Regency Hotel, Kansas City, Missouri",
+   "people": []
+  },
+  {
+   "date": "July 17, 1981",
+   "event": "Emergency medical director Joseph Waeckerle directed a 14-hour rescue operation with volunteers, construction suppliers, and first responders.",
+   "place": "Hyatt Regency Hotel, Kansas City, Missouri",
+   "people": [
+    "Joseph Waeckerle",
+    "Arnett Williams"
+   ]
+  },
+  {
+   "date": "July 17–18, 1981",
+   "event": "Final rescued victim Mark Williams was freed after spending more than nine hours pinned beneath the lower skywalk.",
+   "place": "Hyatt Regency Hotel lobby, Kansas City, Missouri",
+   "people": [
+    "Mark Williams"
+   ]
+  },
+  {
+   "date": "Shortly after July 17, 1981",
+   "event": "Architectural engineer Wayne G. Lischka was hired by The Kansas City Star and discovered the critical change to the walkways' original design.",
+   "place": "Kansas City, Missouri",
+   "people": [
+    "Wayne G. Lischka"
+   ]
+  },
+  {
+   "date": "Within days of July 17, 1981",
+   "event": "A laboratory at Lehigh University began testing box beams on behalf of the steel fabrication source.",
+   "place": "Lehigh University",
+   "people": []
+  },
+  {
+   "date": "October 1, 1981",
+   "event": "The Hyatt Regency reopened after its atrium was redesigned and an engineering committee confirmed no other safety issues remained.",
+   "place": "Hyatt Regency, Kansas City, Missouri",
+   "people": []
+  },
+  {
+   "date": "Following years after 1981",
+   "event": "National Bureau of Standards lead investigator Edward Pfrang determined that the revised walkways possessed minimal capacity to resist their own weight and would fail under one-third of the weight held that night.",
+   "place": "Kansas City, Missouri",
+   "people": [
+    "Edward Pfrang"
+   ]
+  },
+  {
+   "date": "1982",
+   "event": "The Kansas City Star and the Kansas City Times were awarded a Pulitzer Prize for their 16 months of investigative coverage of the collapse.",
+   "place": "Kansas City, Missouri",
+   "people": []
+  },
+  {
+   "date": "1983",
+   "event": "Local authorities reported that a $5 million hotel reconstruction made the building possibly the safest in the country.",
+   "place": "Hyatt Regency, Kansas City, Missouri",
+   "people": []
+  },
+  {
+   "date": "1983",
+   "event": "The Hyatt Regency disaster was cited in arguments against the Reagan administration's attempt to eliminate an agency of the National Bureau of Standards.",
+   "place": "United States",
+   "people": []
+  },
+  {
+   "date": "1987",
+   "event": "The hotel was renamed the Hyatt Regency Crown Center.",
+   "place": "Kansas City, Missouri",
+   "people": []
+  }
+ ],
+ "legacy": [
+  {
+   "year": "1981",
+   "what": "The hotel's atrium was redesigned, permanently removing the upper walkways, replacing the second-floor walkway with one supported by columns, and reinforcing the roof."
+  },
+  {
+   "year": "1983",
+   "what": "A $5 million hotel reconstruction was completed, leading local authorities to deem the building possibly the safest in the country."
+  },
+  {
+   "year": "1983",
+   "what": "The disaster was cited in arguments against the Reagan administration's attempt to eliminate an agency of the National Bureau of Standards."
+  },
+  {
+   "year": "1987",
+   "what": "The reconstructed hotel was officially renamed the Hyatt Regency Crown Center."
+  }
+ ],
+ "source": "https://en.wikipedia.org/wiki/Hyatt_Regency_walkway_collapse"
+}

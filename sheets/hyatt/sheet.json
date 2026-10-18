@@ -1,0 +1,276 @@
+{
+  "story": "Hyatt Regency walkway collapse",
+  "sources": {
+    "source": "https://en.wikipedia.org/wiki/Hyatt_Regency_walkway_collapse"
+  },
+  "kit": {
+    "family": "structure",
+    "variant": "hanging_walkways",
+    "levels": [
+      "Fourth-floor walkway",
+      "Second-floor walkway"
+    ],
+    "rod_lines": 2,
+    "failed_line": 0,
+    "labels": {
+      "roof": "Atrium roof support",
+      "rods": "1.25-inch-diameter steel hanger rods",
+      "beam": "8-inch-wide box girder",
+      "nut": "Supporting nut and washer",
+      "upper_rod": "Rod to roof",
+      "lower_rod": "Rod to second-floor walkway"
+    }
+  },
+  "model_3d": {
+    "walk_length": 36.0,
+    "walk_width": 2.6,
+    "level_z": [
+      12.0,
+      5.0
+    ],
+    "roof_z": 19.5,
+    "ai_start_frame": 655,
+    "labels_3d": [
+      {
+        "anchor": "upper_deck",
+        "text": "Fourth-floor walkway",
+        "color": "cyan",
+        "t": [
+          2.0,
+          6.0
+        ],
+        "at": [
+          140,
+          150
+        ]
+      },
+      {
+        "anchor": "lower_deck",
+        "text": "Second-floor walkway",
+        "color": "cyan",
+        "t": [
+          2.0,
+          6.0
+        ],
+        "at": [
+          140,
+          420
+        ]
+      },
+      {
+        "anchor": "lower_rods_mid",
+        "text": "Suspension rods to lower walkway",
+        "color": "amber",
+        "t": [
+          9.2,
+          12.4
+        ],
+        "at": [
+          820,
+          300
+        ]
+      },
+      {
+        "anchor": "upper_rod",
+        "text": "Hanger rod from ceiling",
+        "color": "cyan",
+        "t": [
+          15.4,
+          19.4
+        ],
+        "at": [
+          760,
+          150
+        ]
+      },
+      {
+        "anchor": "lower_rod",
+        "text": "Hanger rod to lower skywalk",
+        "color": "cyan",
+        "t": [
+          15.4,
+          19.4
+        ],
+        "at": [
+          760,
+          520
+        ]
+      }
+    ],
+    "big_3d": {
+      "anchor": "nut",
+      "text": "30%",
+      "label": "OF ACTUAL COMBINED LOAD SUPPORTED",
+      "t": [
+        16.8,
+        19.4
+      ]
+    },
+    "ai_prompt": "Inside a modern multi-story hotel atrium, a steel-framed pedestrian skywalk suspended by steel rods suddenly buckles and drops. The upper walkway strikes the walkway suspended beneath it, tearing both structures away from the ceiling rods, crashing straight down into a crowded ground-floor lobby. Concrete dust rises around twisted beams and debris. Static camera."
+  },
+  "disaster": {
+    "place_date": "KANSAS CITY · 17 JULY 1981 · ABOUT 7:05 PM",
+    "place": "Hyatt Regency Kansas City atrium lobby",
+    "caption": "Suspended walkways collapse into a crowded lobby during a tea dance",
+    "photo_article": "Hyatt Regency walkway collapse"
+  },
+  "design_vs_built": {
+    "designed": {
+      "title": "AS DESIGNED",
+      "detail": "Continuous hanger rods through both walkways",
+      "load": "Walkway carried only its own weight"
+    },
+    "built": {
+      "title": "AS BUILT",
+      "detail": "Upper beam supports lower rod and lower deck",
+      "load": "Supported 30% of actual combined load"
+    },
+    "multiplier": "2×",
+    "multiplier_label": "LOAD TRANSFERRED TO UPPER CONNECTIONS",
+    "plate_built": "",
+    "plate_needed": "",
+    "source": "source"
+  },
+  "numbers": [
+    {
+      "value": "114",
+      "label": "PEOPLE KILLED",
+      "source": "source"
+    },
+    {
+      "value": "216",
+      "label": "INJURED",
+      "source": "source"
+    },
+    {
+      "value": "29",
+      "label": "SURVIVORS RESCUED",
+      "source": "source"
+    }
+  ],
+  "clock": {
+    "from_seconds": 50,
+    "label_before": "7:04:50 PM",
+    "label_at": "7:05:00 PM",
+    "day": "PM · FRIDAY 17 JULY 1981",
+    "event": "FOURTH-FLOOR WALKWAY DROPS AND COLLAPSES"
+  },
+  "timeline": [
+    {
+      "date": "During design phase",
+      "title": "Design change accepted",
+      "sub": "Accepted via phone call without calculations or sketches",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "During construction",
+      "title": "Workers reroute wheelbarrows",
+      "sub": "Beams noticed bending but neglected to be reported",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "July 17, 1981",
+      "title": "Walkways collapse",
+      "sub": "Upper walkway drops onto the lower deck during a tea dance",
+      "kind": "failure",
+      "source": "source"
+    },
+    {
+      "date": "October 1, 1981",
+      "title": "Hyatt Regency reopens",
+      "sub": "Atrium redesigned and upper walkways permanently removed",
+      "kind": "event",
+      "source": "source"
+    }
+  ],
+  "today": {
+    "title": "COULD IT HAPPEN TODAY?",
+    "lines": [
+      "Rigorous checking of design modifications prevents unauthorized load changes.",
+      "Engineers of record must verify calculations before approving connection revisions.",
+      "A change accepted without calculations doubled the load on a single connection."
+    ],
+    "source": "source"
+  },
+  "shots": [
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photo",
+      "caption": "The Hyatt Regency atrium after the collapse on July 17, 1981",
+      "narration": "On July 17, 1981, suspended walkways inside the Hyatt Regency Kansas City gave way during a tea dance. Two skywalks fell into the lobby below. The collapse killed 114 people and injured 216 others in one of the deadliest structural failures in United States history."
+    },
+    {
+      "part": 2,
+      "tool": "3d",
+      "clip": "establish",
+      "caption": "Suspended skywalks in the 40-story hotel atrium",
+      "narration": "The fast-tracked 40-story hotel featured suspended walkways about 120 feet long across its open atrium. These walkways weighed about 64,000 pounds and hung from the ceiling above the lobby floor."
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "load_path",
+      "caption": "Steel hanger rods suspended the multi-level walkways",
+      "narration": "Steel hanger rods measuring 1.25 inches in diameter were designed to support the walkways from the atrium roof, carrying structural loads downward through box girders."
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "connection",
+      "caption": "Hanger rods anchored beneath box girders",
+      "narration": "The original plan called for continuous hanger rods. Instead, a revised arrangement anchored separate lower rods directly into the fourth-floor box girders."
+    },
+    {
+      "part": 3,
+      "tool": "2d",
+      "clip": "physics",
+      "caption": "Revised connections doubled the load on the upper girder",
+      "narration": "The box girders were built by welding 8-inch-wide C-channel strips together. Under the original design, the structure supported 60% of the minimum load required by Kansas City building codes. The revised design forced the fourth-floor beams to carry the entire weight of the second-floor walkway as well. The revised beams could support only 30% of the actual combined load. The National Bureau of Standards determined the walkways had only minimal capacity to resist their own weight and failed under one-third of the weight held that night."
+    },
+    {
+      "part": 4,
+      "tool": "2d",
+      "clip": "clock",
+      "caption": "About 7:05 p.m., July 17, 1981",
+      "narration": "About 1,600 people gathered in the hotel atrium for a tea dance."
+    },
+    {
+      "part": 4,
+      "tool": "3d",
+      "clip": "fall",
+      "caption": "The fourth-floor walkway drops onto the second-floor skywalk",
+      "narration": "At about 7:05 p.m., the fourth-floor walkway dropped several inches, paused, and collapsed onto the lower deck."
+    },
+    {
+      "part": 4,
+      "tool": "ai_video",
+      "clip": "dramatization",
+      "caption": "Both walkways crash onto the crowded lobby floor",
+      "narration": "Both skywalks crashed down into the crowded lobby. Rescuers mounted a 14-hour operation, pulling 29 survivors from beneath the rubble."
+    },
+    {
+      "part": 5,
+      "tool": "2d",
+      "clip": "timeline",
+      "caption": "Unchecked modifications and ignored construction warnings",
+      "narration": "Warnings went unheeded before opening day. Daniel M. Duncan accepted the revised connection via a phone call without performing calculations or reviewing sketches. During construction, a 2,700-square-foot roof section partially collapsed. Later, onsite workers noticed beams bending but neglected to report it, rerouting their heavy wheelbarrows around the unsteady walkways. The hotel opened, and just over a year later, the connection tore apart."
+    },
+    {
+      "part": 6,
+      "tool": "2d",
+      "clip": "compare",
+      "caption": "Original continuous rod versus the split-rod field revision",
+      "narration": "In the original design, continuous rods transferred each walkway's weight directly to the ceiling. The revised design anchored the lower walkway to the upper walkway's beam. Architectural engineer Wayne G. Lischka discovered this change shortly after the disaster. Independent calculation before fabrication would have revealed that the box beams could not hold the load."
+    },
+    {
+      "part": 7,
+      "tool": "2d",
+      "clip": "today",
+      "caption": "Redesigning the atrium and enforcing structural oversight",
+      "narration": "The hotel reopened on October 1, 1981, after the upper walkways were permanently removed and the second-floor walkway was rebuilt on columns. A $5 million reconstruction was completed in 1983. Today, strict structural review protocols ensure that any field modification receives formal calculations and sign-off by the engineer of record before installation."
+    }
+  ]
+}
