@@ -171,12 +171,8 @@ jobs:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
-          # A 1-2 week A/B test between the two Kokoro voices picked by ear
-          # (see audio_engine.py's module docstring) — main.py alternates
-          # through this list by run number so Shorts compares both before
-          # settling on one for good. The long-form lanes each pin a single
-          # voice instead; see their own workflow files.
-          KOKORO_VOICE_ROTATION: 'am_onyx,am_santa'
+          # One voice for the whole channel (owner, 2026-10-18): am_echo.
+          KOKORO_VOICE: am_echo
           RUN_NUMBER: ${{ github.run_number }}
           # The schedule always publishes; a manual run may choose.
           PRIVACY_STATUS: ${{ inputs.privacy || 'public' }}

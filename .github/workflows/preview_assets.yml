@@ -51,7 +51,7 @@ jobs:
 
       - name: Fetch images and narration
         env:
-          KOKORO_VOICE: am_onyx
+          KOKORO_VOICE: am_echo
         run: python tools/fetch_preview_assets.py preview_out
 
       - name: Push to the preview-assets branch

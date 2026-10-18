@@ -51,15 +51,10 @@ forever, requires no signup of any kind, carries no commercial-use
 restriction (Apache 2.0), and removes the quota wall entirely by not making
 a network call at all.
 
-KOKORO_VOICE picks the voice (default "am_onyx"). The three workflows pin it
-differently. The long-form lanes started as a deliberate 1-2 week A/B
-comparison and were then swapped to the owner's explicit final choice
-(not a data-driven pick either way):
-    weekly_longform.yml (Encore lane)   -> am_santa
-    weekly_timely.yml   (Trending lane) -> am_onyx
-    daily_publish.yml   (Shorts)        -> alternates am_onyx/am_santa by
-                                            run, via KOKORO_VOICE_ROTATION —
-                                            see main.py.
+KOKORO_VOICE picks the voice: am_echo for the whole channel, long videos
+and Shorts alike (owner, 2026-10-18, after hearing all 28 English Kokoro
+voices). KOKORO_VOICE_ROTATION (main.py) can still alternate voices for a
+test; no workflow sets it.
 
 Kokoro has no word-boundary API (it yields graphemes/phonemes/audio per
 chunk, not timestamps) — same gap Gemini TTS had. Unlike Gemini, this is no
@@ -160,7 +155,7 @@ PITCH = os.getenv("TTS_PITCH", "-4Hz")  # slightly deeper = more gravitas
 # survivable, especially alongside a long-form run's rendered images/video.
 # ---------------------------------------------------------------------------
 
-KOKORO_VOICE = os.getenv("KOKORO_VOICE", "am_onyx")
+KOKORO_VOICE = os.getenv("KOKORO_VOICE", "am_echo")
 
 # Downloaded once by the "Download Kokoro model" workflow step (cached
 # between runs — see the workflow YAMLs) rather than fetched by this code,

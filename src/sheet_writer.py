@@ -74,7 +74,7 @@ SHOTS = [
     (6, "2d", "compare", 120),
     (7, "archive", "today_photos", 70), (7, "2d", "today", 80),
 ]
-# ~1,260 words: 8-10 minutes in the am_santa voice with the pauses (owner, 2026-10-18)
+# ~1,260 words: 8-10 minutes in the am_echo voice with the pauses (owner, 2026-10-18)
 
 LIMITS = {"label": 48, "caption": 90, "title": 28}
 
