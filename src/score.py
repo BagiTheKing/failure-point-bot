@@ -149,3 +149,80 @@ def add_sfx(mix_wav, sfx, out_wav):
             data[a:b] += s[: b - a]
     sf.write(out_wav, np.clip(data, -1, 1), sr)
     return out_wav
+
+
+# ---------------------------------------------------------------------------
+# Sound effects for the cold open, synthesized (owner, 2026-10-18: "effects,
+# that is important"). All stereo float32 at SR, peak about 0.8.
+# ---------------------------------------------------------------------------
+
+def _norm(x, peak=0.8):
+    return (x / max(1e-6, np.abs(x).max()) * peak).astype(np.float32)
+
+
+def _st(x, width=0.0):
+    return np.stack([x * (1 - width), x * (1 + width)], axis=1).astype(np.float32)
+
+
+def _lowpass(x, k):
+    """A cheap moving-average low-pass of k samples."""
+    if k <= 1:
+        return x
+    c = np.cumsum(np.concatenate([np.zeros(k), x]))
+    return ((c[k:] - c[:-k]) / k).astype(np.float32)
+
+
+def boom(seed=1, length=2.2):
+    """A deep cinematic impact: a sub-bass drop with a noise crack on top."""
+    rnd = np.random.default_rng(seed)
+    n = int(length * SR)
+    t = np.arange(n) / SR
+    f = 38 + 60 * np.exp(-t / 0.08)                           # pitch falls into the sub
+    sub = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.7)
+    crack = _lowpass(rnd.standard_normal(n).astype(np.float32), 6) * np.exp(-t / 0.05)
+    tail = _lowpass(rnd.standard_normal(n).astype(np.float32), 60) * np.exp(-t / 0.9) * 0.6
+    return _st(_norm(sub + 0.5 * crack + tail))
+
+
+def whoosh(seed=2, length=0.55):
+    """Air rushing past: noise swept up then down in brightness and level."""
+    rnd = np.random.default_rng(seed)
+    n = int(length * SR)
+    t = np.arange(n) / n
+    env = np.sin(np.pi * t) ** 2
+    noise = rnd.standard_normal(n).astype(np.float32)
+    dark = _lowpass(noise, 40)
+    bright = noise - _lowpass(noise, 8)
+    mix = dark * (1 - env) + bright * env
+    pan = np.linspace(-0.5, 0.5, n)
+    x = _norm(mix * env, 0.6)
+    return np.stack([x * (1 - pan), x * (1 + pan)], axis=1).astype(np.float32)
+
+
+def riser(length=2.4, seed=3):
+    """Tension climbing into a hit: noise and a rising tone, growing."""
+    rnd = np.random.default_rng(seed)
+    n = int(length * SR)
+    t = np.arange(n) / SR
+    grow = (t / length) ** 2
+    f = 180 * (1 + 4 * (t / length) ** 2)
+    tone = np.sin(2 * np.pi * np.cumsum(f) / SR) * 0.25
+    hiss = rnd.standard_normal(n).astype(np.float32)
+    hiss = hiss - _lowpass(hiss, int(30 - 26 * (0.5)))
+    return _st(_norm((tone + 0.5 * hiss) * grow, 0.55), 0.1)
+
+
+def rumble(length=4.0, seed=4):
+    """Heavy steel and concrete going: a low rumble with metal groans."""
+    rnd = np.random.default_rng(seed)
+    n = int(length * SR)
+    t = np.arange(n) / SR
+    low = _lowpass(rnd.standard_normal(n).astype(np.float32), 120)
+    env = np.minimum(1, t / 0.3) * np.exp(-np.maximum(0, t - length * 0.6) / 0.6)
+    groan = np.zeros(n, np.float32)
+    for k in range(3):                                         # creaks, falling in pitch
+        at = rnd.uniform(0.1, length * 0.7)
+        m = (t >= at) & (t < at + 0.7)
+        f = 260 - 140 * (t - at) / 0.7
+        groan += np.where(m, np.sin(2 * np.pi * np.cumsum(f) / SR) * np.sin(np.pi * (t - at) / 0.7), 0)
+    return _st(_norm(low * env * 3 + 0.25 * groan * env, 0.8), 0.05)

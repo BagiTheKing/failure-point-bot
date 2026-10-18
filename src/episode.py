@@ -506,7 +506,7 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
     mixed = os.path.join(work, "mix.wav")
     music_credits = score.mix(wav, score_plan(part_starts, hook_T, total), total, mixed)
     if hook_T:
-        score.add_sfx(mixed, [(t, score.shutter(k)) for k, t in enumerate(coldopen.shutter_times())], mixed)
+        score.add_sfx(mixed, intro_effects(getattr(intro_plan, "fx", {})), mixed)
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", mixed, "-map", "0:v", "-map", "1:a",
                     "-c:v", "copy", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-c:a", "aac",
                     "-b:a", "192k", "-ar", "48000", out_mp4], check=True)
@@ -574,21 +574,42 @@ def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures):
         elif i == 1 and clips:
             items.append({**clips[0], "offset": 0})
         elif i == 1 and fall:
-            items.append({"frames": fall, "speed": max(1.0, len(fall) / (30 * max(1.0, dur)))})
+            items.append({"frames": fall, "fall": True,
+                          "speed": max(1.0, len(fall) / (30 * max(1.0, dur)))})
         else:
             items.append(spare[(i - 2) % len(spare)] if spare else {"path": None})
     cuts = coldopen.layout(burst, items, lines, T)
-    fn = coldopen.cold_open(cuts, lines, T, hook.get("title", ""), hook.get("sub", ""))
+    fx = coldopen.events(cuts, items)
+    fn = coldopen.cold_open(cuts, lines, T, hook.get("title", ""), hook.get("sub", ""), fx)
+    intro_plan.fx = fx                                   # the sound design reads the same moments
     return fn, T, [(f"hook_{i}", a - narration.PAD_IN) for i, (a, _, _) in enumerate(lines)]
 
 
-def intro_sound(voice_wav, hook_T, total, out_wav, track=None):
+def intro_effects(fx):
+    """[(seconds, samples)] for the cold open's sound effects: a shutter on
+    each press shot, a boom on the title, a whoosh on each cut, a rumble
+    under the 3D collapse, a riser into the last line and a boom on it."""
+    out = [(t, score.shutter(k)) for k, t in enumerate(coldopen.shutter_times())]
+    out.append((fx.get("title", coldopen.TITLE_AT), score.boom(1) * 0.9))
+    for k, at in enumerate(fx.get("cuts") or []):
+        if at != fx.get("last"):
+            out.append((max(0.0, at - 0.3), score.whoosh(10 + k) * 0.7))
+    if fx.get("fall"):
+        a, b = fx["fall"]
+        out.append((a, score.rumble(max(1.5, b - a), 7) * 0.8))
+    if fx.get("last"):
+        out.append((max(0.0, fx["last"] - 2.4), score.riser(2.4) * 0.6))
+        out.append((fx["last"], score.boom(5) * 0.8))
+    return out
+
+
+def intro_sound(voice_wav, hook_T, total, out_wav, track=None, fx=None):
     """The cold open's sound: the hook lines, the intro track coming in with
-    the title, a shutter on each press shot of the burst."""
+    the title, and its sound effects."""
     # the music comes in with the title, quickly (a 0.3 s fade, not a slow swell)
     plan = [(coldopen.TITLE_AT, hook_T + 1.0, track or score.COLD_OPEN, score.OPEN_LEVEL, 0.3)]
     credits = score.mix(voice_wav, plan, total, out_wav)
-    score.add_sfx(out_wav, [(t, score.shutter(k)) for k, t in enumerate(coldopen.shutter_times())], out_wav)
+    score.add_sfx(out_wav, intro_effects(fx or {}), out_wav)
     return credits
 
 
@@ -615,7 +636,7 @@ def build_intro(sheet, raw3d, photos, voiced, out_mp4, work, footage=None, track
     placed = [(off, voiced[c]["wav"]) for c, off in shots]
     wav = narration.track(placed, T, os.path.join(work, "intro_voice.wav"))
     mixed = os.path.join(work, "intro_mix.wav")
-    credits = intro_sound(wav, T, T, mixed, track)
+    credits = intro_sound(wav, T, T, mixed, track, getattr(intro_plan, "fx", {}))
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", mixed, "-map", "0:v", "-map", "1:a",
                     "-c:v", "copy", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-c:a", "aac",
                     "-b:a", "192k", "-ar", "48000", out_mp4], check=True)

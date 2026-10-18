@@ -152,15 +152,54 @@ def _vignette():
     return _vig[0]
 
 
-def cold_open(cuts, lines, T, title="", sub=""):
+def events(cuts, line_items):
+    """When the effects land, from the cut list: the shake on the title's
+    impact and on the last line's hit, the glitch and whoosh on each cut
+    between hook pictures, the rumble while the 3D collapse plays."""
+    line_cuts = [a for a, _, _ in cuts[BURST + 1:]]
+    last = line_cuts[-1] if line_cuts else None
+    fall = next(((a, a + d) for a, d, it in cuts[BURST + 1:] if it.get("fall")), None)
+    return {"title": TITLE_AT, "cuts": line_cuts, "first": line_cuts[0] if line_cuts else None,
+            "last": last, "fall": fall, "shake": [TITLE_AT] + ([last] if last else [])}
+
+
+def _shake(img, since, amp=10):
+    """A camera knock: a few pixels of jolt, dying away in a third of a second."""
+    k = max(0.0, 1 - since / 0.35)
+    if k <= 0:
+        return img
+    r = random.Random(int(since * 1000))
+    dx, dy = (int(r.uniform(-1, 1) * amp * SS * k) for _ in range(2))
+    z = 1.03
+    cw, ch = img.width / z, img.height / z
+    x0, y0 = (img.width - cw) / 2 + dx, (img.height - ch) / 2 + dy
+    return img.crop((int(x0), int(y0), int(x0 + cw), int(y0 + ch))).resize(img.size)
+
+
+def _glitch(img, k):
+    """Colour fringes on a cut: red and blue pulled apart for two frames."""
+    r, g, b = img.split()
+    off = int(10 * SS * k)
+    from PIL import ImageChops
+    return Image.merge("RGB", (ImageChops.offset(r, off, 0), g, ImageChops.offset(b, -off, 0)))
+
+
+def cold_open(cuts, lines, T, title="", sub="", fx=None):
     """cuts: layout(). lines: [(start, end, text)] when each hook line is
-    spoken, shown on screen while it is said."""
+    spoken, shown on screen while it is said. fx: events()."""
+    fx = fx or {}
 
     def clip(t, T_):
         k = next((j for j, (a, d, _) in enumerate(cuts) if t < a + d), len(cuts) - 1)
         a, d, item = cuts[k]
         burst = k < BURST and t < BURST * BURST_EACH
         img = _grade(_picture(item, t - a, d, still=burst))
+        for at in fx.get("shake", []):
+            if at is not None and 0 <= t - at < 0.35:
+                img = _shake(img, t - at)
+        for at in fx.get("cuts", []):
+            if 0 <= t - at < 2 / 30:
+                img = _glitch(img, 1 - (t - at) * 15)
         img = Image.composite(img, Image.new("RGB", img.size, (0, 0, 0)), _vignette())
         img = Image.blend(img, Image.merge("RGB", [_grain_tile(int(t * 24))] * 3), 0.05)
         if burst:                                # a camera flash on each press shot
