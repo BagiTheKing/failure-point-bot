@@ -1,0 +1,59 @@
+name: Thumbnail sample
+
+# Manual. An episode's three thumbnails from an earlier Episode sample run's
+# prep (sheet, photos) and its 3D frames. Results go to preview-media
+# thumbs/<name>/.
+on:
+  workflow_dispatch:
+    inputs:
+      prep_run:
+        description: "Episode sample run whose prep to use"
+        required: true
+      frames_run:
+        description: "Episode sample run that rendered the 3D frames"
+        default: "39138433925"
+      name:
+        default: "i35w"
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  thumbs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: prep
+          path: prep
+          run-id: ${{ inputs.prep_run }}
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: frames3d-*
+          path: raw
+          merge-multiple: true
+          run-id: ${{ inputs.frames_run }}
+          github-token: ${{ github.token }}
+      - run: python tools/thumbnails.py prep raw out
+      - name: Push to preview-media
+        run: |
+          mkdir -p pm && cd pm
+          git init -q -b preview-media
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch -q origin preview-media && git checkout -q -B preview-media origin/preview-media || true
+          rm -rf thumbs/${{ inputs.name }} && mkdir -p thumbs/${{ inputs.name }}
+          cp ../out/*.jpg ../out/thumbs.json thumbs/${{ inputs.name }}/
+          git add -A
+          git commit -q -m "Thumbnail sample: ${{ inputs.name }} (run ${{ github.run_number }})"
+          git push -q origin preview-media

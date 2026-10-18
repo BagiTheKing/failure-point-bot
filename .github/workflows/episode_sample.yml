@@ -238,6 +238,7 @@ jobs:
         run: |
           A=""; [ -f prep/ai_fall.mp4 ] && A="--ai prep/ai_fall.mp4"
           python tools/episode_sample.py assemble prep raw $A
+          python tools/thumbnails.py prep raw prep/thumbs || echo "no thumbnails"
       - uses: actions/upload-artifact@v4
         with:
           name: episode-${{ inputs.name }}
@@ -256,6 +257,7 @@ jobs:
           git fetch -q origin preview-media && git checkout -q -B preview-media origin/preview-media || true
           mkdir -p episodes/${{ inputs.name }}
           cp ../prep/episode.json ../prep/timed_sheet.json episodes/${{ inputs.name }}/
+          cp ../prep/thumbs/*.jpg episodes/${{ inputs.name }}/ 2>/dev/null || true
           # GitHub refuses files over 100 MB: a smaller copy for review if needed
           # (the full-quality file is the run's artifact)
           SIZE=$(stat -c %s ../prep/episode.mp4)
