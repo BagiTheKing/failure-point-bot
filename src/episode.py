@@ -613,9 +613,11 @@ def intro_sound(voice_wav, hook_T, total, out_wav, track=None, fx=None):
     return credits
 
 
-def build_intro(sheet, raw3d, photos, voiced, out_mp4, work, footage=None, track=None):
+def build_intro(sheet, raw3d, photos, voiced, out_mp4, work, footage=None, track=None, tracks=None):
     """The cold open alone, with its sound and the watermark, for judging it
-    without cutting the whole episode (owner, 2026-10-18)."""
+    without cutting the whole episode (owner, 2026-10-18). tracks: several
+    intro tracks to audition, {out_mp4: track}: the picture is drawn once
+    and only the sound is mixed again for each."""
     os.makedirs(work, exist_ok=True)
     tm = timemap.of(sheet)
     pictures = lambda name: [{"path": p["path"], "credit": _short_credit(p["credit"])}
@@ -628,20 +630,38 @@ def build_intro(sheet, raw3d, photos, voiced, out_mp4, work, footage=None, track
     if not intro:
         raise SystemExit("no cold open in this sheet")
     fn, T, shots = intro
+    fx = getattr(intro_plan, "fx", {})
+    # the picture, drawn on every core: the cold open split into four parts
+    n = os.cpu_count() or 1
+    parts = [(k * T / n, (k + 1) * T / n) for k in range(n)]
+
+    def part(a, b, k):
+        def make():
+            mp4 = os.path.join(work, f"hook_{k}.mp4")
+            render_clip(lambda t, _T: fn(a + t, T), b - a, mp4)
+            return mp4
+        return make
+    pieces = run_parallel([part(a, b, k) for k, (a, b) in enumerate(parts)])
+    listing = os.path.join(work, "parts.txt")
+    open(listing, "w").write("".join(f"file '{os.path.abspath(p)}'\n" for p in pieces))
     mp4 = os.path.join(work, "hook.mp4")
-    render_clip(fn, T, mp4)
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", listing,
+                    "-c", "copy", mp4], check=True)
     from kits.brand import watermark
     joined = os.path.join(work, "intro_video.mp4")
     xfade_join([(mp4, int(round(T * FPS)), "cut")], joined, overlay=watermark(os.path.join(work, "wm.png")))
     placed = [(off, voiced[c]["wav"]) for c, off in shots]
     wav = narration.track(placed, T, os.path.join(work, "intro_voice.wav"))
-    mixed = os.path.join(work, "intro_mix.wav")
-    credits = intro_sound(wav, T, T, mixed, track, getattr(intro_plan, "fx", {}))
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", mixed, "-map", "0:v", "-map", "1:a",
-                    "-c:v", "copy", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-c:a", "aac",
-                    "-b:a", "192k", "-ar", "48000", out_mp4], check=True)
-    print(f"{out_mp4}: {T:.1f} s")
-    return {"seconds": T, "music_credits": credits}
+    out = {}
+    for path, t in (tracks or {out_mp4: track}).items():
+        mixed = os.path.join(work, "intro_mix.wav")
+        credits = intro_sound(wav, T, T, mixed, t, fx)
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", mixed, "-map", "0:v", "-map", "1:a",
+                        "-c:v", "copy", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-c:a", "aac",
+                        "-b:a", "192k", "-ar", "48000", path], check=True)
+        print(f"{path}: {T:.1f} s")
+        out[path] = {"seconds": T, "track": t, "music_credits": credits}
+    return out if tracks else out[out_mp4]
 
 
 # --------------------------------------------------------------------------

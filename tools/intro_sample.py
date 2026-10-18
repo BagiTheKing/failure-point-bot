@@ -37,16 +37,11 @@ def main():
     photos, footage = load("photos.json", {}), load("footage.json", [])
     os.makedirs(a.out, exist_ok=True)
     tracks = [t.strip() for t in a.tracks.split(",") if t.strip()] or [None]
-    made = {}
-    for t in tracks:
-        slug = re.sub(r"[^a-z0-9]+", "_", (t or "default").lower().replace(".mp3", "")).strip("_")[:40]
-        out = os.path.join(a.out, f"intro_{slug}.mp4")
-        try:
-            info = episode.build_intro(sheet, a.raw3d, photos, voiced, out,
-                                       os.path.join(a.out, "_work_" + slug), footage, t)
-            made[os.path.basename(out)] = {"track": t, **info}
-        except Exception as e:
-            print(f"intro with {t} failed: {type(e).__name__}: {e}")
+    slug = lambda t: re.sub(r"[^a-z0-9]+", "_", (t or "default").lower().replace(".mp3", "")).strip("_")[:40]
+    wanted = {os.path.join(a.out, f"intro_{slug(t)}.mp4"): t for t in tracks}
+    info = episode.build_intro(sheet, a.raw3d, photos, voiced, None, os.path.join(a.out, "_work"),
+                               footage, tracks=wanted)
+    made = {os.path.basename(k): v for k, v in info.items()}
     json.dump({"hook": sheet.get("hook"), "intros": made},
               open(os.path.join(a.out, "intros.json"), "w"), indent=1, ensure_ascii=False)
     print(json.dumps(made, indent=1))
