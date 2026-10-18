@@ -35,6 +35,7 @@ KITS = {
                       ("lower_rods_mid", [9.2, 12.4], [820, 300], "amber"),
                       ("upper_rod", [15.4, 19.4], [760, 150], "cyan"),
                       ("lower_rod", [15.4, 19.4], [760, 520], "cyan")],
+        "multiplier": "how many times its design load the failed connection carried, ending in ×, e.g. 2×",
         "big_3d_anchor": "nut",
         "model_3d": {"walk_length": 36.0, "walk_width": 2.6, "level_z": [12.0, 5.0],
                      "roof_z": 19.5},
@@ -55,6 +56,7 @@ KITS = {
                       ("load", [9.0, 12.4], [640, 120], "amber"),
                       ("diag", [10.0, 12.4], [760, 560], "amber"),
                       ("node", [15.4, 19.4], [780, 180], "cyan")],
+        "multiplier": "the one ratio behind the tear: plate thickness (½) or added load (20%)",
         "big_3d_anchor": "node",
         "model_3d": {"span_m": [81, 139, 81], "deck_width_m": 34, "truss_depth_m": [9, 18],
                      "water_level_m": -32},
@@ -65,14 +67,14 @@ KITS = {
 # budget for each shot, so the pacing holds (step 5b stretches the pictures
 # to the voice).
 SHOTS = [
-    (1, "archive", "photo", 60), (1, "archive", "photos_disaster", 90),
-    (2, "3d", "establish", 60), (2, "2d", "build", 110),
-    (3, "3d", "load_path", 60), (3, "3d", "connection", 50), (3, "2d", "physics", 170),
-    (4, "2d", "clock", 20), (4, "3d", "fall", 25), (4, "ai_video", "dramatization", 45),
-    (4, "archive", "aftermath", 80),
-    (5, "2d", "timeline", 120), (5, "archive", "investigation", 90),
-    (6, "2d", "compare", 120),
-    (7, "archive", "today_photos", 70), (7, "2d", "today", 80),
+    (1, "archive", "photo", 70), (1, "archive", "photos_disaster", 110),
+    (2, "3d", "establish", 70), (2, "2d", "build", 130),
+    (3, "3d", "load_path", 70), (3, "3d", "connection", 60), (3, "2d", "physics", 205),
+    (4, "2d", "clock", 25), (4, "3d", "fall", 30), (4, "ai_video", "dramatization", 35),
+    (4, "archive", "aftermath", 115),
+    (5, "2d", "timeline", 145), (5, "archive", "investigation", 110),
+    (6, "2d", "compare", 145),
+    (7, "archive", "today_photos", 85), (7, "2d", "today", 95),
 ]
 # ~1,260 words: 8-10 minutes in the am_echo voice with the pauses (owner, 2026-10-18)
 
@@ -132,13 +134,20 @@ def prompt(topic, facts_text, variant):
         "happened.\n"
         "- Labels under 48 characters, captions under 90.\n"
         "- design_vs_built.multiplier is THE one figure that explains the failure "
-        "(e.g. 2× the load, ½ the thickness), short enough to fill the screen; "
+        f"(for this kit: {k['multiplier']}), short enough to fill the screen; "
         "multiplier_label under 34 characters.\n"
         "- design_vs_built contrasts what sound engineering called for with what "
         "stood there. If the mistake was in the design itself, say so: titles "
         "WHAT IT NEEDED / WHAT IT HAD, and never call the faulty design adequate. "
         "plate_needed is a figure from the fact sheet, or empty if it gives none.\n"
-        "- timeline: titles under 28 characters, subs under 44.\n"
+        "- timeline: 3 to 6 moments in THIS structure's own story (design "
+        "changes, earlier damage, inspections, warnings, decisions), not other "
+        "disasters; titles under 28 characters, subs under 44.\n"
+        "- design_vs_built.designed states what sound engineering required (the "
+        "code load, the right thickness, the original detail), never the flawed "
+        "figure; built states what was actually there.\n"
+        "- Write every shot's narration to its full length: the episode runs 8 "
+        "to 10 minutes and each picture holds for as long as its words.\n"
         "- today.lines (each under 90 characters) say what changed since and "
         "whether it could happen again. Do not repeat the cause there.\n"
         "- Kit parameters the facts do not give: use the kit's usual values "
@@ -165,6 +174,18 @@ def _strings(obj):
             yield from _strings(v)
 
 
+def _spans(v):
+    """Span lengths as numbers, whether the writer gave [266, 456] or
+    ["266 ft", "456"] or "266, 456, 266"; [] when there are none."""
+    items = v if isinstance(v, list) else re.findall(r"\d+(?:\.\d+)?", str(v or ""))
+    out = []
+    for x in items:
+        m = re.search(r"\d+(?:\.\d+)?", str(x))
+        if m:
+            out.append(float(m.group()) if "." in m.group() else int(m.group()))
+    return out
+
+
 def check(reply, variant, source_text):
     """Problems with the writer's reply, [] when it can be used."""
     problems = []
@@ -180,8 +201,8 @@ def check(reply, variant, source_text):
             n, i = int(k.get("panels", 0)), int(k.get("failed_node", -1))
             if not 8 <= n <= 40 or not 0 < i < n:
                 problems.append("kit.panels / kit.failed_node out of range")
-            if len(k.get("spans") or []) < 1:
-                problems.append("kit.spans is empty")
+            if not _spans(k.get("spans")):
+                problems.append("kit.spans needs the span lengths as numbers")
         except (TypeError, ValueError):
             problems.append("kit.panels / kit.failed_node are not numbers")
     if variant == "hanging_walkways":
@@ -197,11 +218,13 @@ def check(reply, variant, source_text):
     for _, _, clip, words in SHOTS:
         sh = shots.get(clip) or {}
         nar = sh.get("narration", "")
-        if len(nar.split()) < words * 0.5:
+        if len(nar.split()) < words * 0.6:
             problems.append(f"shots.{clip}.narration is too short ({len(nar.split())} words, about {words} wanted)")
         if len(sh.get("caption", "")) > LIMITS["caption"]:
             problems.append(f"shots.{clip}.caption is over {LIMITS['caption']} characters")
     dvb = reply.get("design_vs_built") or {}
+    if variant == "hanging_walkways" and not str(dvb.get("multiplier", "")).strip().endswith("×"):
+        problems.append("design_vs_built.multiplier must be a load factor like 2× for this kit")
     shorts = [("design_vs_built.multiplier_label", dvb.get("multiplier_label", ""), "big_label"),
               ("big_3d.label", (reply.get("big_3d") or {}).get("label", ""), "big_label")]
     for i, e in enumerate(reply.get("timeline") or []):
@@ -219,11 +242,12 @@ def check(reply, variant, source_text):
         if text.startswith("<") and text.endswith(">"):
             problems.append(f"a placeholder was left: {text[:50]!r}")
             break
-    skip = {json.dumps(reply.get("kit", {}).get("spans", ""))}
+    # span lengths are drawing proportions, not claims: not checked against the source
+    claims = {**reply, "kit": {**k, "spans": []}}
     at = (reply.get("clock") or {}).get("at", "")
     if not re.fullmatch(r"\d{1,2}:\d{2}", at.strip()):
         problems.append("clock.at must be the moment as H:MM, e.g. 7:05")
-    missing = sorted({f for t in _strings(reply) if t not in skip
+    missing = sorted({f for t in _strings(claims)
                       for f in _figures(t) if f.rstrip(".,").replace(",", "") not in src
                       and len(f.rstrip(".,")) > 1})
     if missing:
@@ -248,6 +272,7 @@ def assemble(reply, variant, facts_source="", source_name="source"):
     r = copy.deepcopy(reply)
     kit = {"family": "structure", **r["kit"], "variant": variant}
     if variant == "truss_bridge":
+        kit["spans"] = _spans(kit.get("spans"))
         kit["panels"] = int(kit["panels"]) // 2 * 2
         kit["failed_node"] = int(kit["failed_node"])
         kit["load_near_node"] = str(kit.get("load_near_node")).lower() in ("true", "1", "yes")

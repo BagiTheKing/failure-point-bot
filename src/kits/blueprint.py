@@ -150,6 +150,9 @@ class Frame:
         anchor = "ls" if qx >= px else "rs"
         self.d.line([(qx, qy), (qx + (120 if anchor == "ls" else -120) * SS * 0, qy)],
                     fill=col, width=SS * 2)
+        # never past the screen edge: shrink the text to the room it has
+        room = (W - 24 - tx - 8) if anchor == "ls" else (tx - 8 - 24)
+        size = fit(s, size, "Inter-SemiBold.otf", max(80, room))
         self.d.text((qx + (8 if anchor == "ls" else -8) * SS, qy - 6 * SS), s,
                     font=font("Inter-SemiBold.otf", size), fill=col, anchor=anchor)
 

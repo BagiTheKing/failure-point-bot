@@ -93,6 +93,9 @@ class SheetWriterTest(unittest.TestCase):
                     "panels": 28, "failed_node": 40, "failed_node_label": "U10",
                     "load_near_node": True, "labels": {}}
         self.assertTrue(any("failed_node" in p for p in SW.check(t, "truss_bridge", SOURCE + " 266 456 28 10")))
+        t["kit"].update(failed_node=10, spans=["266 ft", "456 ft", "266 ft"])
+        self.assertFalse(any("spans" in p for p in SW.check(t, "truss_bridge", SOURCE + " 28 10")))
+        self.assertEqual(SW.assemble(t, "truss_bridge")["kit"]["spans"], [266, 456, 266])
 
 
 if __name__ == "__main__":
