@@ -10,44 +10,11 @@
   "sub": "MINNEAPOLIS · 1 AUGUST 2007 · RUSH HOUR"
  },
  "intros": {
-  "intro_faultlines_asher_fulero.mp4": {
-   "track": "Faultlines - Asher Fulero.mp3",
-   "seconds": 28.173,
-   "music_credits": []
-  },
-  "intro_mechanolith_kevin_macleod.mp4": {
-   "track": "Mechanolith - Kevin MacLeod.mp3",
-   "seconds": 28.173,
-   "music_credits": [
-    "\"Mechanolith\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
-   ]
-  },
-  "intro_volatile_reaction_kevin_macleod.mp4": {
-   "track": "Volatile Reaction - Kevin MacLeod.mp3",
-   "seconds": 28.173,
-   "music_credits": [
-    "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
-   ]
-  },
   "intro_impact_prelude_kevin_macleod.mp4": {
+   "seconds": 29.273,
    "track": "Impact Prelude - Kevin MacLeod.mp3",
-   "seconds": 28.173,
    "music_credits": [
     "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
-   ]
-  },
-  "intro_lightless_dawn_kevin_macleod.mp4": {
-   "track": "Lightless Dawn - Kevin MacLeod.mp3",
-   "seconds": 28.173,
-   "music_credits": [
-    "\"Lightless Dawn\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
-   ]
-  },
-  "intro_gathering_darkness_kevin_macleod.mp4": {
-   "track": "Gathering Darkness - Kevin MacLeod.mp3",
-   "seconds": 28.173,
-   "music_credits": [
-    "\"Gathering Darkness\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
    ]
   }
  }
