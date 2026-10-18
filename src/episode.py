@@ -249,20 +249,28 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
             anchors.update(json.load(open(os.path.join(raw3d, p))))
     caps = {sh["clip"]: sh.get("caption", "") for sh in sheet["shots"]}
     frames = lambda s: int(round(s * FPS))
-    segs = []                                # (mp4, frames, transition, [(clip, offset s)])
+    # each shot is queued as a job, then all of them render side by side on
+    # every core the runner has: [(make() -> (mp4, frames), transition, shots)]
+    jobs = []
 
     def add2d(name, fn, seconds, trans, shots):
         mp4 = os.path.join(work, f"{name}.mp4")
-        render_clip(fn, seconds, mp4)
-        segs.append((mp4, frames(seconds), trans, shots))
+
+        def make():
+            render_clip(fn, seconds, mp4)
+            return mp4, frames(seconds)
+        jobs.append((make, trans, shots))
 
     def add3d(name, a, b, trans, shots, fill_to=None):
-        files = render_3d_part(sheet, raw3d, anchors, a, b, os.path.join(work, name))
-        if fill_to:
-            files = held(files, fill_to, os.path.join(work, name + "_hold"))
-        segs.append((*to_mp4(files, os.path.join(work, f"{name}.mp4")), trans, shots))
-        shutil.rmtree(os.path.join(work, name), ignore_errors=True)
-        shutil.rmtree(os.path.join(work, name + "_hold"), ignore_errors=True)
+        def make():
+            files = render_3d_part(sheet, raw3d, anchors, a, b, os.path.join(work, name))
+            if fill_to:
+                files = held(files, fill_to, os.path.join(work, name + "_hold"))
+            out = to_mp4(files, os.path.join(work, f"{name}.mp4"))
+            shutil.rmtree(os.path.join(work, name), ignore_errors=True)
+            shutil.rmtree(os.path.join(work, name + "_hold"), ignore_errors=True)
+            return out
+        jobs.append((make, trans, shots))
 
     def stills_3d(*canon):
         out = [find_frame(raw3d, tm.frame(c)) for c in canon]
@@ -306,10 +314,12 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
         # the 3D shot stops on the very frame the AI clip was made from
         add3d("fall", tm.real(20.0), timemap.ai_start_frame(sheet) / FPS, ("dissolve", AI_BLEND),
               [("fall", 0)])
-        files = dramatization(ai_clip, os.path.join(work, "ai"), caps.get("fall", ""),
-                              frames(slots["dramatization"] + d))
-        segs.append((*to_mp4(files, os.path.join(work, "ai.mp4")), "dissolve",
-                     [("dramatization", 0)]))
+
+        def make_ai():
+            files = dramatization(ai_clip, os.path.join(work, "ai"), caps.get("fall", ""),
+                                  frames(slots["dramatization"] + d))
+            return to_mp4(files, os.path.join(work, "ai.mp4"))
+        jobs.append((make_ai, "dissolve", [("dramatization", 0)]))
     else:
         # the accurate 3D fall, its settle held while the narration runs
         add3d("fall", tm.real(20.0), tm.real(28.0), "dissolve",
@@ -322,6 +332,8 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
     archive("today_photos", "dissolve")
     add2d("today", common.today(sheet), slots["today"], "cut", [("today", 0)])
 
+    made = run_parallel([make for make, _, _ in jobs])
+    segs = [(mp4, n, trans, shots) for (mp4, n), (_, trans, shots) in zip(made, jobs)]
     joined = os.path.join(work, "reel.mp4")
     starts = xfade_join([(m, n, tr) for m, n, tr, _ in segs], joined)
     total = (starts[-1] + segs[-1][1]) / FPS
@@ -334,6 +346,29 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
     chapters = chapters_of(sheet, segs, starts)
     print(f"{out_mp4}: {total / 60:.1f} min")
     return {"seconds": total, "chapters": chapters}
+
+
+_JOBS = []
+
+
+def _run_job(i):
+    return _JOBS[i]()
+
+
+def run_parallel(makes, workers=None):
+    """Runs make() functions on every core (forked workers inherit them, so
+    closures need no pickling); results in order."""
+    global _JOBS
+    import multiprocessing
+    n = min(len(makes), workers or os.cpu_count() or 1)
+    if n <= 1:
+        return [m() for m in makes]
+    _JOBS = makes
+    try:
+        with multiprocessing.get_context("fork").Pool(n) as pool:
+            return pool.map(_run_job, range(len(makes)), chunksize=1)
+    finally:
+        _JOBS = []
 
 
 PARTS = {1: "The disaster", 2: "The structure and its weak point", 3: "The physics",
