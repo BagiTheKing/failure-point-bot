@@ -1,0 +1,17 @@
+{
+  "videos": {
+    "5ex5EQ0CxGg": {
+      "files": [
+        "videos/5ex5EQ0CxGg/1_xray.jpg",
+        "videos/5ex5EQ0CxGg/2_model.jpg",
+        "videos/5ex5EQ0CxGg/3_drawing.jpg"
+      ],
+      "status": "waiting",
+      "current": null,
+      "since": null,
+      "views_at_start": null,
+      "results": [],
+      "registered": "2026-10-18T23:39:25.333964+00:00"
+    }
+  }
+}
