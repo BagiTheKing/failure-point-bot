@@ -43,8 +43,7 @@
       18
     ],
     "water_level_m": -32,
-    "ai_start_frame": 655,
-    "ai_note": "the AI clip starts from this rendered 3D frame (21.8 s: wide shot held still just before the fall)",
+    "ai_note": "the AI clip starts from the 3D frame held still just before the fall (kits/timemap.py AI_START_CANON)",
     "ai_prompt": "The steel deck truss bridge fails at a joint in its main span: the whole main span drops almost flat into the river with a huge splash, the side spans break at the piers and fall onto the banks, cars tumble, water and dust rise. Static camera.",
     "labels_3d": [
       {

@@ -30,8 +30,7 @@
       5.0
     ],
     "roof_z": 19.5,
-    "ai_start_frame": 655,
-    "ai_note": "the AI clip starts from this rendered 3D frame (21.8 s: wide shot, held still just before the fall), so the scene runs on without a cut",
+    "ai_note": "the AI clip starts from the 3D frame held still just before the fall (kits/timemap.py AI_START_CANON)",
     "labels_3d": [
       {
         "anchor": "upper_deck",

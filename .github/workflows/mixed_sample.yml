@@ -113,8 +113,8 @@ jobs:
           import json, os, sys
           sys.path.insert(0, "src")
           sheet = json.load(open(os.environ["SHEET"]))
-          n = sheet.get("model_3d", {}).get("ai_start_frame")
-          frame = f"raw/{n:04d}.png" if n else ""
+          from kits.timemap import ai_start_frame
+          frame = f"raw/{ai_start_frame(sheet):04d}.png"
           if not (os.getenv("HF_TOKEN") and frame and os.path.exists(frame)):
               print("no AI clip: the accurate 3D fall stands in")
               sys.exit(0)

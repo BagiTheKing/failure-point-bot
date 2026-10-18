@@ -19,7 +19,7 @@ import random
 from PIL import Image, ImageDraw
 
 from kits.blueprint import (W, H, SS, BG, LINE, DIM, RED, AMBER, CYAN, GREEN,
-                            ease, prog, lerp, mix, Frame, Beats)
+                            ease, prog, lerp, mix, Frame, Beats, KitTiming)
 
 X0, X1 = 100, 1180          # abutments
 DECK_Y = 300                # roadway level
@@ -32,7 +32,7 @@ def _rot(px, py, cx, cy, a):
     return cx + (px - cx) * c - (py - cy) * s, cy + (px - cx) * s + (py - cy) * c
 
 
-class TrussBridge:
+class TrussBridge(KitTiming):
     def __init__(self, sheet):
         self.sheet = sheet
         k = sheet["kit"]
@@ -279,10 +279,6 @@ class TrussBridge:
                  ("settle", 0.1, 2.0), ("toll", 0.6, 2.8))
     COMP = Beats(("show", 1.0, 0.6), ("titles", 0.6, 2.6), ("mark", 0.6, 2.4),
                  ("drop", 1.6, 0.6), ("verdict", 0.6, 2.8))
-
-    def durations(self):
-        return {"build": self.BUILD.total, "physics": self.PHYS.total,
-                "fall": self.FALL.total, "compare": self.COMP.total}
 
     def b_camera(self, t):
         b = self.BUILD

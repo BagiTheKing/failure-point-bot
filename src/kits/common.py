@@ -187,6 +187,8 @@ def overlay_3d(sheet, frame_img, frame_no, anchors, t):
 
     Anchors are the parts' screen positions recorded at render time, so the
     labels follow the 3D model as the camera moves."""
+    from kits import timemap
+    t = timemap.of(sheet).canon(t)      # windows below are on the canonical timeline
     img = frame_img.convert("RGB").resize((W * SS, H * SS))
     f = Frame()
     f.img, f.d = img, ImageDraw.Draw(img, "RGBA")

@@ -36,7 +36,10 @@ DECK_T, BEAM_H, BEAM_D, ROD_R, NUT = 0.28, 0.36, 0.22, 0.016, 0.07
 
 
 def s(sec):
-    return int(round(sec * FPS)) + 1
+    """The frame for a canonical time: through the time map, so each shot lasts
+    as long as its narration (kits/timemap.py)."""
+    from kits import timemap
+    return timemap.CURRENT.frame(sec)
 
 
 def mat(name, color, rough=0.6, metal=0.0, emit=None):
@@ -290,6 +293,8 @@ def setup_render(sc, samples):
 
 
 def render(sheet, out_dir, first=1, last=None, samples=16, still=0):
+    from kits import timemap
+    timemap.use(sheet)
     m = Model(sheet)
     m.build()
     m.animate()

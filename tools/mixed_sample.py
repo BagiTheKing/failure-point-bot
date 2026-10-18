@@ -27,10 +27,10 @@ from kits import common  # noqa: E402
 from kits.blueprint import W, H, FPS, SS, LINE, ease, prog, render_clip, encode, Frame, font  # noqa: E402
 from kits.hanging_walkway import HangingWalkways  # noqa: E402
 from kits.truss_bridge import TrussBridge  # noqa: E402
+from kits import timemap  # noqa: E402
 
 KITS = {"hanging_walkways": HangingWalkways, "truss_bridge": TrussBridge}
 
-SHOT_3D = {"establish": (0, 7), "load_path": (7, 13), "connection": (13, 20), "fall": (20, 28)}
 DISSOLVE = 0.8
 
 
@@ -49,7 +49,7 @@ def frames_of(mp4, out_dir, cover=False):
 def render_3d_part(sheet, raw, anchors, first_sec, last_sec, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     files = []
-    for n in range(int(first_sec * FPS) + 1, int(last_sec * FPS) + 1):
+    for n in range(int(round(first_sec * FPS)) + 1, int(round(last_sec * FPS)) + 1):
         src = os.path.join(raw, f"{n:04d}.png")
         if not os.path.exists(src):
             continue
@@ -134,16 +134,18 @@ def main():
     seconds = {s["clip"]: s.get("seconds") for s in sheet["shots"]}
     phys = lambda t, T: kit.physics(t, T, lead=False)
     photo = clip2d("photo", common.photo(sheet, a.photo or None, tint_out=False), seconds["photo"])
-    a3d = render_3d_part(sheet, a.raw3d, anchors, 0, SHOT_3D["connection"][1], os.path.join(work, "3d_a"))
+    tm = timemap.of(sheet)
+    a3d = render_3d_part(sheet, a.raw3d, anchors, 0, tm.window("connection")[1], os.path.join(work, "3d_a"))
     physics = clip2d("physics", phys, D["physics"])
     clock = clip2d("clock", common.clock(sheet), seconds["clock"])
     caps = {sh["clip"]: sh.get("caption", "") for sh in sheet["shots"]}
-    ai_start = sheet.get("model_3d", {}).get("ai_start_frame")
-    use_ai = bool(a.ai and os.path.exists(a.ai) and ai_start)
+    ai_start = timemap.ai_start_frame(sheet)
+    use_ai = bool(a.ai and os.path.exists(a.ai))
     # with the AI clip, the 3D shot stops on the very frame the clip was made
     # from; without it, the accurate 3D fall plays instead
-    last = ai_start / FPS if use_ai else SHOT_3D["fall"][1]
-    b3d = render_3d_part(sheet, a.raw3d, anchors, SHOT_3D["fall"][0], last, os.path.join(work, "3d_b"))
+    f0, f1 = tm.window("fall")
+    last = ai_start / FPS if use_ai else f1
+    b3d = render_3d_part(sheet, a.raw3d, anchors, f0, last, os.path.join(work, "3d_b"))
     ai = dramatization(a.ai, os.path.join(work, "ai"), caps.get("fall", "")) if use_ai else []
     tl = clip2d("timeline", common.timeline(sheet), seconds["timeline"])
     comp = clip2d("compare", kit.compare, D["compare"])

@@ -215,6 +215,7 @@ class Beats:
     """
 
     def __init__(self, *beats, start=0.0, pace=1.0):
+        self.spec, self.start0, self.pace = beats, start, pace
         self.at = {}
         t = start
         for name, anim, hold in beats:
@@ -237,3 +238,30 @@ class Beats:
         give way to that beat."""
         a = self.at[name][0]
         return 1 - prog(t, a - fade, a)
+
+    def fitted(self, seconds, min_pace=0.6):
+        """The same beats lasting `seconds`: the animations keep their speed,
+        only the holds stretch or shrink (never below min_pace of their
+        designed length, so nothing flashes past)."""
+        anim = sum(a for _, a, _ in self.spec) + self.start0
+        hold = sum(h for _, _, h in self.spec)
+        pace = max(min_pace, (seconds - anim) / hold) if hold else 1.0
+        return Beats(*self.spec, start=self.start0, pace=pace)
+
+
+class KitTiming:
+    """For kits whose clips are Beats timelines (BUILD, PHYS, FALL, COMP):
+    fit them to the narration (step 5b)."""
+    CLIPS = {"build": "BUILD", "physics": "PHYS", "fall": "FALL", "compare": "COMP"}
+
+    def durations(self):
+        return {clip: getattr(self, attr).total for clip, attr in self.CLIPS.items()}
+
+    def fit(self, seconds):
+        """seconds: {clip: how long its narration needs}. Clips not named keep
+        their designed timing."""
+        for clip, attr in self.CLIPS.items():
+            if seconds.get(clip):
+                setattr(self, attr, getattr(type(self), attr).fitted(seconds[clip]))
+        self._phys_last = None
+        return self.durations()

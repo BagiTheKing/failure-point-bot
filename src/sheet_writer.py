@@ -37,7 +37,7 @@ KITS = {
                       ("lower_rod", [15.4, 19.4], [760, 520], "cyan")],
         "big_3d_anchor": "nut",
         "model_3d": {"walk_length": 36.0, "walk_width": 2.6, "level_z": [12.0, 5.0],
-                     "roof_z": 19.5, "ai_start_frame": 655},
+                     "roof_z": 19.5},
     },
     "truss_bridge": {
         "what": ("A steel truss bridge over one or more spans; one joint (a gusset "
@@ -57,7 +57,7 @@ KITS = {
                       ("node", [15.4, 19.4], [780, 180], "cyan")],
         "big_3d_anchor": "node",
         "model_3d": {"span_m": [81, 139, 81], "deck_width_m": 34, "truss_depth_m": [9, 18],
-                     "water_level_m": -32, "ai_start_frame": 655},
+                     "water_level_m": -32},
     },
 }
 

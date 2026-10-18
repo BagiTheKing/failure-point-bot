@@ -11,7 +11,7 @@ The same shot windows as every 3D model (kits/common.py SHOTS_3D):
                         glow as the load flows into it
     connection  13-20   push-in on the gusset plate at the joint; it heats, then bows
     fall        20-28   pull back to the wide shot and hold: the AI collapse starts
-                        from the sheet's ai_start_frame; after T_FALL the accurate
+                        from kits.timemap AI_START_CANON; after T_FALL the accurate
                         3D fall stands in when there is no AI clip
 
     python -m kits.render3d sheet.json out_dir [--first N --last M] [--samples S]
@@ -319,6 +319,8 @@ class Model:
 
 
 def render(sheet, out_dir, first=1, last=None, samples=16, still=0):
+    from kits import timemap
+    timemap.use(sheet)
     m = Model(sheet)
     m.build()
     m.animate()

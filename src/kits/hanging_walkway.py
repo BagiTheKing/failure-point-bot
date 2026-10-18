@@ -19,7 +19,7 @@ import random
 from PIL import Image, ImageDraw
 
 from kits.blueprint import (W, H, SS, BG, LINE, DIM, RED, AMBER, CYAN, GREEN,
-                            ease, prog, lerp, mix, Frame, Beats)
+                            ease, prog, lerp, mix, Frame, Beats, KitTiming)
 
 # side elevation, world units = screen px at zoom 1
 ROOF_Y, UP_Y, LO_Y, GROUND_Y = 120, 330, 540, 650
@@ -27,7 +27,7 @@ WALK_X0, WALK_X1 = 300, 980
 BEAM_H, DECK_H = 16, 10
 
 
-class HangingWalkways:
+class HangingWalkways(KitTiming):
     def __init__(self, sheet):
         self.sheet = sheet
         k = sheet["kit"]
@@ -179,10 +179,6 @@ class HangingWalkways:
                  ("drop2", 0.55, 0.0), ("settle", 0.1, 2.0), ("toll", 0.6, 2.8))
     COMP = Beats(("show", 1.0, 0.6), ("loads", 0.8, 2.6), ("mark", 0.6, 2.4),
                  ("drop", 1.2, 0.6), ("verdict", 0.6, 2.8))
-
-    def durations(self):
-        return {"build": self.BUILD.total, "physics": self.PHYS.total,
-                "fall": self.FALL.total, "compare": self.COMP.total}
 
     def b_camera(self, t):
         k = self.BUILD.p(t, "zoom")
