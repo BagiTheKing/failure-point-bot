@@ -120,7 +120,8 @@ variable: `PIPELINE_ENABLED` = `true`.
 The workflows keep state on their own branches. Never merge them into `main`:
 `run-cache` (a failed run's progress), `topic-queue` (stories researched
 ahead), `thumb-rotation` (thumbnail rotation state and held first comments)
-and the `preview-*` branches made by the probe workflows.
+the `preview-*` branches made by the probe workflows, and `samples` (finished
+sample videos, kept so no render goes to waste).
 
 ## Public repository hygiene
 
