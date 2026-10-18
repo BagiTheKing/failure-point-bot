@@ -1,0 +1,43 @@
+{
+ "seconds": 488.26666666666665,
+ "chapters": [
+  "0:00 The disaster",
+  "0:52 The structure and its weak point",
+  "1:55 The physics",
+  "3:31 Second by second",
+  "4:41 The warnings and the investigation",
+  "6:17 How it should have worked",
+  "6:59 Could it happen today?"
+ ],
+ "music_credits": [
+  "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Lightless Dawn\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Hidden Wonders\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Stay the Course\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Man Down\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Tyrant\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Leaving Home\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
+ ],
+ "credits": [
+  "I-35W Bridge 2 — Elkman — CC BY-SA 3.0 (via Wikimedia Commons)",
+  "I-35W collapse helicopter 20070801 — SEWilco's stringer 1 — CC BY-SA 3.0 (via Wikimedia Commons)",
+  "I-35W-officials-Minneapolis-20070810 — Public domain (via Wikimedia Commons)",
+  "I-35W-rescue-Minneapolis-20070801 — Eric from Minneapolis — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "I35 Bridge Collapse 4crop — Mike Wills — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "I35 bridge collapsed divers — MDSU — Public domain (via Wikimedia Commons)",
+  "I35W Collapse - Mayor RT Ryback surveys damage — Kevin Rofidal, United States Coast Guard — Public domain (via Wikimedia Commons)",
+  "Image-I35W Collapse - Day 4 - Operations & Scene (95) edit — Kevin Rofidal, United States Coast Guard — Public domain (via Wikimedia Commons)"
+ ],
+ "ai_clip": false,
+ "hook": {
+  "lines": [
+   "August 1, 2007. 6:05 p.m. Rush hour in Minneapolis.",
+   "In seconds, the bridge's central span drops 115 feet into the Mississippi.",
+   "111 vehicles go down with it. 13 people never make it home.",
+   "The cause was built into the bridge forty years earlier: a steel plate half an inch thick."
+  ],
+  "title": "THE I-35W BRIDGE COLLAPSE",
+  "sub": "MINNEAPOLIS · 1 AUGUST 2007 · RUSH HOUR"
+ }
+}
