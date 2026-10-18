@@ -23,7 +23,7 @@ def main(prep, raw3d, out):
         if p.startswith("anchors_"):
             anchors.update(json.load(open(os.path.join(raw3d, p))))
     at = lambda n: (anchors.get(str(n)) or {}).get("node")
-    c, fl = tm.frame(17.5), tm.frame(22.4)             # the plate glowing; the fall beginning there
+    c, fl = tm.frame(17.5), tm.frame(23.4)             # the plate glowing; the span going down
     made = thumbnail.build(sheet, find_frame(raw3d, c), find_frame(raw3d, fl), at(fl), out, at(c))
     json.dump({"figures": thumbnail.figures(sheet), "made": made},
               open(os.path.join(out, "thumbs.json"), "w"), indent=1, ensure_ascii=False)

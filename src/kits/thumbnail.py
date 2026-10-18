@@ -180,12 +180,24 @@ def drawing_frame(sheet, which="tear"):
             setattr(Frame, n, fn)
 
 
-def model(fall3d, anchor, f, out):
-    img = _grid(_grade(_cover(Image.open(fall3d))), 18)
-    img = _scrim(img, top=0.45, left=0.55, strength=215)
+def model(fall3d, anchor, f, out, zoom=1.45):
+    """Close in on the failing span and set it low in the frame, under the
+    words; the ring follows the joint through the crop."""
+    src = Image.open(fall3d)
+    ax, ay = (anchor[0], anchor[1]) if anchor else (0.5, 0.5)
+    cx, cy = ax, ay - 0.16 / zoom                      # the joint lands about two thirds down
+    img = _grid(_grade(_cover(src, cx=cx, cy=cy, zoom=zoom), 1.3, 1.0), 18)
+    img = _scrim(img, top=0.5, left=0.5, strength=225)
     d = ImageDraw.Draw(img, "RGBA")
     if anchor:
-        x, y = anchor[0] * W * S, anchor[1] * H * S
+        # where the joint went in the crop (same arithmetic as _cover)
+        ar = W / H
+        cw = min(src.width, src.height * ar) / zoom
+        ch = cw / ar
+        x0 = min(max(0, src.width * cx - cw / 2), src.width - cw)
+        y0 = min(max(0, src.height * cy - ch / 2), src.height - ch)
+        x = (ax * src.width - x0) / cw * W * S
+        y = (ay * src.height - y0) / ch * H * S
         _ring(d, x, y, 70 * S)
         _tag(d, f"{f['big'] or f['part']} · FAILED HERE", int(x - 150 * S), int(y + 95 * S), RED)
     big = f"{f['dead']} DEAD" if f["dead"] else (f["big"] or "")
