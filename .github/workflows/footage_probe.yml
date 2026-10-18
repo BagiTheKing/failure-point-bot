@@ -1,0 +1,26 @@
+name: Footage probe
+
+# Manual. Lists the free footage (Wikimedia Commons, Internet Archive) that
+# exists for a story, so the cold open's sources can be checked by hand.
+on:
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: "Story"
+        default: "I-35W Mississippi River bridge collapse"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - env:
+          TOPIC: ${{ inputs.topic }}
+        run: |
+          python tools/footage_probe.py "$TOPIC"
+          python tools/footage_probe.py "Hyatt Regency walkway collapse"
