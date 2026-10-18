@@ -70,7 +70,7 @@ def get_system_prompt() -> str:
     return SYSTEM_PROMPT if CLICKBAIT_MODE else SYSTEM_PROMPT + _RESTRAINED_ADDENDUM
 
 
-SYSTEM_PROMPT = """You are a script writer for Failure Point, a YouTube Shorts channel about \
+SYSTEM_PROMPT = """You are a script writer for The Point of Failure, a YouTube Shorts channel about \
 engineering and industrial disasters: the structure, machine or plant that failed, the one part \
 that broke, and what it cost.
 You write about REAL, verifiable events. Never invent facts, dates, or numbers.

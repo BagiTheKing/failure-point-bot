@@ -22,7 +22,7 @@ import urllib.parse
 import urllib.request
 
 TIMEOUT = 20
-UA = "Mozilla/5.0 (compatible; FailurePointBot/1.0)"
+UA = "Mozilla/5.0 (compatible; PointOfFailureBot/1.0)"
 API = "https://en.wikiquote.org/w/api.php"
 
 MAX_PAGES = 3

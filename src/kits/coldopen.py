@@ -1,16 +1,21 @@
 """
-The cold open: the first ~30 seconds, built to hold a viewer until the
-analysis starts (owner, 2026-10-18, after the first full episode: "our
-challenge is to keep the viewer with us for 1 min").
+The cold open: the first seconds that keep a viewer (owner, 2026-10-18).
 
-A fast montage in the style of a news thriller: a new picture every ~2
-seconds (real footage first, security cameras before anything, then the
-event's photos, then our own 3D collapse), hard cuts punched in with a flash,
-a dark grade with grain. The episode's title wipes in over the first
-seconds; the hook lines are spoken over it, each shown big on screen while
-it is said. Thriller music carries it (src/episode.py mixes the sound).
+Clear and simple, well under a minute:
 
-    fn = cold_open(sheet, items, lines, T)     # fn(t, T) -> Image, like a kit clip
+  0.0-1.0 s  four photos of the disaster flash in, a quarter second each,
+             each with a camera shutter (src/score.py) and a white flash,
+             like press shots.
+  1.0-4.4 s  the title rises out of a red line drawn across the screen.
+  then       one picture per hook line, each held while its line is said,
+             with a slow, steady push-in and a straight cut to the next (the
+             punch-in-and-out between pictures looked badly edited). Real
+             footage first if there is any, then photos; the line that says
+             what happened gets the 3D collapse, the last line the 3D close-up
+             of the part that failed: the question the episode answers.
+
+    plan = layout(sheet, pictures, fall3d, close3d, footage, lines, T)
+    fn = cold_open(plan, lines, T, title, sub)      # fn(t, T) -> Image
 """
 
 import random
@@ -19,62 +24,36 @@ from PIL import Image, ImageDraw, ImageFilter
 
 from kits.blueprint import W, H, SS, LINE, RED, DIM, ease, prog, Frame, font, fit
 
-BEAT = 2.0            # seconds per picture, on average
-FLASH = 0.10          # the white punch on each cut
+BURST = 4               # photos in the opening flash
+BURST_EACH = 0.25       # seconds each
+TITLE_AT = 1.0          # the title starts when the burst ends
+TITLE_END = 4.4
+FLASH = 0.08
 
 
-def plan(items, T, seed=7):
-    """The cut list: [(start, length, item, offset into a clip)]. items:
-    {"frames": [...], "kind": "footage"|"3d"} clips, {"path"} photos. Footage
-    and the 3D are cut into ~2 s pieces taken in order; photos once each.
-    Real footage leads; the 3D collapse closes the montage."""
-    rnd = random.Random(seed)
-    footage = [i for i in items if i.get("frames") and i.get("kind") != "3d"]
-    model = [i for i in items if i.get("frames") and i.get("kind") == "3d"]
-    photos = [i for i in items if not i.get("frames")]
+def shutter_times():
+    """When the burst's photos land: the score puts a shutter on each."""
+    return [k * BURST_EACH for k in range(BURST)]
 
-    def pieces(clips):
-        out = []
-        for c in clips:
-            n = len(c["frames"])
-            step = int(BEAT * 30)
-            for off in range(0, max(1, n - step // 2), step):
-                out.append((c, off))
-        return out
 
-    real, ours = pieces(footage), pieces(model)
-    order = []
-    # alternate real footage and photos, our 3D at the end (its last pieces)
-    pool = [("f", p) for p in real]
-    pi = 0
-    mixed = []
-    for k in range(max(len(pool), len(photos))):
-        if k < len(pool):
-            mixed.append(pool[k])
-        if pi < len(photos):
-            mixed.append(("p", (photos[pi], 0)))
-            pi += 1
-    order = mixed
-    # the collapse itself, in motion: the first pieces of the fall, in order
-    tail = [("m", p) for p in ours[:3]] if ours else []
-    cuts, t = [], 0.0
-    budget = T - sum(BEAT for _ in tail)
-    seq = order or tail
-    k = 0
-    while seq and t < budget - 0.5:
-        kind, (item, off) = seq[k % len(seq)]
-        if k >= len(seq) and kind != "p":       # second pass over footage: a later piece
-            off = min(off + 15, max(0, len(item["frames"]) - 1))
-        d = min(BEAT * rnd.uniform(0.8, 1.2), budget - t)
-        cuts.append([t, d, item, off])
-        t += d
-        k += 1
-    for kind, (item, off) in tail:
-        d = max(0.5, min(BEAT, T - t))
-        cuts.append([t, d, item, off])
-        t += d
-    if cuts:
-        cuts[-1][1] += max(0.0, T - t)
+def layout(burst, line_items, lines, T):
+    """The cut list [(start, length, item)]: the burst, the title (over a
+    dark blur of the last burst photo), then one item per hook line from
+    the moment its line starts, the first line's item from the title's end."""
+    cuts = []
+    for k, item in enumerate(burst[:BURST]):
+        cuts.append((k * BURST_EACH, BURST_EACH, item))
+    t0 = BURST_EACH * len(cuts)
+    title_bg = {**(burst[-1] if burst else {"path": None}), "blur": True}
+    first = lines[0][0] if lines else TITLE_END
+    cuts.append((t0, max(0.3, min(TITLE_END, first) - t0), title_bg))
+    t = cuts[-1][0] + cuts[-1][1]
+    for i, (s, e, _) in enumerate(lines):
+        nxt = lines[i + 1][0] if i + 1 < len(lines) else T
+        start = max(t, s - 0.25)                 # cut just before the line is said
+        item = line_items[i] if i < len(line_items) else (line_items[-1] if line_items else title_bg)
+        cuts.append((start, max(0.3, nxt - 0.25 - start if i + 1 < len(lines) else T - start), item))
+        t = start + cuts[-1][1]
     return cuts
 
 
@@ -92,105 +71,74 @@ def _grain_tile(k):
 
 
 def _grade(img):
-    """Cold, contrasty, a little desaturated: the thriller look."""
+    """Cold, contrasty, a little desaturated."""
     gray = img.convert("L").convert("RGB")
-    img = Image.blend(img, gray, 0.35)
-    img = Image.blend(img, Image.new("RGB", img.size, (8, 18, 34)), 0.22)
+    img = Image.blend(img, gray, 0.3)
+    return Image.blend(img, Image.new("RGB", img.size, (8, 18, 34)), 0.18)
+
+
+def _cover(img):
+    ar = W / H
+    if img.width / img.height > ar:
+        nw = int(img.height * ar)
+        img = img.crop(((img.width - nw) // 2, 0, (img.width + nw) // 2, img.height))
+    else:
+        nh = int(img.width / ar)
+        img = img.crop((0, (img.height - nh) // 2, img.width, (img.height + nh) // 2))
+    return img.resize((W * SS, H * SS))
+
+
+def _picture(item, local, dur, still=False):
+    """One picture at `local` seconds into its cut: footage or 3D frames play,
+    photos hold; everything pushes in slowly and steadily (never back out)."""
+    if item.get("frames"):
+        fr = item["frames"]
+        step = item.get("speed", 1.0)
+        img = Image.open(fr[min(len(fr) - 1, item.get("offset", 0) + int(local * 30 * step))]).convert("RGB")
+        img = _cover(img)
+    elif item.get("path"):
+        img = _cover(Image.open(item["path"]).convert("RGB"))
+    else:
+        return Image.new("RGB", (W * SS, H * SS), (4, 10, 20))
+    if item.get("blur"):
+        img = img.filter(ImageFilter.GaussianBlur(18 * SS))
+        img = Image.blend(img, Image.new("RGB", img.size, (0, 0, 0)), 0.55)
+    if not still:
+        z = 1.0 + 0.06 * min(1.0, local / max(0.5, dur))
+        cw, ch = img.width / z, img.height / z
+        x0, y0 = (img.width - cw) / 2, (img.height - ch) / 2
+        img = img.crop((int(x0), int(y0), int(x0 + cw), int(y0 + ch))).resize(img.size)
     return img
 
 
-def _picture(item, local, off, dur):
-    if item.get("frames"):
-        fr = item["frames"]
-        img = Image.open(fr[min(len(fr) - 1, off + int(local * 30))]).convert("RGB")
-        img = img.resize((W * SS, H * SS))
-        z = 1.0 + 0.05 * local / max(0.1, dur)                # slow push
-    else:
-        img = Image.open(item["path"]).convert("RGB")
-        ar = W / H
-        if img.width / img.height > ar:
-            nw = int(img.height * ar)
-            img = img.crop(((img.width - nw) // 2, 0, (img.width + nw) // 2, img.height))
-        else:
-            nh = int(img.width / ar)
-            img = img.crop((0, (img.height - nh) // 2, img.width, (img.height + nh) // 2))
-        img = img.resize((W * SS, H * SS))
-        z = 1.04 + 0.10 * local / max(0.1, dur)               # faster push on stills
-    z += 0.06 * (1 - ease(min(1.0, local / 0.25)))            # the punch-in on the cut
-    cw, ch = img.width / z, img.height / z
-    x0, y0 = (img.width - cw) / 2, (img.height - ch) / 2
-    return img.crop((int(x0), int(y0), int(x0 + cw), int(y0 + ch))).resize(img.size)
-
-
-def title_card(f, title, sub, t, t0=0.8, t1=5.2):
-    """The episode's title, wiped in from a red line drawn across the
-    middle, held, then lifted away: no box, no pop."""
-    if t < t0 or t > t1 + 0.6:
+def title_card(f, title, sub, t, t0=TITLE_AT, t1=TITLE_END):
+    """The episode's title rising out of a red line drawn across the middle,
+    held, then faded: no box, no pop."""
+    if t < t0 or t > t1 + 0.5:
         return
     cx, cy = W / 2, H / 2
-    grow = ease(prog(t, t0, t0 + 0.7))
-    out = 1 - prog(t, t1, t1 + 0.6)
+    grow = ease(prog(t, t0, t0 + 0.6))
+    out = 1 - prog(t, t1, t1 + 0.5)
     size = fit(title, 64, "InterDisplay-Black.otf", W - 160)
     tw = font("InterDisplay-Black.otf", size).getlength(title) / SS
     half = (tw / 2 + 30) * grow
     a = int(255 * out)
     f.d.line([((cx - half) * SS, (cy + 6) * SS), ((cx + half) * SS, (cy + 6) * SS)],
              fill=RED + (a,), width=3 * SS)
-    # the title rises out of the line: draw it on a layer and reveal upward
-    rise = ease(prog(t, t0 + 0.45, t0 + 1.15))
+    rise = ease(prog(t, t0 + 0.35, t0 + 1.05))
     if rise > 0:
         layer = Image.new("RGBA", f.img.size, (0, 0, 0, 0))
-        d = ImageDraw.Draw(layer)
-        d.text((cx * SS, (cy - 4 + 22 * (1 - rise)) * SS), title, font=font("InterDisplay-Black.otf", size),
-               fill=(255, 255, 255, a), anchor="md")
+        ImageDraw.Draw(layer).text((cx * SS, (cy - 4 + 22 * (1 - rise)) * SS), title,
+                                   font=font("InterDisplay-Black.otf", size),
+                                   fill=(255, 255, 255, a), anchor="md")
         mask = Image.new("L", f.img.size, 0)
         top = cy + 6 - (size + 20) * rise
         ImageDraw.Draw(mask).rectangle([0, top * SS, W * SS, (cy + 6) * SS], fill=255)
         f.img.paste(layer, (0, 0), Image.composite(layer, Image.new("RGBA", layer.size), mask))
     if sub:
-        sa = prog(t, t0 + 1.0, t0 + 1.5) * out
-        n = int(len(sub) * prog(t, t0 + 1.0, t0 + 1.9))       # typed out
-        f.text(sub[:n], cx, cy + 40, 20, LINE, "Inter-Bold.otf", anchor="mm", alpha=sa)
-
-
-def cold_open(sheet, items, lines, T, title="", sub=""):
-    """items: pictures (see plan). lines: [(start, end, text)] when each hook
-    line is spoken, shown big while it is said."""
-    cuts = plan(items, T)
-
-    def clip(t, T_):
-        k = next((j for j, (a, d, _, _) in enumerate(cuts) if t < a + d), len(cuts) - 1)
-        a, d, item, off = cuts[k] if cuts else (0, T, {"path": None}, 0)
-        if item.get("path") is None and not item.get("frames"):
-            img = Image.new("RGB", (W * SS, H * SS), (4, 10, 20))
-        else:
-            img = _grade(_picture(item, t - a, off, d))
-        # vignette, grain
-        img = Image.composite(img, Image.new("RGB", img.size, (0, 0, 0)), _vignette())
-        img = Image.blend(img, Image.merge("RGB", [_grain_tile(int(t * 24))] * 3), 0.06)
-        flash = 1 - prog(t - a, 0.0, FLASH) if k > 0 else 0
-        if flash > 0:
-            img = Image.blend(img, Image.new("RGB", img.size, (255, 255, 255)), 0.45 * flash)
-        # fade in from black at the very start, out to black at the end
-        img = Image.blend(Image.new("RGB", img.size, (0, 0, 0)), img,
-                          prog(t, 0.0, 0.6) * (1 - prog(t, T_ - 0.35, T_)))
-        f = Frame()
-        f.img, f.d = img, ImageDraw.Draw(img, "RGBA")
-        title_card(f, title, sub, t)
-        for s, e, text in lines:
-            if s - 0.15 <= t <= e + 0.35:
-                al = prog(t, s - 0.15, s + 0.1) * (1 - prog(t, e + 0.1, e + 0.35))
-                size = fit(text, 34, "InterDisplay-Bold.otf", W - 200)
-                f.text(text, W / 2, H - 120, size, LINE, "InterDisplay-Bold.otf", anchor="mm", alpha=al)
-        if item.get("tag") and item.get("frames"):
-            from kits import common
-            common.pill(f, item["tag"], 40, 36, LINE, 15, "la", 0.85)
-        if item.get("credit"):
-            c = item["credit"]
-            f.text(c, W - 24, H - 16, fit(c, 12, "Inter-Medium.otf", 560), DIM,
-                   "Inter-Medium.otf", screen=True, anchor="rs", alpha=0.8)
-        return f.done()
-    return clip
+        n = int(len(sub) * prog(t, t0 + 0.9, t0 + 1.8))       # typed out
+        f.text(sub[:n], cx, cy + 40, 20, LINE, "Inter-Bold.otf", anchor="mm",
+               alpha=prog(t, t0 + 0.9, t0 + 1.2) * out)
 
 
 _vig = []
@@ -202,3 +150,37 @@ def _vignette():
         ImageDraw.Draw(m).ellipse([-W * SS * 0.15, -H * SS * 0.25, W * SS * 1.15, H * SS * 1.25], fill=255)
         _vig.append(m.filter(ImageFilter.GaussianBlur(W * SS // 7)))
     return _vig[0]
+
+
+def cold_open(cuts, lines, T, title="", sub=""):
+    """cuts: layout(). lines: [(start, end, text)] when each hook line is
+    spoken, shown on screen while it is said."""
+
+    def clip(t, T_):
+        k = next((j for j, (a, d, _) in enumerate(cuts) if t < a + d), len(cuts) - 1)
+        a, d, item = cuts[k]
+        burst = k < BURST and t < BURST * BURST_EACH
+        img = _grade(_picture(item, t - a, d, still=burst))
+        img = Image.composite(img, Image.new("RGB", img.size, (0, 0, 0)), _vignette())
+        img = Image.blend(img, Image.merge("RGB", [_grain_tile(int(t * 24))] * 3), 0.05)
+        if burst:                                # a camera flash on each press shot
+            flash = 1 - prog(t - a, 0.0, FLASH)
+            img = Image.blend(img, Image.new("RGB", img.size, (255, 255, 255)), 0.7 * flash)
+        img = Image.blend(Image.new("RGB", img.size, (0, 0, 0)), img, 1 - prog(t, T_ - 0.4, T_))
+        f = Frame()
+        f.img, f.d = img, ImageDraw.Draw(img, "RGBA")
+        title_card(f, title, sub, t)
+        for s, e, text in lines:
+            if s - 0.15 <= t <= e + 0.4:
+                al = prog(t, s - 0.15, s + 0.1) * (1 - prog(t, e + 0.15, e + 0.4))
+                size = fit(text, 34, "InterDisplay-Bold.otf", W - 200)
+                f.text(text, W / 2, H - 120, size, LINE, "InterDisplay-Bold.otf", anchor="mm", alpha=al)
+        if item.get("tag") and not burst:
+            from kits import common
+            common.pill(f, item["tag"], 40, 36, LINE, 15, "la", 0.85)
+        if item.get("credit") and not burst and not item.get("blur"):
+            c = item["credit"]
+            f.text(c, W - 24, H - 16, fit(c, 12, "Inter-Medium.otf", 560), DIM,
+                   "Inter-Medium.otf", screen=True, anchor="rs", alpha=0.8)
+        return f.done()
+    return clip

@@ -25,7 +25,7 @@ MUSIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "musi
 XFADE = 2.5
 
 # one track per part of the 7-part structure, the cold open first
-COLD_OPEN = "Crossing the Threshold - Ghostpocalypse - Kevin MacLeod.mp3"
+COLD_OPEN = os.getenv("INTRO_TRACK", "Crossing the Threshold - Ghostpocalypse - Kevin MacLeod.mp3")
 PARTS = {1: "A Singular Perversion - Darkness - Kevin MacLeod.mp3",
          2: "Measured Paces - Kevin MacLeod.mp3",
          3: "Measured Paces - Kevin MacLeod.mp3",
@@ -81,21 +81,23 @@ def mix(voice_wav, plan, total, out_wav):
     voice = np.pad(voice, (0, max(0, n - len(voice))))[:n]
     music = np.zeros((n, 2), np.float32)
     credits, cache = [], {}
-    for start, end, name, level in plan:
+    for entry in plan:
+        start, end, name, level = entry[:4]
+        fade_in = entry[4] if len(entry) > 4 else XFADE
         path = os.path.join(MUSIC_DIR, name)
         if not os.path.exists(path):
             print(f"  music missing, silent instead: {name}")
             continue
         if name not in cache:
             cache[name] = _load(path)
-        a = max(0, int((start - XFADE / 2) * SR))
+        a = max(0, int((start - min(XFADE, fade_in) / 2) * SR))
         b = min(n, int((end + XFADE / 2) * SR))
         if b <= a:
             continue
         seg = _looped(cache[name], b - a) * level
-        f = int(XFADE * SR)
+        f, fi = int(XFADE * SR), max(1, int(fade_in * SR))
         env = np.ones(b - a, np.float32)
-        env[:f] = _ramp(min(f, b - a), 0, 1)[: len(env[:f])]
+        env[:fi] = _ramp(min(fi, b - a), 0, 1)[: len(env[:fi])]
         env[-f:] = np.minimum(env[-f:], _ramp(min(f, b - a), 1, 0)[-len(env[-f:]):])
         music[a:b] += seg * env[:, None]
         credit = attribution_for(path)
@@ -107,3 +109,43 @@ def mix(voice_wav, plan, total, out_wav):
     out[-tail:] *= _ramp(tail, 1, 0)[:, None]
     sf.write(out_wav, np.clip(out, -1, 1), SR)
     return credits
+
+
+def shutter(seed=0):
+    """A camera shutter, synthesized (no sound library, nothing to license):
+    the blade's sharp click, the mirror's thud 40 ms later, a short metallic
+    ring. Stereo float32 at SR."""
+    rnd = np.random.default_rng(seed)
+    n = int(0.16 * SR)
+    t = np.arange(n) / SR
+    out = np.zeros(n, np.float32)
+
+    def click(at, length, bright, gain):
+        a, m = int(at * SR), int(length * SR)
+        noise = rnd.standard_normal(m).astype(np.float32)
+        if bright:
+            noise = np.diff(noise, prepend=0)                  # crisp, high
+        env = np.exp(-np.arange(m) / (m / 5)).astype(np.float32)
+        out[a:a + m] += gain * noise * env
+
+    click(0.000, 0.012, True, 0.9)                             # the blades
+    click(0.040, 0.030, False, 0.6)                            # the mirror slaps back
+    thud = np.sin(2 * np.pi * 140 * t) * np.exp(-t / 0.018) * (t >= 0.040)
+    ring = np.sin(2 * np.pi * 3100 * t) * np.exp(-(t - 0.004).clip(0) / 0.03) * 0.08
+    out += (0.35 * thud + ring).astype(np.float32)
+    out /= max(1e-6, np.abs(out).max())
+    pan = 0.15 * rnd.uniform(-1, 1)
+    return np.stack([out * (1 - pan), out * (1 + pan)], axis=1) * 0.8
+
+
+def add_sfx(mix_wav, sfx, out_wav):
+    """Lays sound effects [(seconds, samples (n, 2))] over a mixed track."""
+    import soundfile as sf
+    data, sr = sf.read(mix_wav, dtype="float32", always_2d=True)
+    for at, s in sfx:
+        a = int(at * sr)
+        b = min(len(data), a + len(s))
+        if a < b:
+            data[a:b] += s[: b - a]
+    sf.write(out_wav, np.clip(data, -1, 1), sr)
+    return out_wav

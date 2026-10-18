@@ -115,7 +115,7 @@ ENHANCE = os.getenv("POLLINATIONS_ENHANCE", "0") == "1"
 # Identify the client. Anonymous requests from CI ranges are the first thing a
 # free service sheds when it is under load.
 GEN_HEADERS = {
-    "User-Agent": ("FailurePointBot/1.0 "
+    "User-Agent": ("PointOfFailureBot/1.0 "
                    "(https://github.com/BagiTheKing/failure-point-bot)"),
 }
 

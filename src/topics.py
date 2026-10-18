@@ -1,5 +1,5 @@
 """
-Curated topic pool for Failure Point: engineering and industrial disasters.
+Curated topic pool for The Point of Failure: engineering and industrial disasters.
 
 Why this exists: letting the LLM pick its own topic every day produces the same
 five famous disasters over and over, which makes the channel feel mass-produced.

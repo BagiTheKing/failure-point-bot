@@ -26,7 +26,7 @@ import subprocess
 from kits import common, timemap
 from kits.assemble import (DISSOLVE, find_frame, frames_of, render_3d_part, dramatization,
                            held, reel, to_mp4, xfade_join)
-from kits.coldopen import cold_open
+from kits import coldopen
 from kits.blueprint import FPS, render_clip
 from kits.blueprint import Frame
 import narration
@@ -440,22 +440,12 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
         add2d(name, reel(list(lead_clips) + pictures(name), seconds, caps.get(name, "")),
               seconds, trans, [(name, 0)])
 
-    # the cold open: a ~30 s montage under the hook lines and thriller music
-    hook = sheet.get("hook") or {}
-    takes = [voiced[k] for k in sorted((k for k in voiced if k.startswith("hook_")),
-                                       key=lambda k: int(k.split("_")[1]))]
+    # the cold open: a burst of press shots, the title, one picture per hook line
     hook_T = 0.0
-    if hook.get("lines") and takes:
-        lines, hook_T = hook_schedule(hook["lines"], takes)
-        f0, f1 = tm.frame(21.6), tm.frame(28.0)        # from the last still moment through the fall
-        fall3d = [p for p in (find_frame(raw3d, n) for n in range(f0, f1 + 1)) if p]
-        pics = (pictures("photo") + (photos.get("aftermath") and pictures("aftermath") or [])
-                + (photos.get("photos_disaster") and pictures("photos_disaster") or []))[:8]
-        items = ([{**c, "kind": "footage"} for c in clips] + pics
-                 + ([{"frames": fall3d, "kind": "3d"}] if fall3d else []))
-        add2d("hook", cold_open(sheet, items, [(a, b, txt) for a, b, txt in lines], hook_T,
-                                hook.get("title", ""), hook.get("sub", "")),
-              hook_T, "cut", [(f"hook_{i}", a - narration.PAD_IN) for i, (a, _, _) in enumerate(lines)])
+    intro = intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures)
+    if intro:
+        fn, hook_T, hook_shots = intro
+        add2d("hook", fn, hook_T, "cut", hook_shots)
 
     # part 1: real footage first (security cameras before anything), then photos;
     # a long opening shot borrows spare wreckage photos so no picture holds for long
@@ -515,6 +505,8 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
     part_starts = part_times(segs, starts)
     mixed = os.path.join(work, "mix.wav")
     music_credits = score.mix(wav, score_plan(part_starts, hook_T, total), total, mixed)
+    if hook_T:
+        score.add_sfx(mixed, [(t, score.shutter(k)) for k, t in enumerate(coldopen.shutter_times())], mixed)
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", mixed, "-map", "0:v", "-map", "1:a",
                     "-c:v", "copy", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-c:a", "aac",
                     "-b:a", "192k", "-ar", "48000", out_mp4], check=True)
@@ -545,6 +537,90 @@ def run_parallel(makes, workers=None):
             return pool.map(_run_job, range(len(makes)), chunksize=1)
     finally:
         _JOBS = []
+
+
+# --------------------------------------------------------------------------
+# The cold open
+# --------------------------------------------------------------------------
+
+def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures):
+    """(clip fn, length, [(take, offset)]) for the cold open, or None.
+    The burst takes four wreckage photos; the hook lines get, in turn: the
+    event's lead photo, real footage or else the 3D collapse, wreckage
+    photos, and for the last line the 3D close-up of the part that failed."""
+    hook = sheet.get("hook") or {}
+    takes = [voiced[k] for k in sorted((k for k in voiced if k.startswith("hook_")),
+                                       key=lambda k: int(k.split("_")[1]))]
+    if not (hook.get("lines") and takes):
+        return None
+    lines, T = hook_schedule(hook["lines"], takes, start=coldopen.TITLE_END - 0.6, shortest=20.0)
+    frames3d = lambda a, b: [p for p in (find_frame(raw3d, n) for n in range(tm.frame(a), tm.frame(b) + 1)) if p]
+    fall = frames3d(21.6, 28.0)
+    close = frames3d(15.4, 19.4)
+    wreck = (pictures("aftermath") if photos.get("aftermath") else []) + \
+            (pictures("photos_disaster") if photos.get("photos_disaster") else [])
+    lead = pictures("photo")
+    burst = (wreck + lead)[:coldopen.BURST]
+    while burst and len(burst) < coldopen.BURST:
+        burst.append(burst[len(burst) % max(1, len(burst))])
+    spare = [p for p in wreck if p not in burst] or wreck or lead
+    items = []
+    for i, (s, e, _) in enumerate(lines):
+        dur = (lines[i + 1][0] if i + 1 < len(lines) else T) - s
+        if i == 0:
+            items.append(lead[0] if lead else (spare[0] if spare else {"path": None}))
+        elif i == len(lines) - 1 and close:
+            items.append({"frames": close, "speed": max(0.5, len(close) / (30 * max(1.0, dur)))})
+        elif i == 1 and clips:
+            items.append({**clips[0], "offset": 0})
+        elif i == 1 and fall:
+            items.append({"frames": fall, "speed": max(1.0, len(fall) / (30 * max(1.0, dur)))})
+        else:
+            items.append(spare[(i - 2) % len(spare)] if spare else {"path": None})
+    cuts = coldopen.layout(burst, items, lines, T)
+    fn = coldopen.cold_open(cuts, lines, T, hook.get("title", ""), hook.get("sub", ""))
+    return fn, T, [(f"hook_{i}", a - narration.PAD_IN) for i, (a, _, _) in enumerate(lines)]
+
+
+def intro_sound(voice_wav, hook_T, total, out_wav, track=None):
+    """The cold open's sound: the hook lines, the intro track coming in with
+    the title, a shutter on each press shot of the burst."""
+    # the music comes in with the title, quickly (a 0.3 s fade, not a slow swell)
+    plan = [(coldopen.TITLE_AT, hook_T + 1.0, track or score.COLD_OPEN, score.OPEN_LEVEL, 0.3)]
+    credits = score.mix(voice_wav, plan, total, out_wav)
+    score.add_sfx(out_wav, [(t, score.shutter(k)) for k, t in enumerate(coldopen.shutter_times())], out_wav)
+    return credits
+
+
+def build_intro(sheet, raw3d, photos, voiced, out_mp4, work, footage=None, track=None):
+    """The cold open alone, with its sound and the watermark, for judging it
+    without cutting the whole episode (owner, 2026-10-18)."""
+    os.makedirs(work, exist_ok=True)
+    tm = timemap.of(sheet)
+    pictures = lambda name: [{"path": p["path"], "credit": _short_credit(p["credit"])}
+                             for p in (photos.get(name) or [])]
+    clips = [{"frames": frames_of(c["path"], os.path.join(work, f"footage_{i}"), cover=True),
+              "credit": _short_credit(c["credit"]).replace("Photo:", "Footage:"),
+              "tag": "SECURITY CAMERA FOOTAGE" if c.get("cctv") else "ARCHIVE FOOTAGE"}
+             for i, c in enumerate(footage or [])]
+    intro = intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures)
+    if not intro:
+        raise SystemExit("no cold open in this sheet")
+    fn, T, shots = intro
+    mp4 = os.path.join(work, "hook.mp4")
+    render_clip(fn, T, mp4)
+    from kits.brand import watermark
+    joined = os.path.join(work, "intro_video.mp4")
+    xfade_join([(mp4, int(round(T * FPS)), "cut")], joined, overlay=watermark(os.path.join(work, "wm.png")))
+    placed = [(off, voiced[c]["wav"]) for c, off in shots]
+    wav = narration.track(placed, T, os.path.join(work, "intro_voice.wav"))
+    mixed = os.path.join(work, "intro_mix.wav")
+    credits = intro_sound(wav, T, T, mixed, track)
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", mixed, "-map", "0:v", "-map", "1:a",
+                    "-c:v", "copy", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-c:a", "aac",
+                    "-b:a", "192k", "-ar", "48000", out_mp4], check=True)
+    print(f"{out_mp4}: {T:.1f} s")
+    return {"seconds": T, "music_credits": credits}
 
 
 # --------------------------------------------------------------------------
@@ -665,7 +741,7 @@ def score_plan(part_starts, hook_T, total):
     """The cold open's thriller track, then one quiet bed per part."""
     plan = []
     if hook_T:
-        plan.append((0.0, hook_T + 1.0, score.COLD_OPEN, score.OPEN_LEVEL))
+        plan.append((coldopen.TITLE_AT, hook_T + 1.0, score.COLD_OPEN, score.OPEN_LEVEL, 0.3))
     for i, (p, t) in enumerate(part_starts):
         end = part_starts[i + 1][1] if i + 1 < len(part_starts) else total
         start = max(t, hook_T + 1.0) if i == 0 and hook_T else t

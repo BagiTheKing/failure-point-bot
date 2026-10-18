@@ -38,7 +38,7 @@ from youtube_publisher import upload_video_to_youtube
 # Shorts on purpose — one knob controls both.
 MIN_PREFERRED_FRAMES = float(os.getenv("MIN_PREFERRED_FRAMES", "0.6"))
 
-CHANNEL_NAME = os.getenv("CHANNEL_NAME", "Failure Point")
+CHANNEL_NAME = os.getenv("CHANNEL_NAME", "The Point of Failure")
 
 # Same series as the Shorts, so the two formats read as one channel. It stays
 # out of the long-form TITLE on purpose: these videos are aimed at search, and

@@ -81,7 +81,7 @@ def _caption_text(chunk) -> str:
 
 
 ASS_HEADER = f"""[Script Info]
-Title: Failure Point Captions
+Title: The Point of Failure Captions
 ScriptType: v4.00+
 WrapStyle: 0
 ScaledBorderAndShadow: yes

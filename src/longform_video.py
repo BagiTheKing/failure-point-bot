@@ -144,7 +144,7 @@ FONTS_DIR = os.path.join(BASE_DIR, "fonts")
 MUSIC_DIR = os.path.join(BASE_DIR, "music")
 
 ASS_HEADER = f"""[Script Info]
-Title: Failure Point Long Form
+Title: The Point of Failure Long Form
 ScriptType: v4.00+
 WrapStyle: 0
 ScaledBorderAndShadow: yes

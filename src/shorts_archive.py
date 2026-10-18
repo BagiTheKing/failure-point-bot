@@ -98,7 +98,7 @@ def add_archive_frames(script_data: dict, build_dir: str = "build") -> int:
 # ---------------------------------------------------------------------------
 # Real pictures first (owner, 2026-10-17): "AI images should be used if and
 # only if there is no real image for the scene, even if no AI image is used
-# for the video". The first Failure Point Short was all AI with two real
+# for the video". The first Point of Failure Short was all AI with two real
 # frames in its first scene. Every scene now takes real pictures before
 # anything is generated: its own archive_query first, then the story's pool
 # (the Wikipedia article's own pictures and a Commons search on the event's

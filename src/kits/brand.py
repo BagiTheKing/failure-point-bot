@@ -1,6 +1,6 @@
 """
 The channel's watermark (owner, 2026-10-18: "we need a watermark so our work
-won't be stolen"): a small crack mark and FAILURE POINT, white at partial
+won't be stolen"): a small crack mark and THE POINT OF FAILURE, white at partial
 opacity, in the top-right corner of every frame of the episode. Burned into
 the picture, so a re-upload carries it.
 """
@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw
 
 from kits.blueprint import RED, font
 
-NAME = "FAILURE POINT"
+NAME = "THE POINT OF FAILURE"
 OPACITY = 0.62
 
 

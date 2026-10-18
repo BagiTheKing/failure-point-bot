@@ -1,6 +1,6 @@
 # failure-point-bot
 
-The automated pipeline behind **Failure Point**, a YouTube channel about
+The automated pipeline behind **The Point of Failure**, a YouTube channel about
 engineering and industrial disasters: the structure, machine or plant that
 failed, the exact part that broke, the warning that was missed, and what it
 cost.
@@ -53,7 +53,7 @@ workflow can also be started by hand from the Actions tab.
 
 ### 1. YouTube channel and Google Cloud project
 
-1. Create the Failure Point channel (a Brand Account under your Google
+1. Create The Point of Failure channel (a Brand Account under your Google
    account is fine).
 2. In Google Cloud Console, create a **new project** for this channel. It gets
    its own 10,000 units/day YouTube quota.
@@ -72,7 +72,7 @@ pip install google-auth-oauthlib
 python tools/get_youtube_refresh_token.py path/to/client_secret.json
 ```
 
-When the browser asks which account or channel, **pick Failure Point**, not
+When the browser asks which account or channel, **pick The Point of Failure**, not
 your other channel. Keep the printed token private.
 
 ### 3. Repository secrets

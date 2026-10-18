@@ -15,7 +15,7 @@ approved from previews on 2026-09-30:
 
 - object:  the failed thing itself (the archival photo of the bridge, dam,
   ship or plant) full frame, the number and the object huge in the top
-  left, what it did in a red box under it. Added for Failure Point: the
+  left, what it did in a red box under it. Added for The Point of Failure: the
   breakout channels in this niche all lead with the object and a number;
 - faceoff: two cast members from opposite sides, cut out (the cast cards'
   cut-out, grey, white outline, red glow) on a dark red duotone archival

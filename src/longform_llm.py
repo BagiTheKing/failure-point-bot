@@ -373,7 +373,7 @@ _RESTRAINED_TITLE_ADDENDUM = "" if CLICKBAIT_MODE else (
     "'the untold story', 'what really happened', 'the forgotten ...', "
     "'the secret ...', 'the truth about', 'shocking', 'insane'.\n")
 
-SYSTEM_PROMPT = f"""You write documentary narration for Failure Point, a YouTube \
+SYSTEM_PROMPT = f"""You write documentary narration for The Point of Failure, a YouTube \
 channel about engineering and industrial disasters: the structure, machine or plant \
 that failed, the exact part that broke, the warning that was missed, and what it cost.
 

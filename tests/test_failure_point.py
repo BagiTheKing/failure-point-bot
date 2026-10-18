@@ -1,5 +1,5 @@
 """
-Failure Point's own pieces: the engineering topic pool, the news lane and its
+The Point of Failure's own pieces: the engineering topic pool, the news lane and its
 anniversary fallback. Offline, no keys.
 
     python -m unittest discover tests

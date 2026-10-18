@@ -1,5 +1,5 @@
 """
-Failure Point's five recurring episode types.
+The Point of Failure's five recurring episode types.
 
 Every episode is the same promise: a real machine, structure or plant failed,
 here is the exact thing that broke, and here is what it cost. The formats split

@@ -42,7 +42,7 @@ LOC_API = "https://www.loc.gov/photos/"
 # "429 ... does not comply with our robot policy". This UA identifies the bot
 # and points at the repository, which is what the policy asks for.
 HEADERS = {
-    "User-Agent": ("FailurePointBot/1.0 "
+    "User-Agent": ("PointOfFailureBot/1.0 "
                    "(https://github.com/BagiTheKing/failure-point-bot; "
                    "automated documentary pipeline)"),
     "Accept": "image/jpeg,image/png,image/*;q=0.8",

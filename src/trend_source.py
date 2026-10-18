@@ -23,7 +23,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 
 TIMEOUT = 25
-UA = "Mozilla/5.0 (compatible; FailurePointBot/1.0)"
+UA = "Mozilla/5.0 (compatible; PointOfFailureBot/1.0)"
 
 TRENDS_URL = "https://trends.google.com/trending/rss?geo={geo}"
 NEWS_URL = ("https://news.google.com/rss/headlines/section/topic/{topic}"

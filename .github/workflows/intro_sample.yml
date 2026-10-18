@@ -1,0 +1,109 @@
+name: Intro sample
+
+# Manual. The cold open alone, once per candidate intro track, from an
+# episode already voiced and rendered (Episode sample run), for tuning the
+# intro quickly. Results go to preview-media intros/<name>/.
+on:
+  workflow_dispatch:
+    inputs:
+      prep_run:
+        description: "Episode sample run whose prep (voice, photos, sheet) to use"
+        default: "39155145529"
+      frames_run:
+        description: "Episode sample run that rendered the 3D frames (2-day retention)"
+        default: "39138433925"
+      name:
+        default: "i35w"
+      hook:
+        description: "Cold-open lines, split by | (blank = as in the prep)"
+        default: ""
+      title:
+        default: ""
+      kevin:
+        description: "Kevin MacLeod tracks to fetch and audition, comma-separated titles"
+        default: "Mechanolith,Volatile Reaction,Impact Prelude,Lightless Dawn,Gathering Darkness"
+      tracks:
+        description: "Tracks already in music/ to audition too, comma-separated file names"
+        default: "Faultlines - Asher Fulero.mp3"
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  intro:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
+      - name: Cache Kokoro model files
+        uses: actions/cache@v4
+        with:
+          path: models
+          key: kokoro-v1.0-model-files
+      - name: Fetch Kokoro model files (cache miss only)
+        run: |
+          mkdir -p models
+          [ -f models/kokoro-v1.0.onnx ] || curl -sSL -o models/kokoro-v1.0.onnx "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
+          [ -f models/voices-v1.0.bin ] || curl -sSL -o models/voices-v1.0.bin "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: prep
+          path: prep
+          run-id: ${{ inputs.prep_run }}
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: frames3d-*
+          path: raw
+          merge-multiple: true
+          run-id: ${{ inputs.frames_run }}
+          github-token: ${{ github.token }}
+      - name: Fetch the candidate tracks
+        env:
+          KEVIN: ${{ inputs.kevin }}
+        run: |
+          IFS=',' read -ra T <<< "$KEVIN"
+          python tools/fetch_music.py "${T[@]}"
+          python tools/fetch_music.py --list Dark | head -60
+      - name: Render the intro once per track
+        env:
+          KOKORO_VOICE: am_echo
+          HOOK: ${{ inputs.hook }}
+          TITLE: ${{ inputs.title }}
+          KEVIN: ${{ inputs.kevin }}
+          TRACKS: ${{ inputs.tracks }}
+        run: |
+          LIST="$TRACKS"
+          IFS=',' read -ra K <<< "$KEVIN"
+          for k in "${K[@]}"; do
+            f="$(echo "$k" | sed 's/^ *//;s/ *$//') - Kevin MacLeod.mp3"
+            [ -f "music/$f" ] && LIST="$LIST,$f"
+          done
+          python tools/intro_sample.py prep raw out --hook "$HOOK" --title "$TITLE" --tracks "$LIST"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: intros-${{ inputs.name }}
+          path: |
+            out/*.mp4
+            out/intros.json
+          retention-days: 14
+      - name: Push to preview-media
+        run: |
+          mkdir -p pm && cd pm
+          git init -q -b preview-media
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch -q origin preview-media && git checkout -q -B preview-media origin/preview-media || true
+          rm -rf intros/${{ inputs.name }} && mkdir -p intros/${{ inputs.name }}
+          cp ../out/*.mp4 ../out/intros.json intros/${{ inputs.name }}/
+          git add -A
+          git commit -q -m "Intro sample: ${{ inputs.name }} (run ${{ github.run_number }})"
+          git push -q origin preview-media

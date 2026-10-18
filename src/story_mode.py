@@ -49,7 +49,7 @@ _DROP_SECTIONS = ("See also", "References", "Notes", "Further reading",
                   "External links", "Bibliography", "Sources", "Citations",
                   "Footnotes")
 
-STORY_SYSTEM_PROMPT = """You write documentary narration for Failure Point, a \
+STORY_SYSTEM_PROMPT = """You write documentary narration for The Point of Failure, a \
 YouTube channel about engineering and industrial disasters: what failed, why, and \
 what it cost. You are telling a TRUE STORY to someone who has never heard of it, \
 and your job is to make them unable to stop watching.

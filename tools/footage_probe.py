@@ -11,7 +11,7 @@ import sys
 
 import requests
 
-UA = {"User-Agent": "FailurePointBot/1.0 (https://github.com/BagiTheKing/failure-point-bot)"}
+UA = {"User-Agent": "PointOfFailureBot/1.0 (https://github.com/BagiTheKing/failure-point-bot)"}
 COMMONS = "https://commons.wikimedia.org/w/api.php"
 
 

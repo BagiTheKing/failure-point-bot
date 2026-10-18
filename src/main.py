@@ -56,7 +56,7 @@ def sanitize_title(title: str, series: str = "") -> str:
 
 
 # Single source of truth for the channel's name in every description.
-CHANNEL_NAME = os.getenv("CHANNEL_NAME", "Failure Point")
+CHANNEL_NAME = os.getenv("CHANNEL_NAME", "The Point of Failure")
 
 # Stated in the description so the promise matches what the schedule delivers.
 UPLOAD_CADENCE = os.getenv("UPLOAD_CADENCE", "every week")
