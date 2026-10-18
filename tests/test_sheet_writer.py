@@ -37,6 +37,9 @@ def reply():
                      {"date": "17 JUL 1981", "title": "Walkways fall", "sub": "", "kind": "failure"}],
         "today": {"title": "COULD IT HAPPEN TODAY?", "lines": ["a", "b", "c"]},
         "ai_prompt": "The upper walkway drops flat. Static camera.",
+        "hook": {"title": "THE HYATT REGENCY COLLAPSE",
+                 "lines": ["Kansas City, 17 July 1981, 7:05 pm.", "Two walkways fall into a crowded atrium.",
+                           "114 people are killed.", "The cause was one changed rod."]},
         "photo_article": "Hyatt Regency walkway collapse",
         "shots": {clip: {"caption": "A short line.", "narration": words(w)}
                   for _, _, clip, w in SW.SHOTS},
@@ -83,6 +86,16 @@ class SheetWriterTest(unittest.TestCase):
         problems = SW.check(r, "hanging_walkways", SOURCE)
         self.assertTrue(any("timeline[0].sub" in p for p in problems))
         self.assertTrue(any("multiplier_label" in p for p in problems))
+
+    def test_hook_is_checked(self):
+        r = reply()
+        r["hook"]["lines"] = ["Only one line."]
+        self.assertTrue(any("hook" in p for p in SW.check(r, "hanging_walkways", SOURCE)))
+        r = reply()
+        r["hook"]["lines"][2] = "140 people are killed."
+        self.assertTrue(any("140" in p for p in SW.check(r, "hanging_walkways", SOURCE)))
+        self.assertEqual(SW.assemble(reply(), "hanging_walkways")["hook"]["sub"],
+                         "KANSAS CITY · 17 JULY 1981")
 
     def test_kit_parameters_are_checked(self):
         r = reply()

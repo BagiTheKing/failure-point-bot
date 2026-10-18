@@ -11,6 +11,8 @@ Blocks every kit shares, filled from the animation sheet:
                 parts' screen positions recorded at render time
 """
 
+import re
+
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
 
 from kits.blueprint import (W, H, SS, BG, LINE, DIM, RED, AMBER, CYAN, GRID_MAJOR,
@@ -75,7 +77,10 @@ def _shade():
     return _shade_cache[0]
 
 
-def photo(sheet, path, tint_out=True):
+def photo(sheet, path, tint_out=True, toll_at=None):
+    """The opening shot over real pictures. The place and date are typed in
+    under a line drawn across (no box popping in); the death toll is not
+    shown here unless toll_at says when the narrator speaks it."""
     d = sheet["disaster"]
     nums = sheet.get("numbers", [])
 
@@ -91,19 +96,63 @@ def photo(sheet, path, tint_out=True):
         f = Frame()
         f.img, f.d = img, ImageDraw.Draw(img, "RGBA")
         out = 1 - prog(t, T - 1.1, T - 0.5) if tint_out else 1
-        a = prog(t, 0.8, 1.6) * out
-        f.d.rectangle([60 * SS, 520 * SS, 66 * SS, 600 * SS], fill=RED + (int(255 * a),))
-        f.text(d["place_date"], 82, 540, 22, LINE, "Inter-Bold.otf", screen=True, alpha=a)
-        f.text(d.get("place", ""), 82, 570, 20, DIM, "Inter-Medium.otf", screen=True, alpha=a)
-        if nums:
-            b = prog(t, 2.6, 3.4) * out
-            f.text(nums[0]["value"], 1180, 470, 110, RED, "InterDisplay-Black.otf", anchor="rs",
-                   screen=True, alpha=b)
-            f.text(nums[0]["label"], 1180, 505, 26, LINE, "Inter-Bold.otf", anchor="rs",
-                   screen=True, alpha=b)
-        f.caption(d.get("caption", ""), prog(t, 0.3, 1.0) * out)
+        dateline(f, d["place_date"], d.get("place", ""), t, 0.6, out)
+        if nums and toll_at is not None:
+            toll(f, nums[0]["value"], nums[0]["label"], t - toll_at)
+        f.caption(d.get("caption", ""), prog(t, 0.3, 1.0) * out * (1 - prog(t, 6.0, 6.6)))
         return f.done()
     return clip
+
+
+def dateline(f, line1, line2, t, t0=0.6, out=1.0, x=60, y=540):
+    """A thin line drawn left to right, the place and date typed in above
+    it, the place's name fading in under it."""
+    a = out
+    w = 360 * ease(prog(t, t0, t0 + 0.6))
+    if w > 1:
+        f.d.line([(x * SS, (y + 31) * SS), ((x + w) * SS, (y + 31) * SS)],
+                 fill=RED + (int(220 * a),), width=2 * SS)
+    n = int(len(line1) * prog(t, t0 + 0.3, t0 + 1.3))
+    f.text(line1[:n], x, y, 22, LINE, "Inter-Bold.otf", screen=True, alpha=a)
+    f.text(line2, x, y + 40, 20, DIM, "Inter-Medium.otf", screen=True, alpha=prog(t, t0 + 1.2, t0 + 1.8) * a)
+
+
+def toll(f, value, label, since, hold=5.5, x=1180, y=470):
+    """The death toll rolling up from zero (00 -> 13), each digit sliding in
+    like a counter, when the narrator says it; held, then faded. since:
+    seconds since the word was spoken (negative before)."""
+    if since < -0.2 or since > hold + 0.6:
+        return
+    digits = re.sub(r"[^0-9]", "", str(value))
+    a = prog(since, -0.2, 0.15) * (1 - prog(since, hold, hold + 0.6))
+    size = 110
+    fnt = font("InterDisplay-Black.otf", size)
+    if not digits:
+        f.text(str(value), x, y, size, RED, "InterDisplay-Black.otf", anchor="rs", screen=True, alpha=a)
+    else:
+        N = int(digits)
+        width = max(2, len(digits))
+        v = N * ease(min(1.0, max(0.0, since) / 1.6))
+        cw = fnt.getlength("0") / SS
+        layer = Image.new("RGBA", f.img.size, (0, 0, 0, 0))
+        d = ImageDraw.Draw(layer)
+        for k in range(width):                       # k = 0 is the units column
+            col_x = x - (k + 0.5) * cw
+            place = 10 ** k
+            cur = (v / place)
+            digit, frac = int(cur) % 10, (cur % 1.0) if k == 0 and v < N else 0.0
+            for dd, dy in ((digit, -frac), ((digit + 1) % 10, 1 - frac)):
+                if dy >= 1 or (dy > 0 and frac == 0):
+                    continue
+                d.text((col_x * SS, (y + dy * size * 0.9) * SS), str(dd), font=fnt,
+                       fill=RED + (int(255 * a),), anchor="ms")
+        # the counter's window: digits slide in and out of a clipped band
+        mask = Image.new("L", f.img.size, 0)
+        ImageDraw.Draw(mask).rectangle([(x - width * cw - 10) * SS, (y - size * 0.82) * SS,
+                                        (x + 10) * SS, (y + 12) * SS], fill=255)
+        f.img.paste(layer, (0, 0), Image.composite(layer, Image.new("RGBA", layer.size), mask))
+    la = prog(since, 0.8, 1.4) * a
+    f.text(label, x, y + 35, 26, LINE, "Inter-Bold.otf", anchor="rs", screen=True, alpha=la)
 
 
 def clock(sheet):
@@ -124,24 +173,39 @@ def clock(sheet):
     return clip
 
 
-def timeline(sheet):
+def timeline(sheet, reveal=None):
+    """reveal: the second each event appears (when the narrator says its
+    date); None spreads them evenly over the shot."""
     events = sheet["timeline"]
     cap = next((s.get("caption", "") for s in sheet.get("shots", []) if s.get("clip") == "timeline"), "")
     n = len(events)
+    spots = [0.08 + 0.86 * i / max(1, n - 1) for i in range(n)]
+
+    def progress(t, T):
+        if not reveal:
+            return prog(t, 0.3, T - 1.6)
+        # the line runs from dot to dot, arriving at each as its date is said
+        knots = [(0.0, 0.0)] + [(max(0.0, r - 0.5), spots[i]) for i, r in enumerate(reveal)]
+        knots.sort()
+        for (ta, pa), (tb, pb) in zip(knots, knots[1:]):
+            if t < tb:
+                return pa + (pb - pa) * ease(max(0.0, (t - ta) / max(1e-3, tb - ta))) if t > ta else pa
+        last_t, last_p = knots[-1]
+        return last_p + (1.0 - last_p) * prog(t, last_t + 0.5, last_t + 2.0)
 
     def clip(t, T):
         f = Frame()
         f.grid(0.6)
         x0, x1, y = 120, 1160, 360
-        p = prog(t, 0.3, T - 1.6)
+        p = progress(t, T)
         f.poly([(x0, y), (x1, y)], GRID_MAJOR, 6)
         f.poly([(x0, y), (x1, y)], CYAN, 6, p)
         # neighbours on the same side of the line sit two steps apart
         room = min(360, 2 * 0.86 * (x1 - x0) / max(1, n - 1) - 24)
         for i, e in enumerate(events):
-            pos = 0.08 + 0.86 * i / max(1, n - 1)
+            pos = spots[i]
             x = lerp(x0, x1, pos)
-            on = p >= pos
+            on = p >= pos - 1e-6
             kind = e.get("kind", "event")
             col = ({"warning": AMBER, "failure": RED}.get(kind, CYAN)) if on else GRID_MAJOR
             a, b = f.P(x - 9, y - 9), f.P(x + 9, y + 9)

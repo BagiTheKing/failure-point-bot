@@ -26,8 +26,11 @@ import subprocess
 from kits import common, timemap
 from kits.assemble import (DISSOLVE, find_frame, frames_of, render_3d_part, dramatization,
                            held, reel, to_mp4, xfade_join)
+from kits.coldopen import cold_open
 from kits.blueprint import FPS, render_clip
+from kits.blueprint import Frame
 import narration
+import score
 
 AI_BLEND = 0.27             # the 3D wide shot runs on into the AI clip
 ARCHIVE = ("photo", "photos_disaster", "aftermath", "investigation", "today_photos")
@@ -89,6 +92,38 @@ def prepare(sheet, out_dir, voice=None, ai=False):
     return sheet, voiced
 
 
+def record_hook(sheet, out_dir, voice=None):
+    """Voices the cold open's hook lines, one take each (hook_0, hook_1...),
+    so the montage can breathe between them."""
+    lines = (sheet.get("hook") or {}).get("lines") or []
+    fake = {"shots": [{"clip": f"hook_{i}", "narration": line} for i, line in enumerate(lines)]}
+    return narration.record(fake, os.path.join(out_dir, "voice"), voice)
+
+
+def write_hook(sheet, pool, call):
+    """The writer's cold open for an existing sheet: a title and 3 to 5
+    short lines that make a viewer stay, every figure taken from the
+    sheet's own narration. None if it cannot be had."""
+    from sheet_writer import hook_problems
+    source = "\n".join(sh.get("narration", "") for sh in sheet["shots"])
+    system = ("You write the cold open of a documentary about an engineering disaster: the "
+              "first lines a viewer hears over fast footage and tense music. Plain, factual, "
+              "gripping, present tense, no hype words, no questions to the viewer. JSON only.")
+    user = (f"Story: {sheet['disaster'].get('place', '')} ({sheet['disaster'].get('place_date', '')})\n\n"
+            f"FACTS (the only ones you may use, figures written the same way):\n{source}\n\n"
+            "Write {\"title\": \"THE ... COLLAPSE (under 32 characters, capitals)\", "
+            "\"lines\": [3 to 5 lines, each under 90 characters, 60 words in all at most]}. "
+            "Open on the moment (date, time, place), then what happened in one hard image, "
+            "the toll, and close on the question the episode answers: a hidden cause, "
+            "stated as a fact, not a question.")
+    for _ in range(2):
+        reply = call(pool, system, user, max_tokens=800, expect={"title": str, "lines": list})
+        if isinstance(reply, dict) and not hook_problems(reply, source):
+            return {"title": reply["title"].strip().upper(), "lines": [str(x).strip() for x in reply["lines"]],
+                    "sub": sheet["disaster"].get("place_date", "").split("·")[0].strip()}
+    return None
+
+
 # --------------------------------------------------------------------------
 # 2. Real photos for the archive shots
 # --------------------------------------------------------------------------
@@ -141,7 +176,7 @@ def assign(sheet, cands):
     return shots
 
 
-def gather_photos(sheet, out_dir, limit=16):
+def gather_photos(sheet, out_dir, limit=16, pool=None, call=None):
     """Downloads free photos from the event's Wikipedia article (Commons),
     falling back to a Commons / Library of Congress search. Writes
     out_dir/photos.json: {shot: [{"path", "credit"}]}."""
@@ -163,20 +198,117 @@ def gather_photos(sheet, out_dir, limit=16):
         if len(got) >= limit or c.get("url") in seen:
             continue
         seen.add(c.get("url"))
+        if other_structure(c.get("title", ""), title):
+            print(f"  another structure, dropped: {c.get('title')}")
+            continue
         path = os.path.join(out_dir, "photos", f"{len(got):02d}.jpg")
         if download_archival_image(c, path, 2560, 1440):
             got.append({**c, "path": path, "credit": format_credit(c)})
     print(f"{len(got)} photo(s) for {title!r}")
+    picked = None
+    if pool is not None and call is not None and got:
+        try:
+            picked = pick_photos(sheet, got, pool, call)
+        except Exception as e:
+            print(f"  photo picking by the writer failed ({type(e).__name__}: {e}): by title")
+    picked = picked or assign(sheet, got)
     shots = {k: [{"path": c["path"], "credit": c["credit"], "title": c.get("title", "")} for c in v]
-             for k, v in assign(sheet, got).items()}
+             for k, v in picked.items()}
     json.dump(shots, open(os.path.join(out_dir, "photos.json"), "w"), indent=1, ensure_ascii=False)
     return shots
+
+
+def other_structure(photo_title, story_title):
+    """True when a photo is named after a different road or structure than
+    the story's: the I-35W article carries a picture of the I-40 bridge
+    disaster, which ended up in the first episode."""
+    ids = lambda s: set(re.findall(r"\b(?:i|interstate|us|sr|route|highway)[- ]?(\d+)", s.lower()))
+    mine, theirs = ids(story_title), ids(photo_title)
+    return bool(theirs and mine and not (theirs & mine))
+
+
+def pick_photos(sheet, got, pool, call):
+    """The writer matches photos to the archive shots by what each photo
+    shows (its title and description) against what each shot says, and
+    turns away photos that fit none. A shot no photo fits gets none: our
+    own 3D stills stand in, rather than a crowd under "investigators"."""
+    shots = {sh["clip"]: sh for sh in sheet["shots"]}
+    brief = {k: {"caption": shots.get(k, {}).get("caption", ""),
+                 "narration": (shots.get(k, {}).get("narration", "") or "")[:400]} for k in ARCHIVE}
+    items = [{"id": i, "title": c.get("title", ""), "about": (c.get("about") or "")[:300],
+              "year": c.get("year"),
+              "shape": "portrait" if (c.get("height") or 0) > (c.get("width") or 1) else "landscape"}
+             for i, c in enumerate(got)]
+    system = ("You pick archive photographs for a documentary about an engineering disaster. "
+              "Match each photo to the shot whose words it actually shows. A photo of a "
+              "different place or event, or one that fits no shot, is rejected. Prefer "
+              "landscape photos. Reply with JSON only.")
+    user = (f"Story: {sheet['disaster'].get('place', '')}, {sheet['disaster'].get('place_date', '')}\n\n"
+            f"SHOTS:\n{json.dumps(brief, indent=1, ensure_ascii=False)}\n\n"
+            f"PHOTOS:\n{json.dumps(items, indent=1, ensure_ascii=False)}\n\n"
+            "Reply as {\"photo\": [ids], \"photos_disaster\": [ids], \"aftermath\": [ids], "
+            "\"investigation\": [ids], \"today_photos\": [ids], \"reject\": [ids]}: best first, "
+            "each photo in one list at most; \"photo\" is the single strongest image of the "
+            "event; \"today_photos\" only what the place looks like after (a replacement, a "
+            "memorial).")
+    reply = call(pool, system, user, max_tokens=1500,
+                 expect={k: list for k in (*ARCHIVE, "reject")})
+    if not isinstance(reply, dict):
+        return None
+    used, out = set(), {}
+    for k in ARCHIVE:
+        out[k] = []
+        for i in reply.get(k) or []:
+            try:
+                i = int(i)
+            except (TypeError, ValueError):
+                continue
+            if 0 <= i < len(got) and i not in used:
+                used.add(i)
+                out[k].append(got[i])
+    if not out["photo"]:
+        return None
+    print("  photos picked by the writer: " + ", ".join(f"{k} {len(v)}" for k, v in out.items())
+          + f", rejected {len(got) - len(used)}")
+    return out
 
 
 CCTV = r"cctv|surveillance|security cam|camera footage|dash ?cam|webcam|traffic cam|caught on"
 
 
-def gather_footage(sheet, out_dir, limit=3, longest=24.0):
+def owner_footage(folder, out_dir, longest=24.0):
+    """Footage the owner chose and put in footage/<episode>/ (any .mp4/.webm/
+    .mov), each with an optional same-name .txt holding its credit line. Used
+    first, ahead of anything searched for. The owner answers for its rights
+    (a US government camera, like the Corps of Engineers' at I-35W, is public
+    domain)."""
+    from archive_engine import _clip_seconds
+    out = []
+    if not folder or not os.path.isdir(folder):
+        return out
+    for f in sorted(os.listdir(folder)):
+        if not f.lower().endswith((".mp4", ".webm", ".mov", ".mkv")):
+            continue
+        src = os.path.join(folder, f)
+        txt = os.path.splitext(src)[0] + ".txt"
+        credit = open(txt).read().strip() if os.path.exists(txt) else ""
+        # silent, at most `longest` seconds: the cold open cuts it into pieces
+        path = os.path.join(out_dir, "footage", f"owner_{len(out):02d}.mp4")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        r = subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", src, "-t", str(longest), "-an",
+                            "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
+                            path], capture_output=True, text=True)
+        if r.returncode != 0:
+            print(f"  owner footage unreadable: {f}: {r.stderr.strip()[-160:]}")
+            continue
+        secs = _clip_seconds(path)
+        out.append({"path": path, "seconds": round(secs, 2), "credit": credit,
+                    "cctv": bool(re.search(CCTV, (f + " " + credit).lower())), "title": f, "owner": True})
+        print(f"  owner footage: {f} ({secs:.0f} s)")
+    return out
+
+
+def gather_footage(sheet, out_dir, limit=3, longest=24.0, owner_dir=None):
     """Real moving footage of the event for part 1, security-camera (CCTV)
     footage first (owner, 2026-10-18), from Wikimedia Commons only, so it is
     free to reuse. Writes out_dir/footage.json: [{"path", "seconds",
@@ -202,7 +334,7 @@ def gather_footage(sheet, out_dir, limit=3, longest=24.0):
             cands.append(c)
     cands.sort(key=lambda c: not c["cctv"])             # security cameras first, stably
     os.makedirs(os.path.join(out_dir, "footage"), exist_ok=True)
-    got = []
+    got = owner_footage(owner_dir, out_dir, longest)
     for c in cands:
         if len(got) >= limit:
             break
@@ -217,6 +349,7 @@ def gather_footage(sheet, out_dir, limit=3, longest=24.0):
         got.append({"path": path, "seconds": round(_clip_seconds(path), 2),
                     "credit": format_credit(c), "cctv": c["cctv"], "title": c["title"]})
         print(f"  footage: {c['title']} ({got[-1]['seconds']:.0f} s{', CCTV' if c['cctv'] else ''})")
+    got.sort(key=lambda c: (not c.get("owner"), not c["cctv"]))
     print(f"{len(got)} footage clip(s) for {name!r}")
     json.dump(got, open(os.path.join(out_dir, "footage.json"), "w"), indent=1, ensure_ascii=False)
     return got
@@ -248,13 +381,19 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
         if p.startswith("anchors_"):
             anchors.update(json.load(open(os.path.join(raw3d, p))))
     caps = {sh["clip"]: sh.get("caption", "") for sh in sheet["shots"]}
+    texts = {sh["clip"]: sh.get("narration", "") for sh in sheet["shots"]}
     frames = lambda s: int(round(s * FPS))
+    # when each word is spoken, so pictures can land on the words that name them
+    words = {c: narration.words_of(texts[c], v["wav"]) for c, v in voiced.items() if texts.get(c)}
+    toll_shot, toll_t = toll_moment(sheet, words)
     # each shot is queued as a job, then all of them render side by side on
     # every core the runner has: [(make() -> (mp4, frames), transition, shots)]
     jobs = []
 
     def add2d(name, fn, seconds, trans, shots):
         mp4 = os.path.join(work, f"{name}.mp4")
+        if toll_shot and toll_shot != "photo" and toll_shot in [c for c, _ in shots]:
+            fn = with_toll(fn, sheet, toll_t + dict(shots)[toll_shot])
 
         def make():
             render_clip(fn, seconds, mp4)
@@ -296,9 +435,27 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
         add2d(name, reel(list(lead_clips) + pictures(name), seconds, caps.get(name, "")),
               seconds, trans, [(name, 0)])
 
+    # the cold open: a ~30 s montage under the hook lines and thriller music
+    hook = sheet.get("hook") or {}
+    takes = [voiced[k] for k in sorted((k for k in voiced if k.startswith("hook_")),
+                                       key=lambda k: int(k.split("_")[1]))]
+    hook_T = 0.0
+    if hook.get("lines") and takes:
+        lines, hook_T = hook_schedule(hook["lines"], takes)
+        f0, f1 = tm.frame(20.0), tm.frame(28.0)
+        fall3d = [p for p in (find_frame(raw3d, n) for n in range(f0, f1 + 1)) if p]
+        pics = (pictures("photo") + (photos.get("aftermath") and pictures("aftermath") or [])
+                + (photos.get("photos_disaster") and pictures("photos_disaster") or []))[:8]
+        items = ([{**c, "kind": "footage"} for c in clips] + pics
+                 + ([{"frames": fall3d, "kind": "3d"}] if fall3d else []))
+        add2d("hook", cold_open(sheet, items, [(a, b, txt) for a, b, txt in lines], hook_T,
+                                hook.get("title", ""), hook.get("sub", "")),
+              hook_T, "cut", [(f"hook_{i}", a - narration.PAD_IN) for i, (a, _, _) in enumerate(lines)])
+
     # part 1: real footage first (security cameras before anything), then photos
     seconds = slots["photo"] + d
-    add2d("photo", common.photo(sheet, reel(clips[:1] + pictures("photo"), seconds), tint_out=False),
+    add2d("photo", common.photo(sheet, reel(clips[:1] + pictures("photo"), seconds), tint_out=False,
+                                toll_at=(narration.PAD_IN + toll_t) if toll_shot == "photo" else None),
           seconds, "dissolve", [("photo", 0)])
     archive("photos_disaster", "dissolve", clips[1:])
     e1 = tm.real(7.0)
@@ -326,7 +483,8 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
               [("fall", 0), ("dramatization", tm.real(22.0) - tm.real(20.0))],
               fill_to=frames(slots["fall"] + slots["dramatization"] + d))
     archive("aftermath", "dissolve")
-    add2d("timeline", common.timeline(sheet), slots["timeline"] + d, "dissolve", [("timeline", 0)])
+    add2d("timeline", common.timeline(sheet, timeline_reveal(sheet, words.get("timeline"))),
+          slots["timeline"] + d, "dissolve", [("timeline", 0)])
     archive("investigation", "dissolve")
     add2d("compare", kit.compare, D["compare"], "dissolve", [("compare", 0)])
     archive("today_photos", "dissolve")
@@ -335,17 +493,23 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
     made = run_parallel([make for make, _, _ in jobs])
     segs = [(mp4, n, trans, shots) for (mp4, n), (_, trans, shots) in zip(made, jobs)]
     joined = os.path.join(work, "reel.mp4")
-    starts = xfade_join([(m, n, tr) for m, n, tr, _ in segs], joined)
+    from kits.brand import watermark
+    starts = xfade_join([(m, n, tr) for m, n, tr, _ in segs], joined,
+                        overlay=watermark(os.path.join(work, "watermark.png")))
     total = (starts[-1] + segs[-1][1]) / FPS
     placed = [(starts[i] / FPS + off, voiced[clip]["wav"])
               for i, (_, _, _, shots) in enumerate(segs) for clip, off in shots if clip in voiced]
     wav = narration.track(placed, total, os.path.join(work, "voice.wav"))
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", wav, "-map", "0:v", "-map", "1:a",
+    part_starts = part_times(segs, starts)
+    mixed = os.path.join(work, "mix.wav")
+    music_credits = score.mix(wav, score_plan(part_starts, hook_T, total), total, mixed)
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", mixed, "-map", "0:v", "-map", "1:a",
                     "-c:v", "copy", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-c:a", "aac",
                     "-b:a", "192k", "-ar", "48000", out_mp4], check=True)
-    chapters = chapters_of(sheet, segs, starts)
+    chapters = [f"{int(t) // 60}:{int(t) % 60:02d} {PARTS[p]}" if i else f"0:00 {PARTS[p]}"
+                for i, (p, t) in enumerate(part_starts)]
     print(f"{out_mp4}: {total / 60:.1f} min")
-    return {"seconds": total, "chapters": chapters}
+    return {"seconds": total, "chapters": chapters, "music_credits": music_credits}
 
 
 _JOBS = []
@@ -369,6 +533,133 @@ def run_parallel(makes, workers=None):
             return pool.map(_run_job, range(len(makes)), chunksize=1)
     finally:
         _JOBS = []
+
+
+# --------------------------------------------------------------------------
+# Moments that land on the narration
+# --------------------------------------------------------------------------
+
+_ONES = ("zero one two three four five six seven eight nine ten eleven twelve thirteen "
+         "fourteen fifteen sixteen seventeen eighteen nineteen").split()
+_TENS = "_ _ twenty thirty forty fifty sixty seventy eighty ninety".split()
+
+
+def number_words(n):
+    """13 -> 'thirteen', 145 -> 'one hundred forty five' (as narrators say)."""
+    n = int(n)
+    if n < 20:
+        return _ONES[n]
+    if n < 100:
+        return _TENS[n // 10] + ("" if n % 10 == 0 else " " + _ONES[n % 10])
+    if n < 1000:
+        rest = n % 100
+        return _ONES[n // 100] + " hundred" + ("" if not rest else " " + number_words(rest))
+    return str(n)
+
+
+def toll_moment(sheet, words):
+    """(shot, seconds into its take) where the narration first says the
+    death toll, or (None, None). The counter rolls up at that word."""
+    from sheet_writer import SHOTS
+    nums = sheet.get("numbers") or []
+    if not nums or not re.search(r"KILL|DEAD|DIED|DEATH|LIVES", nums[0].get("label", "").upper()):
+        return None, None
+    digits = re.sub(r"[^0-9]", "", str(nums[0]["value"]))
+    if not digits:
+        return None, None
+    needles = [digits, f"{int(digits):,}", number_words(digits)]
+    for _, _, clip, _ in SHOTS:
+        t = narration.find_word(words.get(clip) or [], *needles)
+        if t is not None:
+            return clip, t
+    return None, None
+
+
+def with_toll(fn, sheet, at):
+    """Wraps a clip so the death-toll counter rolls up at `at` seconds into
+    it (narration.PAD_IN later: the take starts after the shot's breath)."""
+    nums = sheet["numbers"][0]
+    at = at + narration.PAD_IN
+
+    def clip(t, T):
+        img = fn(t, T)
+        if -0.3 <= t - at <= 7.0:
+            from PIL import Image
+            from kits.blueprint import W, H, SS
+            f = Frame()
+            f.img = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 0))
+            from PIL import ImageDraw
+            f.d = ImageDraw.Draw(f.img, "RGBA")
+            common.toll(f, nums["value"], nums["label"], t - at)
+            layer = f.img.resize(img.size, Image.LANCZOS)
+            img = img.convert("RGBA")
+            img.alpha_composite(layer)
+            img = img.convert("RGB")
+        return img
+    return clip
+
+
+def timeline_reveal(sheet, words):
+    """The second each timeline event appears: when the narrator says its
+    date (its year, or month and year), in order; None if the dates cannot
+    be found in the narration."""
+    if not words:
+        return None
+    out, last = [], 0.0
+    for e in sheet.get("timeline") or []:
+        date = str(e.get("date", ""))
+        years = re.findall(r"\b(1[89]\d\d|20\d\d)\b", date)
+        t = None
+        if years:
+            later = [w for w in words if w["start"] >= last - 0.01]
+            t = narration.find_word(later, f"{date.title()}", years[0])
+        if t is None:
+            return None
+        last = max(last, t)
+        out.append(narration.PAD_IN + last)
+    return out
+
+
+def hook_schedule(lines, takes, start=1.4, gap=0.85, tail=1.8, shortest=24.0):
+    """[(start, end, text)] for the hook lines and the cold open's length:
+    the lines one after another with a breath between, stretched apart if
+    the open would run under `shortest` seconds."""
+    durs = [t["seconds"] for t in takes[:len(lines)]]
+    natural = start + sum(durs) + gap * (len(durs) - 1) + tail
+    if natural < shortest and len(durs) > 1:
+        gap += (shortest - natural) / (len(durs) - 1)
+    out, t = [], start
+    for text, dur in zip(lines, durs):
+        out.append((t, t + dur, text))
+        t += dur + gap
+    return out, max(shortest, out[-1][1] + tail) if out else shortest
+
+
+def part_times(segs, starts):
+    """[(part, start seconds)] for the 7 parts, in order."""
+    from sheet_writer import SHOTS
+    part = {clip: p for p, _, clip, _ in SHOTS}
+    out, seen = [], set()
+    for i, (_, _, _, shots) in enumerate(segs):
+        for clip, off in shots:
+            p = part.get(clip)
+            if p and p not in seen:
+                seen.add(p)
+                out.append((p, starts[i] / FPS + max(0.0, off)))
+    return out
+
+
+def score_plan(part_starts, hook_T, total):
+    """The cold open's thriller track, then one quiet bed per part."""
+    plan = []
+    if hook_T:
+        plan.append((0.0, hook_T + 1.0, score.COLD_OPEN, score.OPEN_LEVEL))
+    for i, (p, t) in enumerate(part_starts):
+        end = part_starts[i + 1][1] if i + 1 < len(part_starts) else total
+        start = max(t, hook_T + 1.0) if i == 0 and hook_T else t
+        if end > start:
+            plan.append((start, end, score.PARTS[p], score.BED_LEVEL))
+    return plan
 
 
 PARTS = {1: "The disaster", 2: "The structure and its weak point", 3: "The physics",

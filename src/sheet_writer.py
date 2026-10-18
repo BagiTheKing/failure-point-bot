@@ -89,6 +89,8 @@ def _template(variant):
         "labels_3d": {a: "<label for this part in the 3D view>" for a, *_ in k["labels_3d"]},
         "big_3d": {"text": "<the design_vs_built multiplier again, e.g. 2× or ½>",
                    "label": "<the multiplier label again>"},
+        "hook": {"title": "<THE ... COLLAPSE: the episode's title, capitals, under 32 characters>",
+                 "lines": ["<cold open: 3 to 5 lines, each under 90 characters, 60 words in all>"]},
         "disaster": {"place_date": "<CITY · DAY MONTH YEAR · TIME>", "place": "<where, one line>",
                      "caption": "<one line: what happened>"},
         "design_vs_built": {
@@ -133,6 +135,11 @@ def prompt(topic, facts_text, variant):
         "plain words; its ai_prompt describes the collapse as it physically "
         "happened.\n"
         "- Labels under 48 characters, captions under 90.\n"
+        "- hook is the cold open, the first 30 seconds over fast footage and tense "
+        "music, there to make the viewer stay: open on the moment (date, time, "
+        "place), one hard image of what happened, the toll, and close on the "
+        "hidden cause stated as a fact. Present tense, plain words, no questions "
+        "to the viewer, no hype.\n"
         "- design_vs_built.multiplier is THE one figure that explains the failure "
         f"(for this kit: {k['multiplier']}), short enough to fill the screen; "
         "multiplier_label under 34 characters.\n"
@@ -184,6 +191,26 @@ def _spans(v):
         if m:
             out.append(float(m.group()) if "." in m.group() else int(m.group()))
     return out
+
+
+def hook_problems(hook, source_text):
+    """Problems with a cold open {"title", "lines"}, [] when usable."""
+    problems = []
+    lines = hook.get("lines") if isinstance(hook, dict) else None
+    if not isinstance(lines, list) or not 3 <= len(lines) <= 5:
+        return ["hook.lines needs 3 to 5 lines"]
+    if sum(len(str(x).split()) for x in lines) > 70:
+        problems.append("hook.lines run over 70 words")
+    if any(len(str(x)) > 90 for x in lines):
+        problems.append("a hook line is over 90 characters")
+    if not hook.get("title") or len(hook["title"]) > 32:
+        problems.append("hook.title must be under 32 characters")
+    src = re.sub(r"[\s,]", "", source_text or "")
+    missing = sorted({f for t in lines for f in _figures(str(t))
+                      if f.rstrip(".,").replace(",", "") not in src and len(f.rstrip(".,")) > 1})
+    if missing:
+        problems.append("hook figures not in the facts: " + ", ".join(missing))
+    return problems
 
 
 def check(reply, variant, source_text):
@@ -252,6 +279,7 @@ def check(reply, variant, source_text):
                       and len(f.rstrip(".,")) > 1})
     if missing:
         problems.append("figures not in the fact sheet: " + ", ".join(missing[:8]))
+    problems += hook_problems(reply.get("hook") or {}, source_text)
     if not (reply.get("timeline") and 3 <= len(reply["timeline"]) <= 6):
         problems.append("timeline needs 3 to 6 entries")
     return problems
@@ -301,6 +329,11 @@ def assemble(reply, variant, facts_source="", source_name="source"):
         "kit": kit,
         "model_3d": m3,
         "disaster": {**r.get("disaster", {}), "photo_article": r.get("photo_article", "")},
+        "hook": {"title": str((r.get("hook") or {}).get("title", "")).upper(),
+                 "lines": list((r.get("hook") or {}).get("lines") or []),
+                 "sub": str(r.get("disaster", {}).get("place_date", "")).split("·")[0].strip()
+                 + (" · " + str(r.get("disaster", {}).get("place_date", "")).split("·")[1].strip()
+                    if "·" in str(r.get("disaster", {}).get("place_date", "")) else "")},
         "design_vs_built": {**r.get("design_vs_built", {}), "source": tag},
         "numbers": [{**n, "source": tag} for n in r.get("numbers", []) if n.get("value")],
         "clock": clock_of(r.get("clock", {})),

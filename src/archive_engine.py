@@ -205,6 +205,9 @@ def _candidates(pages: dict) -> list:
             "artist": _strip_html((meta.get("Artist") or {}).get("value", "")),
             "license": _strip_html(
                 (meta.get("LicenseShortName") or {}).get("value", "")),
+            # what the picture shows, in its uploader's words (picking photos
+            # for a shot by title alone put a crowd under "investigators")
+            "about": _strip_html((meta.get("ImageDescription") or {}).get("value", ""))[:500],
         }))
     scored.sort(key=lambda t: t[0], reverse=True)
     return [c for _, c in scored]

@@ -205,12 +205,12 @@ def held(files, n_frames, out_dir, zoom=0.07):
     return out
 
 
-def xfade_join(segments, out_mp4):
+def xfade_join(segments, out_mp4, overlay=None):
     """segments: [(mp4, frames, transition into the next)], the transition
     'cut', 'dissolve' or ('dissolve', seconds). Joined by ffmpeg on encoded
     clips, so a 10-minute episode never sits on disk as single frames.
     Returns the frame each segment starts at (where its dissolve begins)."""
-    if len(segments) == 1:
+    if len(segments) == 1 and not overlay:
         shutil.copyfile(segments[0][0], out_mp4)
         return [0]
     starts, pos, chain, inputs = [0], 0, [], []
@@ -228,6 +228,10 @@ def xfade_join(segments, out_mp4):
         chain.append(f"[{prev}][s{i + 1}]xfade=transition=fade:duration={k / FPS:.4f}:"
                      f"offset={pos / FPS:.4f}[{out}]")
         prev = out
+    if overlay:                              # the watermark, top right, on every frame
+        inputs += ["-i", overlay]
+        chain.append(f"[{prev}][{len(segments)}:v]overlay=W-w-22:18:format=auto[wm]")
+        prev = "wm"
     subprocess.run(["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex", ";".join(chain),
                     "-map", f"[{prev}]", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20",
                     out_mp4], check=True)

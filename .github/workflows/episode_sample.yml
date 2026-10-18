@@ -22,12 +22,24 @@ on:
         description: "Use an AI collapse clip instead of the 3D fall (uses the day's free quota)"
         type: boolean
         default: false
+      reuse_run:
+        description: "Re-cut: reuse this earlier run's voice and 3D frames (blank = make everything; frames keep 2 days)"
+        default: ""
+      hook:
+        description: "Cold-open lines, split by | (blank = the sheet's own, or written by the AI)"
+        default: ""
+      title:
+        description: "Episode title for the cold open (blank = the sheet's / the AI's)"
+        default: ""
 
 permissions:
   contents: write
+  actions: read
+
 
 jobs:
   prepare:
+    if: inputs.reuse_run == ''
     runs-on: ubuntu-latest
     timeout-minutes: 40
     outputs:
@@ -62,15 +74,70 @@ jobs:
               git show "origin/preview-media:${SHEET#preview-media:}" > prep/sheet.json ;;
             *) cp "$SHEET" prep/sheet.json ;;
           esac
-      - name: Voice, timing, photos
+      - name: Voice, timing, cold open, photos
         env:
           KOKORO_VOICE: am_echo
           WIKIMEDIA_TOKEN: ${{ secrets.WIKIMEDIA_TOKEN }}
-        run: python tools/episode_sample.py prepare prep/sheet.json prep ${{ inputs.ai && '--ai' || '' }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          python tools/episode_sample.py prepare prep/sheet.json prep --name "${{ inputs.name }}" \
+            ${{ inputs.ai && '--ai' || '' }}
       - id: plan
         run: |
           echo "shards=$(python -c 'import json;print(json.dumps(json.load(open("prep/shards.json"))["shards"]))')" >> "$GITHUB_OUTPUT"
           echo "per=$(python -c 'import json;print(json.load(open("prep/shards.json"))["per"])')" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prep
+          path: prep/
+          retention-days: 3
+
+  recut:
+    if: inputs.reuse_run != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
+      - name: Cache Kokoro model files
+        uses: actions/cache@v4
+        with:
+          path: models
+          key: kokoro-v1.0-model-files
+      - name: Fetch Kokoro model files (cache miss only)
+        run: |
+          mkdir -p models
+          [ -f models/kokoro-v1.0.onnx ] || curl -sSL -o models/kokoro-v1.0.onnx "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
+          [ -f models/voices-v1.0.bin ] || curl -sSL -o models/voices-v1.0.bin "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: prep
+          path: prep
+          run-id: ${{ inputs.reuse_run }}
+          github-token: ${{ github.token }}
+      - name: Cold open and pictures again (voice, timing and 3D kept)
+        env:
+          KOKORO_VOICE: am_echo
+          WIKIMEDIA_TOKEN: ${{ secrets.WIKIMEDIA_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HOOK: ${{ inputs.hook }}
+          TITLE: ${{ inputs.title }}
+        run: python tools/episode_sample.py recut prep --hook "$HOOK" --title "$TITLE" --name "${{ inputs.name }}"
       - uses: actions/upload-artifact@v4
         with:
           name: prep
@@ -119,8 +186,8 @@ jobs:
           retention-days: 2
 
   assemble:
-    needs: [prepare, render3d]
-    if: always() && needs.prepare.result == 'success'
+    needs: [prepare, render3d, recut]
+    if: always() && (needs.render3d.result == 'success' || needs.recut.result == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
@@ -140,6 +207,8 @@ jobs:
           pattern: frames3d-*
           path: raw
           merge-multiple: true
+          run-id: ${{ inputs.reuse_run || github.run_id }}
+          github-token: ${{ github.token }}
       - name: AI collapse, starting from our own last 3D frame
         if: inputs.ai
         env:

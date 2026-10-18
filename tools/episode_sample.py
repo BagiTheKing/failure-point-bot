@@ -3,6 +3,7 @@ A full episode from an animation sheet, in two halves around the 3D render
 (.github/workflows/episode_sample.yml):
 
     python tools/episode_sample.py prepare SHEET OUT [--ai]   # voice, timing, photos
+    python tools/episode_sample.py recut OUT [--hook "line | line"] [--title T]
     python tools/episode_sample.py assemble OUT RAW3D [--ai CLIP]
 
 prepare writes OUT/timed_sheet.json (render the 3D model from it), the voice
@@ -21,27 +22,82 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 FRAMES_PER_SHARD = 80
 
 
-def prepare(sheet_path, out, ai=False):
+def _writer():
+    """The free writers' pool and call, or (None, None) without keys."""
+    try:
+        from llm_provider import get_pool
+        from longform_llm import _call
+        return get_pool(), _call
+    except Exception as e:
+        print(f"no writer ({type(e).__name__}: {e})")
+        return None, None
+
+
+def _hook(sheet, out, hook_text="", title=""):
+    """The cold open's lines: given by hand (lines split by |), the
+    sheet's own, or written now from its narration; then voiced."""
+    import episode
+    if hook_text.strip():
+        sheet["hook"] = {"lines": [x.strip() for x in hook_text.split("|") if x.strip()],
+                         "title": (title or (sheet.get("hook") or {}).get("title", "")).upper(),
+                         "sub": sheet["disaster"].get("place_date", "")}
+    elif not (sheet.get("hook") or {}).get("lines"):
+        pool, call = _writer()
+        hook = episode.write_hook(sheet, pool, call) if pool else None
+        if hook:
+            sheet["hook"] = hook
+    if title:
+        sheet.setdefault("hook", {})["title"] = title.upper()
+    if (sheet.get("hook") or {}).get("lines"):
+        print("cold open:", sheet["hook"]["title"], "|", " / ".join(sheet["hook"]["lines"]))
+        return episode.record_hook(sheet, out)
+    print("no cold open")
+    return {}
+
+
+def _pictures(sheet, out, name):
+    import episode
+    try:
+        episode.gather_footage(sheet, out, owner_dir=os.path.join("footage", name) if name else None)
+    except Exception as e:                 # footage is a bonus: photos carry part 1
+        print(f"no footage ({type(e).__name__}: {e})")
+        json.dump([], open(os.path.join(out, "footage.json"), "w"))
+    try:
+        pool, call = _writer()
+        episode.gather_photos(sheet, out, pool=pool, call=call)
+    except Exception as e:                 # photos are a bonus: 3D stills stand in
+        print(f"no photos ({type(e).__name__}: {e})")
+        json.dump({}, open(os.path.join(out, "photos.json"), "w"))
+
+
+def recut(out, hook_text="", title="", name=""):
+    """A new cut of an episode already voiced and rendered: keeps the
+    timed sheet, the voice takes and the 3D frames; adds or redoes the cold
+    open, and fetches the pictures again."""
+    sheet = json.load(open(os.path.join(out, "timed_sheet.json")))
+    voiced = json.load(open(os.path.join(out, "voiced.json")))
+    voiced = {k: v for k, v in voiced.items() if not k.startswith("hook_")}
+    voiced.update(_hook(sheet, out, hook_text, title))
+    json.dump(voiced, open(os.path.join(out, "voiced.json"), "w"), indent=1)
+    json.dump(sheet, open(os.path.join(out, "timed_sheet.json"), "w"), indent=2, ensure_ascii=False)
+    _pictures(sheet, out, name)
+
+
+def prepare(sheet_path, out, ai=False, name=""):
     import episode
     from kits import timemap
     from kits.blueprint import FPS
     os.makedirs(out, exist_ok=True)
     sheet = json.load(open(sheet_path))
-    sheet, _ = episode.prepare(sheet, out, ai=ai)
+    sheet, voiced = episode.prepare(sheet, out, ai=ai)
+    voiced.update(_hook(sheet, out))
+    json.dump(voiced, open(os.path.join(out, "voiced.json"), "w"), indent=1)
+    json.dump(sheet, open(os.path.join(out, "timed_sheet.json"), "w"), indent=2, ensure_ascii=False)
     frames = int(math.ceil(timemap.of(sheet).total * FPS)) + 1
     shards = list(range(int(math.ceil(frames / FRAMES_PER_SHARD))))
     json.dump({"frames": frames, "per": FRAMES_PER_SHARD, "shards": shards},
               open(os.path.join(out, "shards.json"), "w"))
-    try:
-        episode.gather_footage(sheet, out)
-    except Exception as e:                 # footage is a bonus: photos carry part 1
-        print(f"no footage ({type(e).__name__}: {e})")
-        json.dump([], open(os.path.join(out, "footage.json"), "w"))
-    try:
-        episode.gather_photos(sheet, out)
-    except Exception as e:                 # photos are a bonus: 3D stills stand in
-        print(f"no photos ({type(e).__name__}: {e})")
-        json.dump({}, open(os.path.join(out, "photos.json"), "w"))
+    _pictures(sheet, out, name)
 
 
 def assemble(out, raw3d, ai):
@@ -57,6 +113,7 @@ def assemble(out, raw3d, ai):
     info["credits"] = sorted({p["credit"] for v in photos.values() for p in v if p.get("credit")} |
                              {c["credit"] for c in footage if c.get("credit")})
     info["ai_clip"] = bool(ai and os.path.exists(ai))
+    info["hook"] = sheet.get("hook")
     json.dump(info, open(os.path.join(out, "episode.json"), "w"), indent=1, ensure_ascii=False)
     print("\n".join(info["chapters"]))
 
@@ -68,12 +125,20 @@ if __name__ == "__main__":
     p.add_argument("sheet")
     p.add_argument("out")
     p.add_argument("--ai", action="store_true", help="time the fall for an AI clip")
+    p.add_argument("--name", default="", help="footage/<name>/ holds owner-supplied footage")
+    r = sub.add_parser("recut")
+    r.add_argument("out")
+    r.add_argument("--hook", default="", help="cold-open lines, split by |")
+    r.add_argument("--title", default="")
+    r.add_argument("--name", default="")
     a = sub.add_parser("assemble")
     a.add_argument("out")
     a.add_argument("raw3d")
     a.add_argument("--ai", default="")
     args = ap.parse_args()
     if args.cmd == "prepare":
-        prepare(args.sheet, args.out, args.ai)
+        prepare(args.sheet, args.out, args.ai, args.name)
+    elif args.cmd == "recut":
+        recut(args.out, args.hook, args.title, args.name)
     else:
         assemble(args.out, args.raw3d, args.ai)

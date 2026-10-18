@@ -1,0 +1,109 @@
+"""
+The episode's sound: the narration over a score (owner, 2026-10-18: "some
+soundtracks should be good").
+
+The cold open gets a thriller track up front and loud; every later part
+gets a quiet bed, one track per part, crossfading at the part changes. The
+music ducks under the voice (it follows the voice's own loudness), so words
+are never fought for. Tracks come from music/ only (YouTube Audio Library
+or Creative Commons with a credit sidecar, see music/README.md), and every
+track used that needs a credit is returned for the description.
+
+    credits = mix(voice_wav, plan, total, out_wav)
+    plan: [(start, end, track filename, level)]
+"""
+
+import os
+import subprocess
+
+import numpy as np
+
+from music_attribution import attribution_for
+
+SR = 48000
+MUSIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "music")
+XFADE = 2.5
+
+# one track per part of the 7-part structure, the cold open first
+COLD_OPEN = "Crossing the Threshold - Ghostpocalypse - Kevin MacLeod.mp3"
+PARTS = {1: "A Singular Perversion - Darkness - Kevin MacLeod.mp3",
+         2: "Measured Paces - Kevin MacLeod.mp3",
+         3: "Measured Paces - Kevin MacLeod.mp3",
+         4: "Epilog - Ghostpocalypse - Kevin MacLeod.mp3",
+         5: "Spirit of the Dead - Aakash Gandhi.mp3",
+         6: "Beyond the Lows - The Whole Other.mp3",
+         7: "March of the Mind - Kevin MacLeod.mp3"}
+OPEN_LEVEL = 0.55            # the cold open's music, before ducking
+BED_LEVEL = 0.10             # under the analysis
+DUCK = 0.55                  # how far the music drops while the voice speaks
+
+
+def _load(path, channels=2):
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-f", "f32le", "-ac", str(channels),
+                          "-ar", str(SR), "-"], capture_output=True, check=True).stdout
+    return np.frombuffer(raw, np.float32).reshape(-1, channels).copy()
+
+
+def _looped(track, n):
+    if len(track) >= n:
+        return track[:n]
+    reps = int(np.ceil(n / len(track)))
+    return np.concatenate([track] * reps)[:n]
+
+
+def _ramp(n, a, b):
+    return np.linspace(a, b, max(1, n), dtype=np.float32)
+
+
+def _duck_gain(voice, depth=DUCK):
+    """1 where the voice is silent, 1 - depth where it speaks: an envelope
+    follower (fast attack, slow release) on the voice's level."""
+    level = np.abs(voice).astype(np.float32)
+    hop = SR // 100                                         # 10 ms frames
+    n = len(level) // hop
+    frames = level[: n * hop].reshape(n, hop).mean(axis=1)
+    on = np.clip(frames / max(1e-4, np.percentile(frames, 90) * 0.25), 0, 1)
+    env = np.zeros_like(on)
+    att, rel = 0.5, 0.04                                     # per 10 ms
+    for i in range(1, len(on)):
+        k = att if on[i] > env[i - 1] else rel
+        env[i] = env[i - 1] + k * (on[i] - env[i - 1])
+    gain = np.repeat(1 - depth * env, hop)
+    return np.concatenate([gain, np.ones(len(level) - len(gain), np.float32)])
+
+
+def mix(voice_wav, plan, total, out_wav):
+    """Narration plus score, written as a 48 kHz stereo WAV; returns the
+    credit lines the description needs for the tracks used."""
+    import soundfile as sf
+    n = int(round(total * SR))
+    voice = _load(voice_wav, 1)[:, 0]
+    voice = np.pad(voice, (0, max(0, n - len(voice))))[:n]
+    music = np.zeros((n, 2), np.float32)
+    credits, cache = [], {}
+    for start, end, name, level in plan:
+        path = os.path.join(MUSIC_DIR, name)
+        if not os.path.exists(path):
+            print(f"  music missing, silent instead: {name}")
+            continue
+        if name not in cache:
+            cache[name] = _load(path)
+        a = max(0, int((start - XFADE / 2) * SR))
+        b = min(n, int((end + XFADE / 2) * SR))
+        if b <= a:
+            continue
+        seg = _looped(cache[name], b - a) * level
+        f = int(XFADE * SR)
+        env = np.ones(b - a, np.float32)
+        env[:f] = _ramp(min(f, b - a), 0, 1)[: len(env[:f])]
+        env[-f:] = np.minimum(env[-f:], _ramp(min(f, b - a), 1, 0)[-len(env[-f:]):])
+        music[a:b] += seg * env[:, None]
+        credit = attribution_for(path)
+        if credit and credit not in credits:
+            credits.append(credit)
+    gain = _duck_gain(voice)[:n]
+    out = music * gain[:, None] + voice[:, None]
+    tail = int(min(3.0, total / 4) * SR)                     # the last seconds fade out
+    out[-tail:] *= _ramp(tail, 1, 0)[:, None]
+    sf.write(out_wav, np.clip(out, -1, 1), SR)
+    return credits

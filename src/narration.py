@@ -81,3 +81,36 @@ def track(placed, total, out_wav):
             print(f"  ⚠️ {n0} runs {a1 - b0:.1f} s into {n1}")
     sf.write(out_wav, np.clip(out, -1, 1), SR)
     return out_wav
+
+
+def words_of(text, wav):
+    """When each word of a take is spoken: [{"word", "start", "end"}] in
+    seconds from the take's start, anchored on the take's real pauses
+    (audio_engine._align_kokoro), so on-screen events can land on the word
+    that names them."""
+    import soundfile as sf
+    from audio_engine import _align_kokoro, _estimate_word_timings
+    samples, sr = sf.read(wav, dtype="float32")
+    try:
+        words = _align_kokoro(text, samples, sr, "en-us")
+        if words and len(words) == len(text.split()):
+            return words
+    except Exception as e:
+        print(f"  word alignment failed ({type(e).__name__}): estimating")
+    return _estimate_word_timings(text, len(samples) / float(sr))
+
+
+def find_word(words, *needles):
+    """Start of the first word matching any needle (case and punctuation
+    ignored; a needle may be several words), or None."""
+    import re
+    norm = [re.sub(r"[^\w]", "", w["word"].lower()) for w in words]
+    for needle in needles:
+        parts = [re.sub(r"[^\w]", "", p.lower()) for p in str(needle).split()]
+        parts = [p for p in parts if p]
+        if not parts:
+            continue
+        for i in range(len(norm) - len(parts) + 1):
+            if norm[i:i + len(parts)] == parts:
+                return words[i]["start"]
+    return None
