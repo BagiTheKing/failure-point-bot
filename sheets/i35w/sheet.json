@@ -1,0 +1,293 @@
+{
+  "story": "I-35W Mississippi River bridge collapse",
+  "sources": {
+    "source": "https://en.wikipedia.org/wiki/I-35W_Mississippi_River_bridge"
+  },
+  "kit": {
+    "family": "structure",
+    "variant": "truss_bridge",
+    "deck": "top",
+    "spans": [
+      266,
+      456,
+      266
+    ],
+    "panels": 24,
+    "failed_node": 10,
+    "failed_node_label": "U10",
+    "load_near_node": true,
+    "labels": {
+      "deck": "Concrete roadway deck",
+      "truss": "Steel deck truss system",
+      "piers": "Concrete support piers",
+      "river": "Mississippi River",
+      "node": "Main truss joint",
+      "plate": "Steel gusset plate",
+      "load": "Construction supplies and equipment"
+    },
+    "river": true
+  },
+  "model_3d": {
+    "span_m": [
+      81,
+      139,
+      81
+    ],
+    "deck_width_m": 34,
+    "truss_depth_m": [
+      9,
+      18
+    ],
+    "water_level_m": -32,
+    "ai_start_frame": 655,
+    "labels_3d": [
+      {
+        "anchor": "deck",
+        "text": "Roadway deck",
+        "color": "cyan",
+        "t": [
+          2.0,
+          6.0
+        ],
+        "at": [
+          140,
+          130
+        ]
+      },
+      {
+        "anchor": "truss",
+        "text": "Main truss",
+        "color": "cyan",
+        "t": [
+          2.6,
+          6.0
+        ],
+        "at": [
+          700,
+          560
+        ]
+      },
+      {
+        "anchor": "load",
+        "text": "578,000 lb construction load",
+        "color": "amber",
+        "t": [
+          9.0,
+          12.4
+        ],
+        "at": [
+          640,
+          120
+        ]
+      },
+      {
+        "anchor": "diag",
+        "text": "Truss diagonal",
+        "color": "amber",
+        "t": [
+          10.0,
+          12.4
+        ],
+        "at": [
+          760,
+          560
+        ]
+      },
+      {
+        "anchor": "node",
+        "text": "Gusset plate connection",
+        "color": "cyan",
+        "t": [
+          15.4,
+          19.4
+        ],
+        "at": [
+          780,
+          180
+        ]
+      }
+    ],
+    "big_3d": {
+      "anchor": "node",
+      "text": "0.5 in",
+      "label": "UNDERSIZED GUSSET PLATE THICKNESS",
+      "t": [
+        16.8,
+        19.4
+      ]
+    },
+    "ai_prompt": "A long steel deck truss bridge suddenly fails at its center span above a wide river. Steel truss connections fracture and buckle, sending the center roadway section dropping directly downward into the water and onto the riverbanks with dust and debris. Static camera."
+  },
+  "disaster": {
+    "place_date": "MINNEAPOLIS · 1 AUGUST 2007 · 6:05 PM CDT",
+    "place": "I-35W Mississippi River bridge",
+    "caption": "The central span collapses into the river during evening traffic",
+    "photo_article": "I-35W Mississippi River bridge"
+  },
+  "design_vs_built": {
+    "designed": {
+      "title": "ORIGINAL SPECIFICATION",
+      "detail": "Steel gusset plates sized for the bridge loads",
+      "load": "Original dead load without deck modifications"
+    },
+    "built": {
+      "title": "AS BUILT",
+      "detail": "Gusset plates were undersized and inadequate at 0.5 inches",
+      "load": "Added 2 inches of concrete deck plus construction load"
+    },
+    "multiplier": "20%",
+    "multiplier_label": "INCREASE IN STATIC LOAD FROM ADDED CONCRETE",
+    "plate_built": "0.5 inches (13 mm)",
+    "plate_needed": "Adequate thickness for design loading",
+    "source": "source"
+  },
+  "numbers": [
+    {
+      "value": "13",
+      "label": "PEOPLE KILLED",
+      "source": "source"
+    },
+    {
+      "value": "145",
+      "label": "INJURED",
+      "source": "source"
+    },
+    {
+      "value": "111",
+      "label": "VEHICLES INVOLVED",
+      "source": "source"
+    }
+  ],
+  "clock": {
+    "from_seconds": 50,
+    "label_before": "6:04:50",
+    "label_at": "6:05:00",
+    "day": "PM · WEDNESDAY 1 AUGUST 2007",
+    "event": "CENTRAL SPAN GIVES WAY"
+  },
+  "timeline": [
+    {
+      "date": "1990",
+      "title": "Rated structurally deficient",
+      "sub": "Significant corrosion in its bearings was cited",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "2001",
+      "title": "Truss redundancy evaluated",
+      "sub": "University study noted a lack of redundancy in the main truss",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "June 2003",
+      "title": "Gusset-plate bowing photographed",
+      "sub": "Inspection photos revealed bowing in the steel plates",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "January 2007",
+      "title": "Retrofit canceled",
+      "sub": "Engineers realized drilling for retrofitting would weaken the bridge",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "August 1, 2007",
+      "title": "Central span collapses",
+      "sub": "The bridge fell into the river at 6:05 p.m. CDT",
+      "kind": "failure",
+      "source": "source"
+    }
+  ],
+  "today": {
+    "title": "COULD IT HAPPEN TODAY?",
+    "lines": [
+      "The FHWA advised states to inspect 700 U.S. bridges of similar construction.",
+      "Minnesota increased its fuel tax by $0.055 per gallon to fund maintenance.",
+      "Undersized gusset plates were identified as the primary failure point."
+    ],
+    "source": "source"
+  },
+  "shots": [
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photo",
+      "caption": "I-35W Mississippi River bridge, Minneapolis, Minnesota",
+      "narration": "Construction began in 1964 and the bridge opened to traffic in 1967. The fourteen-span structure carried 140,000 vehicles each day. Its roadway deck stood 115 feet above the water level, spanning a total length of 1,907 feet across the river."
+    },
+    {
+      "part": 2,
+      "tool": "3d",
+      "clip": "establish",
+      "caption": "Steel deck truss carrying eight lanes of interstate traffic",
+      "narration": "The crossing used steel deck trusses supported on concrete piers. Traffic drove on the top surface. The bridge carried highway lanes directly over the steel frame without an alternate support path if a primary truss section failed."
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "load_path",
+      "caption": "Loads flow through diagonal truss members into node joints",
+      "narration": "Weight from vehicles and the roadway traveled down through vertical and diagonal steel members. These intersecting beams transferred forces directly into connection nodes located across each span of the main truss."
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "connection",
+      "caption": "Steel gusset plates join multiple truss members together",
+      "narration": "At each node, steel gusset plates were riveted to connect multiple truss members. These flat plates held the steel beams in place and bore the combined forces running through the framework."
+    },
+    {
+      "part": 3,
+      "tool": "2d",
+      "clip": "physics",
+      "caption": "Undersized 0.5-inch gusset plates carry accumulated added loads",
+      "narration": "The original design specified steel gusset plates that were undersized at only 0.5 inches thick. Over the years, two inches of concrete were added to the road surface, causing a 20 percent increase in static load. A thicker deck in 1977 and additional additions in 1998 placed more load on the gusset plates. On August 1, 2007, an estimated 578,000 pounds of construction equipment and material rested directly above the bridge's weakest point."
+    },
+    {
+      "part": 4,
+      "tool": "2d",
+      "clip": "clock",
+      "caption": "August 1, 2007, 6:05 p.m. CDT",
+      "narration": "During the evening rush hour, the heavily loaded connections reached their breaking point."
+    },
+    {
+      "part": 4,
+      "tool": "3d",
+      "clip": "fall",
+      "caption": "The central span separates and falls into the river",
+      "narration": "The central span suddenly gave way and collapsed into the river and onto the riverbanks."
+    },
+    {
+      "part": 4,
+      "tool": "ai_video",
+      "clip": "dramatization",
+      "caption": "111 vehicles were on the bridge when the deck dropped",
+      "narration": "The roadway plunged 115 feet downward. Vehicles fell into the water or dropped onto the riverbanks. Thirteen people were killed and 145 were injured."
+    },
+    {
+      "part": 5,
+      "tool": "2d",
+      "clip": "timeline",
+      "caption": "Warning signs spanned nearly two decades before the collapse",
+      "narration": "The bridge was rated structurally deficient in 1990. MnDOT began inspecting it annually in 1993. In 2001, a University of Minnesota study noted a lack of redundancy in the main truss. Photos taken in June 2003 showed gusset-plate bowing. A planned steel reinforcement project was canceled in January 2007 because engineers realized drilling for retrofitting would weaken the bridge."
+    },
+    {
+      "part": 6,
+      "tool": "2d",
+      "clip": "compare",
+      "caption": "NTSB cites undersized gusset plates as primary cause",
+      "narration": "The National Transportation Safety Board found that the original design specified steel gusset plates that were undersized and inadequate. Plates measuring only 0.5 inches thick lacked the strength to handle the original design loads, decades of added concrete deck weight, and heavy construction equipment stationed on the bridge."
+    },
+    {
+      "part": 7,
+      "tool": "2d",
+      "clip": "today",
+      "caption": "Inspections evaluated 700 bridges of similar construction",
+      "narration": "Following the collapse, the Federal Highway Administration advised states to inspect 700 bridges of similar construction for gusset plate flaws. In Minnesota, lawmakers increased the state fuel tax by $0.055 per gallon to fund maintenance. A replacement structure, the I-35W Saint Anthony Falls Bridge, opened to the public in September 2008."
+    }
+  ]
+}

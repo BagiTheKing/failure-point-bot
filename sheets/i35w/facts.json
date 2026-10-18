@@ -1,0 +1,418 @@
+{
+ "quotes": [
+  {
+   "text": "We had a state bridge, in a county river, between two banks of a city. ... But we didn't have one problem with any of these issues, because we knew who was in charge of the assets,",
+   "speaker": "Rocco Forte"
+  },
+  {
+   "text": "The public safety divers are trained up to a level where they can kind of pick the low-hanging fruit. They can do the stuff that's easy. The bodies that are in the areas where they can sweep shore to shore, the vehicles that they can get into and search that weren't crushed. They were able to remove some of those. Now what we're looking at is the vehicles that are under the bridge deck and the structural pieces.",
+   "speaker": "Mike Martin"
+  },
+  {
+   "text": "for Minneapolis",
+   "speaker": "Mary Peters"
+  },
+  {
+   "text": "the state",
+   "speaker": "Mary Peters"
+  },
+  {
+   "text": "to reimburse Minneapolis for increased transit operations to serve commuters in the wake of last week's bridge collapse",
+   "speaker": "Mary Peters"
+  },
+  {
+   "text": "clean-up and recovery work, including clearing debris and re-routing traffic, as well as for design work on a new bridge",
+   "speaker": "Mary Peters"
+  },
+  {
+   "text": "On behalf of Minnesota, we are grateful for all of this help,",
+   "speaker": "Tim Pawlenty"
+  },
+  {
+   "text": "We are treating this as a crime scene at this point. There's no indication there was any foul play involved, [but] it's a crime scene until we can determine what was the cause of the collapse.",
+   "speaker": "Richard W. Stanek"
+  },
+  {
+   "text": "Although the Board's investigation is still on-going and no determination of probable cause has been reached, interim findings in the investigation have revealed a safety issue that warrants attention ... During the wreckage recovery, investigators discovered that gusset plates at eight different joint locations in the main center span were fractured. The Board, with assistance from the FHWA, conducted a thorough review of the design of the bridge, with an emphasis on the design of the gusset plates. This review discovered that the original design process of the I-35W bridge led to a serious error in sizing some of the gusset plates in the main truss.",
+   "speaker": "Mark Rosenker"
+  },
+  {
+   "text": "The administration wanted approval from the Joint House–Senate Subcommittee on Claims as a sign of bipartisan support",
+   "speaker": "Tim Pawlenty and his office"
+  },
+  {
+   "text": "Ordinarily, preliminary damage assessments are completed before the emergency disaster declaration is requested.",
+   "speaker": "Tim Pawlenty"
+  }
+ ],
+ "numbers": [
+  {
+   "value": "140,000",
+   "what": "vehicles carried daily by the bridge"
+  },
+  {
+   "value": "13",
+   "what": "people killed in the collapse"
+  },
+  {
+   "value": "145",
+   "what": "people injured in the collapse"
+  },
+  {
+   "value": "1,907 feet (581 m)",
+   "what": "total length of the bridge's fourteen spans"
+  },
+  {
+   "value": "115 feet (35 m)",
+   "what": "height of roadway deck above the water level"
+  },
+  {
+   "value": "111",
+   "what": "vehicles involved in the collapse"
+  },
+  {
+   "value": "261 tonnes",
+   "what": "weight of construction supplies and equipment stationed on the bridge at the time of the collapse"
+  },
+  {
+   "value": "578,000 pounds (262 tonnes)",
+   "what": "estimated weight of construction equipment and material resting on the bridge just above its weakest point"
+  },
+  {
+   "value": "0.5 inches (13 mm)",
+   "what": "thickness of the undersized gusset plates"
+  },
+  {
+   "value": "2 inches (51 mm)",
+   "what": "thickness of concrete added to the road surface over the years"
+  },
+  {
+   "value": "20%",
+   "what": "increase in static load caused by added concrete on the road surface"
+  },
+  {
+   "value": "$234 million",
+   "what": "cost to build the replacement bridge"
+  },
+  {
+   "value": "$250 million",
+   "what": "emergency funding voted unanimously by Congress for Minnesota"
+  }
+ ],
+ "people": [
+  {
+   "name": "Tim Pawlenty",
+   "role": "Governor of Minnesota"
+  },
+  {
+   "name": "R. T. Rybak",
+   "role": "Mayor of Minneapolis"
+  },
+  {
+   "name": "George W. Bush",
+   "role": "President of the United States"
+  },
+  {
+   "name": "Mary Peters",
+   "role": "United States Secretary of Transportation (USDOT)"
+  },
+  {
+   "name": "Mark Rosenker",
+   "role": "NTSB Chairman"
+  },
+  {
+   "name": "Jeremy Hernandez",
+   "role": "20-year-old staff member on the school bus"
+  },
+  {
+   "name": "Rocco Forte",
+   "role": "Minneapolis Emergency Preparedness Director"
+  },
+  {
+   "name": "Richard W. Stanek",
+   "role": "Hennepin County Sheriff"
+  },
+  {
+   "name": "Mike Martin",
+   "role": "Minneapolis Police Captain"
+  },
+  {
+   "name": "Dr. Jeffrey Stewart",
+   "role": "Minneapolis Police Chaplain Corps Chaplain Director"
+  }
+ ],
+ "places": [
+  "I-35W Mississippi River bridge (Bridge 9340)",
+  "Mississippi River",
+  "Saint Anthony Falls",
+  "Minneapolis, Minnesota",
+  "Hennepin County Medical Center (HCMC)",
+  "Fairview University Medical Center",
+  "Bohemian Flats",
+  "Ford Dam",
+  "Turner Fairbank Highway Research Center in McLean, Virginia",
+  "NTSB Material Laboratory in Washington, D.C.",
+  "Hubert H. Humphrey Metrodome"
+ ],
+ "timeline": [
+  {
+   "date": "1964",
+   "event": "Construction on the I-35W Mississippi River bridge began.",
+   "place": "Minneapolis, Minnesota",
+   "people": []
+  },
+  {
+   "date": "1967",
+   "event": "The bridge was completed and opened to traffic.",
+   "place": "Minneapolis, Minnesota",
+   "people": []
+  },
+  {
+   "date": "1977",
+   "event": "A median barrier, larger outside walls, and a thicker concrete deck were added to the bridge, causing additional loading.",
+   "place": "I-35W Mississippi River bridge",
+   "people": []
+  },
+  {
+   "date": "December 19, 1985",
+   "event": "Vehicles experienced black ice and a major pile-up occurred on the northbound side when temperatures reached −30 °F (−34 °C).",
+   "place": "I-35W Mississippi River bridge",
+   "people": []
+  },
+  {
+   "date": "1990",
+   "event": "The federal government gave the I-35W bridge a rating of 'structurally deficient', citing significant corrosion in its bearings.",
+   "place": "I-35W Mississippi River bridge",
+   "people": []
+  },
+  {
+   "date": "1993",
+   "event": "MnDOT began inspecting the bridge annually.",
+   "place": "I-35W Mississippi River bridge",
+   "people": []
+  },
+  {
+   "date": "February and December 1996",
+   "event": "The bridge was identified as the single most treacherous cold-weather spot in the Twin Cities freeway system due to black ice.",
+   "place": "I-35W Mississippi River bridge",
+   "people": []
+  },
+  {
+   "date": "1998",
+   "event": "Additional additions including a thicker concrete deck caused additional loading on the gusset plates.",
+   "place": "I-35W Mississippi River bridge",
+   "people": []
+  },
+  {
+   "date": "January 1999",
+   "event": "Minnesota DOT began testing magnesium chloride solutions and mixtures to reduce black ice on the bridge.",
+   "place": "I-35W Mississippi River bridge",
+   "people": []
+  },
+  {
+   "date": "October 1999",
+   "event": "The state embedded temperature-activated nozzles in the bridge deck to spray potassium acetate solution.",
+   "place": "I-35W Mississippi River bridge deck",
+   "people": []
+  },
+  {
+   "date": "2000",
+   "event": "The automated de-icing system came into operation.",
+   "place": "I-35W Mississippi River bridge",
+   "people": []
+  },
+  {
+   "date": "2001",
+   "event": "A study by the civil engineering department of the University of Minnesota evaluated stress cracking and noted a lack of redundancy in the main truss system.",
+   "place": "University of Minnesota",
+   "people": []
+  },
+  {
+   "date": "June 2003",
+   "event": "Inspection photos of the bridge showed gusset-plate bowing.",
+   "place": "I-35W Mississippi River bridge",
+   "people": []
+  },
+  {
+   "date": "2005",
+   "event": "The bridge was rated 'structurally deficient' and given a sufficiency rating of 50 in the National Bridge Inventory database.",
+   "place": "I-35W Mississippi River bridge",
+   "people": []
+  },
+  {
+   "date": "June 15, 2006",
+   "event": "An inspection found problems of cracking and fatigue.",
+   "place": "I-35W Mississippi River bridge",
+   "people": []
+  },
+  {
+   "date": "December 2006",
+   "event": "A steel reinforcement project was planned for the bridge.",
+   "place": "I-35W Mississippi River bridge",
+   "people": []
+  },
+  {
+   "date": "January 2007",
+   "event": "The steel reinforcement project was canceled after engineers realized drilling for retrofitting would weaken the bridge.",
+   "place": "I-35W Mississippi River bridge",
+   "people": []
+  },
+  {
+   "date": "August 1, 2007, at 6:05 p.m. CDT",
+   "event": "The central span of the bridge suddenly gave way and collapsed into the river and onto the riverbanks, killing 13 people and injuring 145.",
+   "place": "I-35W Mississippi River bridge, Minneapolis, Minnesota",
+   "people": [
+    "Jeremy Hernandez"
+   ]
+  },
+  {
+   "date": "August 1, 2007, at 6:20 p.m.",
+   "event": "An Emergency Operations Center was established in Minneapolis City Hall.",
+   "place": "Minneapolis City Hall",
+   "people": []
+  },
+  {
+   "date": "August 2, 2007",
+   "event": "Mayor R. T. Rybak and Governor Tim Pawlenty declared a state of emergency for Minneapolis and the State of Minnesota.",
+   "place": "Minneapolis, Minnesota",
+   "people": [
+    "R. T. Rybak",
+    "Tim Pawlenty",
+    "Tony Snow"
+   ]
+  },
+  {
+   "date": "August 4, 2007",
+   "event": "President Bush visited the site and pledged support, announcing Mary Peters would lead the rebuilding effort.",
+   "place": "Minneapolis, Minnesota",
+   "people": [
+    "George W. Bush",
+    "Mary Peters",
+    "R. T. Rybak",
+    "Tim Pawlenty"
+   ]
+  },
+  {
+   "date": "August 5, 2007",
+   "event": "United States Navy divers began arriving to assist local authorities in recovery operations.",
+   "place": "Minneapolis, Minnesota",
+   "people": []
+  },
+  {
+   "date": "August 6, 2007",
+   "event": "President Bush signed into law $250 million in emergency funding passed unanimously by Congress.",
+   "place": "Washington, D.C.",
+   "people": [
+    "George W. Bush"
+   ]
+  },
+  {
+   "date": "August 7, 2007",
+   "event": "The Hennepin County Board of Commissioners voted to request a major disaster declaration from President Bush.",
+   "place": "Hennepin County, Minnesota",
+   "people": [
+    "Tim Pawlenty",
+    "George W. Bush"
+   ]
+  },
+  {
+   "date": "August 10, 2007",
+   "event": "USDOT Secretary Mary Peters announced $50 million in immediate emergency relief and an additional $5 million to reimburse transit operations.",
+   "place": "Minneapolis, Minnesota",
+   "people": [
+    "Mary Peters",
+    "Tim Pawlenty"
+   ]
+  },
+  {
+   "date": "August 20, 2007",
+   "event": "The last victim was recovered from the river, and Governor Pawlenty formally requested a major disaster designation.",
+   "place": "Minneapolis, Minnesota",
+   "people": [
+    "Tim Pawlenty"
+   ]
+  },
+  {
+   "date": "August 21, 2007",
+   "event": "President Bush declared an emergency for Minnesota rather than a major disaster, allowing recovery of certain costs through FEMA.",
+   "place": "Minneapolis/St.Paul Air Reserve Station",
+   "people": [
+    "George W. Bush",
+    "Tim Pawlenty"
+   ]
+  },
+  {
+   "date": "September 19, 2007",
+   "event": "MnDOT announced that Flatiron Construction and Manson Construction Co. would build the replacement bridge for $234 million.",
+   "place": "Minnesota",
+   "people": []
+  },
+  {
+   "date": "November 1, 2007",
+   "event": "Construction began on the new I-35W bridge after demolition of the collapsed bridge was substantially completed.",
+   "place": "Minneapolis, Minnesota",
+   "people": []
+  },
+  {
+   "date": "January 15, 2008",
+   "event": "The NTSB announced that the original design specified steel gusset plates that were undersized and inadequate.",
+   "place": "Washington, D.C.",
+   "people": [
+    "Mark Rosenker"
+   ]
+  },
+  {
+   "date": "March 17, 2008",
+   "event": "The NTSB released an update on the investigation detailing gusset-plate bowing seen in June 2003 inspection photos.",
+   "place": "Washington, D.C.",
+   "people": []
+  },
+  {
+   "date": "May 2, 2008",
+   "event": "The state of Minnesota reached a $38 million agreement to compensate victims of the bridge collapse.",
+   "place": "Minnesota",
+   "people": []
+  },
+  {
+   "date": "September 18, 2008",
+   "event": "The replacement I-35W Saint Anthony Falls Bridge opened to the public at 5 a.m.",
+   "place": "Minneapolis, Minnesota",
+   "people": []
+  },
+  {
+   "date": "November 13, 2008",
+   "event": "The NTSB released the final findings of its investigation, citing undersized gusset plates as the primary cause of the collapse.",
+   "place": "Washington, D.C.",
+   "people": []
+  },
+  {
+   "date": "August 2010",
+   "event": "The last lawsuits against URS Corporation were settled for $52.4 million.",
+   "place": "Minnesota",
+   "people": []
+  }
+ ],
+ "legacy": [
+  {
+   "year": "2007",
+   "what": "The FHWA advised states to inspect 700 U.S. bridges of similar construction after a possible design flaw related to gusset plates was identified."
+  },
+  {
+   "year": "2008",
+   "what": "The replacement structure, the I-35W Saint Anthony Falls Bridge, opened to the public on September 18."
+  },
+  {
+   "year": "2008",
+   "what": "The state legislature increased the Minnesota state fuel tax by $0.055 per gallon via a veto override to fund MnDOT maintenance."
+  },
+  {
+   "year": "2008",
+   "what": "The state of Minnesota reached a $38 million agreement to compensate victims of the bridge collapse."
+  },
+  {
+   "year": "2010",
+   "what": "The last of the lawsuits against URS Corporation were settled for $52.4 million."
+  }
+ ],
+ "source": "https://en.wikipedia.org/wiki/I-35W_Mississippi_River_bridge"
+}
