@@ -212,7 +212,8 @@ def gather_photos(sheet, out_dir, limit=16, pool=None, call=None):
         except Exception as e:
             print(f"  photo picking by the writer failed ({type(e).__name__}: {e}): by title")
     picked = picked or assign(sheet, got)
-    shots = {k: [{"path": c["path"], "credit": c["credit"], "title": c.get("title", "")} for c in v]
+    shots = {k: [{"path": c["path"], "credit": c["credit"], "title": c.get("title", ""),
+                  "about": (c.get("about") or "")[:300]} for c in v]
              for k, v in picked.items()}
     json.dump(shots, open(os.path.join(out_dir, "photos.json"), "w"), indent=1, ensure_ascii=False)
     return shots
@@ -425,7 +426,8 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
                 "today_photos": stills_3d(1.0, 4.0)}.get(name) or stills_3d(2.0, 5.0)
 
     def pictures(name):
-        return [{"path": p["path"], "credit": _short_credit(p["credit"])}
+        return [{"path": p["path"], "credit": _short_credit(p["credit"]), "title": p.get("title", ""),
+                 "about": p.get("about", "")}
                 for p in (photos.get(name) or stand_in(name))]
 
     clips = []                               # the footage, decoded once
@@ -553,14 +555,17 @@ def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures):
                                        key=lambda k: int(k.split("_")[1]))]
     if not (hook.get("lines") and takes):
         return None
-    lines, T = hook_schedule(hook["lines"], takes, start=coldopen.TITLE_END - 0.6, shortest=20.0)
+    # the first line waits for the title to clear: no title over its picture
+    lines, T = hook_schedule(hook["lines"], takes, start=coldopen.TITLE_END + 0.5, shortest=20.0)
     frames3d = lambda a, b: [p for p in (find_frame(raw3d, n) for n in range(tm.frame(a), tm.frame(b) + 1)) if p]
     fall = frames3d(21.6, 28.0)
     close = frames3d(15.4, 19.4)
     wreck = (pictures("aftermath") if photos.get("aftermath") else []) + \
             (pictures("photos_disaster") if photos.get("photos_disaster") else [])
     lead = pictures("photo")
-    burst = (wreck + lead)[:coldopen.BURST]
+    # the press shots: wreckage first, never a photo of officials visiting
+    burst = sorted(wreck + lead, key=lambda p: bool(re.search(
+        _WEAK, " ".join(str(p.get(k, "")) for k in ("title", "credit", "about")).lower())))[:coldopen.BURST]
     while burst and len(burst) < coldopen.BURST:
         burst.append(burst[len(burst) % max(1, len(burst))])
     spare = [p for p in wreck if p not in burst] or wreck or lead
@@ -577,12 +582,38 @@ def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures):
             items.append({"frames": fall, "fall": True,
                           "speed": max(1.0, len(fall) / (30 * max(1.0, dur)))})
         else:
-            items.append(spare[(i - 2) % len(spare)] if spare else {"path": None})
+            pick = best_picture(hook["lines"][i], spare, used=[it.get("path") for it in items])
+            items.append(pick or {"path": None})
     cuts = coldopen.layout(burst, items, lines, T)
     fx = coldopen.events(cuts, items)
     fn = coldopen.cold_open(cuts, lines, T, hook.get("title", ""), hook.get("sub", ""), fx)
     intro_plan.fx = fx                                   # the sound design reads the same moments
     return fn, T, [(f"hook_{i}", a - narration.PAD_IN) for i, (a, _, _) in enumerate(lines)]
+
+
+_SEEN = {"vehicle": "vehicl car cars truck bus traffic", "people": "rescu victim survivor diver",
+         "river": "river water diver boat", "collapse": "collaps wreck debris fallen span"}
+_WEAK = r"official|mayor|governor|president|senator|secretary|visit|tour|press|conference|portrait"
+
+
+def best_picture(line, pictures, used=()):
+    """The picture that best shows what a hook line says, by the words the
+    line and the photo's title share (vehicles finds cars and trucks);
+    photos of officials and visits come last: they show nothing that
+    happened. Pictures already used come after unused ones."""
+    if not pictures:
+        return None
+    stems = lambda text: {w[:5] for w in re.findall(r"[a-z]+", text.lower()) if len(w) > 3}
+    want = stems(line)
+    for key, also in _SEEN.items():
+        if any(w.startswith(key[:5]) for w in want):
+            want |= stems(also)
+
+    def score(p):
+        about = " ".join(str(p.get(k, "")) for k in ("title", "credit", "about", "path"))
+        return (p.get("path") not in used, not re.search(_WEAK, about.lower()),
+                len(want & stems(about)))
+    return max(pictures, key=score)
 
 
 def intro_effects(fx):
@@ -596,7 +627,7 @@ def intro_effects(fx):
             out.append((max(0.0, at - 0.3), score.whoosh(10 + k) * 0.7))
     if fx.get("fall"):
         a, b = fx["fall"]
-        out.append((a, score.rumble(max(1.5, b - a), 7) * 0.8))
+        out.append((a, score.rumble(max(1.5, b - a), 7) * 0.3))      # under the voice, not over it (owner)
     if fx.get("last"):
         out.append((max(0.0, fx["last"] - 2.4), score.riser(2.4) * 0.6))
         out.append((fx["last"], score.boom(5) * 0.8))
@@ -620,7 +651,8 @@ def build_intro(sheet, raw3d, photos, voiced, out_mp4, work, footage=None, track
     and only the sound is mixed again for each."""
     os.makedirs(work, exist_ok=True)
     tm = timemap.of(sheet)
-    pictures = lambda name: [{"path": p["path"], "credit": _short_credit(p["credit"])}
+    pictures = lambda name: [{"path": p["path"], "credit": _short_credit(p["credit"]),
+                              "title": p.get("title", ""), "about": p.get("about", "")}
                              for p in (photos.get(name) or [])]
     clips = [{"frames": frames_of(c["path"], os.path.join(work, f"footage_{i}"), cover=True),
               "credit": _short_credit(c["credit"]).replace("Photo:", "Footage:"),

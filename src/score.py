@@ -25,7 +25,8 @@ MUSIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "musi
 XFADE = 2.5
 
 # one track per part of the 7-part structure, the cold open first
-COLD_OPEN = os.getenv("INTRO_TRACK", "Crossing the Threshold - Ghostpocalypse - Kevin MacLeod.mp3")
+# owner's pick from the audition, 2026-10-18 (tools/fetch_music.py fetches it)
+COLD_OPEN = os.getenv("INTRO_TRACK", "Impact Prelude - Kevin MacLeod.mp3")
 PARTS = {1: "A Singular Perversion - Darkness - Kevin MacLeod.mp3",
          2: "Measured Paces - Kevin MacLeod.mp3",
          3: "Measured Paces - Kevin MacLeod.mp3",

@@ -21,10 +21,10 @@ on:
         default: ""
       kevin:
         description: "Kevin MacLeod tracks to fetch and audition, comma-separated titles"
-        default: "Mechanolith,Volatile Reaction,Impact Prelude,Lightless Dawn,Gathering Darkness"
+        default: "Impact Prelude"
       tracks:
         description: "Tracks already in music/ to audition too, comma-separated file names"
-        default: "Faultlines - Asher Fulero.mp3"
+        default: ""
 
 permissions:
   contents: write
