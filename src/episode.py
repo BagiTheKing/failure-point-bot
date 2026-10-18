@@ -388,6 +388,7 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
             anchors.update(json.load(open(os.path.join(raw3d, p))))
     caps = {sh["clip"]: sh.get("caption", "") for sh in sheet["shots"]}
     texts = {sh["clip"]: sh.get("narration", "") for sh in sheet["shots"]}
+    texts.update({f"hook_{i}": line for i, line in enumerate((sheet.get("hook") or {}).get("lines") or [])})
     frames = lambda s: int(round(s * FPS))
     # when each word is spoken, so pictures can land on the words that name them
     words = {c: narration.words_of(texts[c], v["wav"]) for c, v in voiced.items() if texts.get(c)}
@@ -447,7 +448,8 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
     intro = intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures)
     if intro:
         fn, hook_T, hook_shots = intro
-        add2d("hook", fn, hook_T, "cut", hook_shots)
+        # the cold open runs straight on into the bridge's story: one chapter
+        add2d("hook", fn, hook_T, "dissolve", hook_shots)
 
     # part 1: real footage first (security cameras before anything), then photos;
     # a long opening shot borrows spare wreckage photos so no picture holds for long
@@ -459,9 +461,14 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
         lead += [{"path": p["path"], "credit": _short_credit(p["credit"])} for p in spare[-borrow:]]
         photos = {**photos, "aftermath": spare[:-borrow]}
     add2d("photo", common.photo(sheet, reel(clips[:1] + lead, seconds), tint_out=False,
-                                toll_at=(narration.PAD_IN + toll_t) if toll_shot == "photo" else None),
+                                toll_at=(narration.PAD_IN + toll_t) if toll_shot == "photo" else None,
+                                quiet=bool(intro)),
           seconds, "dissolve", [("photo", 0)])
-    archive("photos_disaster", "dissolve", clips[1:])
+    if not intro:
+        # with a cold open, this shot only says again what the cold open said
+        # (the date, the toll, the vehicles): owner, 2026-10-18, "all down to
+        # one minute, one chapter"
+        archive("photos_disaster", "dissolve", clips[1:])
     e1 = tm.real(7.0)
     add3d("establish", 0, e1, "dissolve", [("establish", 0)])
     add2d("build", kit.build, D["build"], "dissolve", [("build", 0)])
@@ -545,7 +552,7 @@ def run_parallel(makes, workers=None):
 # The cold open
 # --------------------------------------------------------------------------
 
-def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures):
+def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures, fade_out=False):
     """(clip fn, length, [(take, offset)]) for the cold open, or None.
     The burst takes four wreckage photos; the hook lines get, in turn: the
     event's lead photo, real footage or else the 3D collapse, wreckage
@@ -586,7 +593,8 @@ def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures):
             items.append(pick or {"path": None})
     cuts = coldopen.layout(burst, items, lines, T)
     fx = coldopen.events(cuts, items)
-    fn = coldopen.cold_open(cuts, lines, T, hook.get("title", ""), hook.get("sub", ""), fx)
+    fn = coldopen.cold_open(cuts, lines, T, hook.get("title", ""), hook.get("sub", ""), fx,
+                            fade_out=fade_out)
     intro_plan.fx = fx                                   # the sound design reads the same moments
     return fn, T, [(f"hook_{i}", a - narration.PAD_IN) for i, (a, _, _) in enumerate(lines)]
 
@@ -658,7 +666,7 @@ def build_intro(sheet, raw3d, photos, voiced, out_mp4, work, footage=None, track
               "credit": _short_credit(c["credit"]).replace("Photo:", "Footage:"),
               "tag": "SECURITY CAMERA FOOTAGE" if c.get("cctv") else "ARCHIVE FOOTAGE"}
              for i, c in enumerate(footage or [])]
-    intro = intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures)
+    intro = intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures, fade_out=True)
     if not intro:
         raise SystemExit("no cold open in this sheet")
     fn, T, shots = intro
@@ -729,7 +737,8 @@ def toll_moment(sheet, words):
     if not digits:
         return None, None
     needles = [digits, f"{int(digits):,}", number_words(digits)]
-    for _, _, clip, _ in SHOTS:
+    hooks = sorted((c for c in words if c.startswith("hook_")), key=lambda c: int(c.split("_")[1]))
+    for clip in hooks + [c for _, _, c, _ in SHOTS]:      # the cold open says it first
         t = narration.find_word(words.get(clip) or [], *needles)
         if t is not None:
             return clip, t

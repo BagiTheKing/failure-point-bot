@@ -79,7 +79,7 @@ def _shade():
     return _shade_cache[0]
 
 
-def photo(sheet, path, tint_out=True, toll_at=None):
+def photo(sheet, path, tint_out=True, toll_at=None, quiet=False):
     """The opening shot over real pictures. The place and date are typed in
     under a line drawn across (no box popping in); the death toll is not
     shown here unless toll_at says when the narrator speaks it."""
@@ -98,10 +98,11 @@ def photo(sheet, path, tint_out=True, toll_at=None):
         f = Frame()
         f.img, f.d = img, ImageDraw.Draw(img, "RGBA")
         out = 1 - prog(t, T - 1.1, T - 0.5) if tint_out else 1
-        dateline(f, d["place_date"], d.get("place", ""), t, 0.6, out)
+        if not quiet:                            # after a cold open, these only repeat it
+            dateline(f, d["place_date"], d.get("place", ""), t, 0.6, out)
+            f.caption(d.get("caption", ""), prog(t, 0.3, 1.0) * out * (1 - prog(t, 6.0, 6.6)))
         if nums and toll_at is not None:
             toll(f, nums[0]["value"], nums[0]["label"], t - toll_at)
-        f.caption(d.get("caption", ""), prog(t, 0.3, 1.0) * out * (1 - prog(t, 6.0, 6.6)))
         return f.done()
     return clip
 

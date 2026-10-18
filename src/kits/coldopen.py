@@ -184,7 +184,7 @@ def _glitch(img, k):
     return Image.merge("RGB", (ImageChops.offset(r, off, 0), g, ImageChops.offset(b, -off, 0)))
 
 
-def cold_open(cuts, lines, T, title="", sub="", fx=None):
+def cold_open(cuts, lines, T, title="", sub="", fx=None, fade_out=True):
     """cuts: layout(). lines: [(start, end, text)] when each hook line is
     spoken, shown on screen while it is said. fx: events()."""
     fx = fx or {}
@@ -205,7 +205,8 @@ def cold_open(cuts, lines, T, title="", sub="", fx=None):
         if burst:                                # a camera flash on each press shot
             flash = 1 - prog(t - a, 0.0, FLASH)
             img = Image.blend(img, Image.new("RGB", img.size, (255, 255, 255)), 0.7 * flash)
-        img = Image.blend(Image.new("RGB", img.size, (0, 0, 0)), img, 1 - prog(t, T_ - 0.4, T_))
+        if fade_out:                             # alone; in the episode it dissolves on
+            img = Image.blend(Image.new("RGB", img.size, (0, 0, 0)), img, 1 - prog(t, T_ - 0.4, T_))
         f = Frame()
         f.img, f.d = img, ImageDraw.Draw(img, "RGBA")
         title_card(f, title, sub, t)
