@@ -1,0 +1,65 @@
+name: Sheet writer test
+
+# Manual. Step 5a: the free writers fill an animation sheet from the story's
+# verified fact sheet, and the 2D kit reel is rendered from it. Nothing is
+# uploaded to YouTube; the sheet and the reel are pushed to preview-media.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  write:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 1           # one at a time: the writers' free quotas are shared
+      matrix:
+        include:
+          - {name: hyatt, topic: "Hyatt Regency walkway collapse", variant: hanging_walkways}
+          - {name: i35w, topic: "I-35W Mississippi River bridge collapse", variant: truss_bridge}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: pip install -r requirements.txt
+      - name: Write the sheet and render the 2D kit from it
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          WIKIMEDIA_TOKEN: ${{ secrets.WIKIMEDIA_TOKEN }}
+        run: python tools/write_sheet.py "${{ matrix.topic }}" ${{ matrix.variant }} out/${{ matrix.name }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sheet-${{ matrix.name }}
+          path: |
+            out/${{ matrix.name }}/sheet.json
+            out/${{ matrix.name }}/facts.json
+            out/${{ matrix.name }}/kit_from_written_sheet.mp4
+          retention-days: 14
+      - name: Push to preview-media
+        if: success()
+        run: |
+          git fetch -q origin preview-media || true
+          mkdir -p pm && cd pm
+          git init -q -b preview-media
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch -q origin preview-media && git checkout -q -B preview-media origin/preview-media || true
+          mkdir -p sheets/${{ matrix.name }}
+          cp ../out/${{ matrix.name }}/sheet.json ../out/${{ matrix.name }}/facts.json \
+             ../out/${{ matrix.name }}/kit_from_written_sheet.mp4 sheets/${{ matrix.name }}/
+          git add -A
+          git commit -q -m "Written sheet: ${{ matrix.name }} (run ${{ github.run_number }})"
+          git push -q origin preview-media
