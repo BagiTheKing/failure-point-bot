@@ -6,10 +6,10 @@
         "videos/5ex5EQ0CxGg/2_model.jpg",
         "videos/5ex5EQ0CxGg/3_drawing.jpg"
       ],
-      "status": "waiting",
-      "current": null,
-      "since": null,
-      "views_at_start": null,
+      "status": "testing",
+      "current": 0,
+      "since": "2026-10-19T00:49:30.141270+00:00",
+      "views_at_start": 1,
       "results": [],
       "registered": "2026-10-18T23:39:25.333964+00:00"
     }
