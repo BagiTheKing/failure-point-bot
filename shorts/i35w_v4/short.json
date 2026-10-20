@@ -1,0 +1,20 @@
+{
+ "seconds": 40.13,
+ "top": "HALF AN INCH OF STEEL|BROUGHT THIS BRIDGE DOWN",
+ "spans": [
+  {
+   "span": "fall-dramatization",
+   "start": 221.933375,
+   "end": 244.126375
+  },
+  {
+   "span": "connection",
+   "start": 137.93200000000002,
+   "end": 153.26600000000002
+  }
+ ],
+ "parts": [
+  3,
+  4
+ ]
+}
