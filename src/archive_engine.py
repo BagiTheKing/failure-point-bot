@@ -398,6 +398,55 @@ def search_loc(query: str, limit: int = 8) -> list:
     return out
 
 
+def category_images(category: str, limit: int = 60, depth: int = 1) -> list:
+    """The free pictures filed under a Commons category (and its direct
+    subcategories), as candidates, best first. An event's category holds far
+    more than its Wikipedia article shows: the Hyatt Regency article carries
+    three pictures, its category the investigation's photographs and figures
+    (National Bureau of Standards, public domain)."""
+    if not category:
+        return []
+    name = category if category.startswith("Category:") else f"Category:{category}"
+    pages, cats = {}, []
+    try:
+        r = _polite_get(COMMONS_API, params={
+            "action": "query", "format": "json", "generator": "categorymembers",
+            "gcmtitle": name, "gcmtype": "file|subcat", "gcmlimit": limit,
+            "prop": "imageinfo", "iiprop": "url|size|mime|extmetadata",
+            "iiurlwidth": 1600}, timeout=30)
+        r.raise_for_status()
+        for key, page in ((r.json().get("query") or {}).get("pages") or {}).items():
+            if page.get("ns") == 14:
+                cats.append(page.get("title", ""))
+            else:
+                pages[key] = page
+    except Exception as e:
+        print(f"⚠️ Commons category lookup failed for {name!r}: {e}")
+        return []
+    found = _candidates(pages)
+    for sub in cats[:6] if depth > 0 else []:
+        found += category_images(sub, limit=limit // 2, depth=depth - 1)
+    return found
+
+
+def commons_category_of(article_title: str):
+    """The Commons category Wikidata files the article's subject under
+    (property P373), or None."""
+    try:
+        r = _polite_get("https://www.wikidata.org/w/api.php", params={
+            "action": "wbgetentities", "format": "json", "sites": "enwiki",
+            "titles": article_title, "props": "claims"}, timeout=25)
+        r.raise_for_status()
+        for ent in (r.json().get("entities") or {}).values():
+            for claim in (ent.get("claims") or {}).get("P373") or []:
+                value = ((claim.get("mainsnak") or {}).get("datavalue") or {}).get("value")
+                if value:
+                    return value
+    except Exception as e:
+        print(f"⚠️ Commons category lookup on Wikidata failed for {article_title!r}: {e}")
+    return None
+
+
 def search_archives(query: str, limit: int = 10) -> list:
     """Every free archive we have, best candidates first.
 

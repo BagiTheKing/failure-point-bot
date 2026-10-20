@@ -73,6 +73,13 @@ class EpisodeTimingTest(unittest.TestCase):
         self.assertEqual(got[5], said["January"])
         self.assertTrue(got[0] < got[1] and got[1] < got[2] < got[3])   # unsaid ones slot in, in order
 
+    def test_photo_of_another_city_is_dropped(self):
+        hyatt = {"disaster": {"place": "Hyatt Regency Kansas City atrium",
+                              "place_date": "KANSAS CITY · 17 JULY 1981", "photo_article": "Hyatt Regency walkway collapse"}}
+        self.assertTrue(episode.other_city({"title": "Hyatt Regency Embarcadero Atrium, San Francisco, US"}, hyatt))
+        self.assertFalse(episode.other_city({"title": "Figure 5.6 - NARA - 70172359"}, hyatt))
+        self.assertFalse(episode.other_city({"title": "Hyatt Regency Kansas City skywalk"}, hyatt))
+
     def test_credit_is_short(self):
         self.assertEqual(episode._short_credit(
             "I-35W collapse — Kevin Rofidal, USCG — Public domain (via Wikimedia Commons)"),

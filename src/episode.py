@@ -182,8 +182,9 @@ def gather_photos(sheet, out_dir, limit=16, pool=None, call=None):
     falling back to a Commons / Library of Congress search. Writes
     out_dir/photos.json: {shot: [{"path", "credit"}]}."""
     import time
-    from archive_engine import (article_images, article_lead_image, download_archival_image,
-                                format_credit, search_archives)
+    from archive_engine import (article_images, article_lead_image, category_images,
+                                commons_category_of, download_archival_image, format_credit,
+                                search_archives)
     title = sheet["disaster"].get("photo_article") or sheet["disaster"].get("place", "")
     cands = []
     for attempt in range(3):               # Wikipedia sometimes answers empty: retry
@@ -191,6 +192,12 @@ def gather_photos(sheet, out_dir, limit=16, pool=None, call=None):
         if cands:
             break
         time.sleep(10 * (attempt + 1))
+    if len(cands) < 12:                    # the event's own Commons category
+        found = category_images(title)
+        cat = None if found else commons_category_of(title)
+        found = found or (category_images(cat) if cat else [])
+        print(f"  {len(found)} more in the Commons category {cat or title!r}")
+        cands += found
     if len(cands) < 4:
         cands += search_archives(title.replace(" collapse", ""), limit=10)
     seen, got = set(), []
@@ -199,7 +206,7 @@ def gather_photos(sheet, out_dir, limit=16, pool=None, call=None):
         if len(got) >= limit or c.get("url") in seen:
             continue
         seen.add(c.get("url"))
-        if other_structure(c.get("title", ""), title):
+        if other_structure(c.get("title", ""), title) or other_city(c, sheet):
             print(f"  another structure, dropped: {c.get('title')}")
             continue
         path = os.path.join(out_dir, "photos", f"{len(got):02d}.jpg")
@@ -229,6 +236,22 @@ def other_structure(photo_title, story_title):
     return bool(theirs and mine and not (theirs & mine))
 
 
+_CITIES = ("new york", "san francisco", "los angeles", "chicago", "atlanta", "houston", "seattle",
+           "boston", "dallas", "denver", "miami", "las vegas", "london", "paris",
+           "tokyo", "toronto", "minneapolis", "kansas city", "embarcadero", "hartford", "baltimore",
+           "philadelphia", "new orleans", "san diego", "san antonio", "phoenix", "detroit")
+
+
+def other_city(photo, sheet):
+    """True when a photo is named after a different city than the story's
+    place: a search for "Hyatt Regency" found the San Francisco atrium, and
+    it went into the Kansas City episode as the rebuilt hotel."""
+    named = (photo.get("title") or "").lower()
+    place = " ".join(str(sheet["disaster"].get(k, "")) for k in ("place", "place_date", "photo_article")).lower()
+    theirs = {c for c in _CITIES if c in named}
+    return bool(theirs and not any(c in place for c in theirs))
+
+
 def pick_photos(sheet, got, pool, call):
     """The writer matches photos to the archive shots by what each photo
     shows (its title and description) against what each shot says, and
@@ -254,7 +277,7 @@ def pick_photos(sheet, got, pool, call):
             "event; \"today_photos\" only what the place looks like after (a replacement, a "
             "memorial).")
     def shape(data):                         # empty lists are fine: a shot may get no photo
-        if not isinstance(data, dict) or not isinstance(data.get("photo"), list) or not data["photo"]:
+        if not isinstance(data, dict) or not isinstance(data.get("photo", []), list):
             return "no photo list"
         bad = [k for k in (*ARCHIVE, "reject") if k in data and not isinstance(data[k], list)]
         return f"{bad[0]} is not a list" if bad else None
@@ -273,8 +296,10 @@ def pick_photos(sheet, got, pool, call):
             if 0 <= i < len(got) and i not in used:
                 used.add(i)
                 out[k].append(got[i])
-    if not out["photo"]:
-        return None
+    if not out["photo"]:                     # no strong lead: the best of the rest leads
+        lead = next((k for k in ("photos_disaster", "aftermath") if out[k]), None)
+        if lead:
+            out["photo"] = [out[lead].pop(0)]
     print("  photos picked by the writer: " + ", ".join(f"{k} {len(v)}" for k, v in out.items())
           + f", rejected {len(got) - len(used)}")
     return out
