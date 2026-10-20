@@ -1,0 +1,31 @@
+name: Topic demand
+
+# Manual. How much YouTube wants each candidate story
+# (tools/topic_demand.py): views of the most-viewed videos ever and in the
+# last 30 days. Read only; about 5,400 of the 10,000 daily quota units.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  demand:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install google-api-python-client google-auth google-auth-httplib2
+      - name: Demand
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python tools/topic_demand.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: topic-demand
+          path: demand.*
+          retention-days: 30
