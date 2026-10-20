@@ -708,8 +708,8 @@ OPEN_FADE = 0.8
 def intro_sound(voice_wav, hook_T, total, out_wav, track=None, fx=None):
     """The cold open's sound: the hook lines, the intro track coming in with
     the title, and its sound effects."""
-    # the music comes in with the title, quickly (a 0.3 s fade, not a slow swell)
-    plan = [(coldopen.TITLE_AT, hook_T + 1.0, track or score.COLD_OPEN, score.OPEN_LEVEL, 0.3)]
+    # the music comes in with the title (OPEN_FADE: eased in, never a slam)
+    plan = [(coldopen.TITLE_AT, hook_T + 1.0, track or score.COLD_OPEN, score.OPEN_LEVEL, OPEN_FADE)]
     credits = score.mix(voice_wav, plan, total, out_wav)
     score.add_sfx(out_wav, intro_effects(fx or {}), out_wav)
     return credits
