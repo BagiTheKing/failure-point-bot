@@ -413,6 +413,50 @@ def assemble(reply, variant, facts_source="", source_name="source"):
     }
 
 
+ROLES = {"photo": "the structure (or aircraft) before the disaster, over a photograph of it",
+         "photos_disaster": "the disaster as it happened, over photographs",
+         "establish": "the structure as a whole, over the 3D model",
+         "build": "how it was designed and built, step by step",
+         "load_path": "how the load travels through it",
+         "connection": "the one part that failed, close up",
+         "physics": "the forces on that part, and why it gave way",
+         "clock": "the moment of failure, in one sentence",
+         "fall": "the failure itself, physically",
+         "dramatization": "what the people there lived, in plain words",
+         "aftermath": "the rescue and the toll",
+         "timeline": "the warnings people missed, each with its date",
+         "investigation": "what the investigation found",
+         "compare": "what should have been done, against what was done",
+         "today_photos": "the place or the fleet afterwards, over photographs",
+         "today": "what changed since, and whether it could happen again"}
+
+
+def expand_short(pool, call, data, facts_text, topic):
+    """Writes again, one by one, the shots whose narration came back short
+    (the free writers often cut a long sheet short); a small reply per shot
+    fits where the whole sheet did not. Returns how many grew."""
+    shots = _shots(data.get("shots"))
+    grown = 0
+    for _, _, clip, words in SHOTS:
+        sh = shots.get(clip) or {"caption": "", "narration": ""}
+        have = sh["narration"]
+        if len(have.split()) >= words * 0.6:
+            continue
+        reply = call(pool, "You write documentary narration from a verified fact sheet. Never add a fact. "
+                     "Output only JSON.",
+                     f"Story: {topic}\n\nVERIFIED FACT SHEET (the only facts you may use):\n{facts_text}\n\n"
+                     f"Shot \"{clip}\": {ROLES.get(clip, '')}.\nIts narration now ({len(have.split())} words): "
+                     f"{have or '(none)'}\n\nWrite this shot's narration at about {words} words: plain, short "
+                     "sentences, every figure exactly as the fact sheet writes it, clock times as a narrator says "
+                     "them. Output {\"narration\": \"...\"}", max_tokens=1500, expect={"narration": str})
+        new = str((reply or {}).get("narration", "")) if isinstance(reply, dict) else ""
+        if len(new.split()) > len(have.split()):
+            shots[clip] = {**sh, "narration": new}
+            grown += 1
+    data["shots"] = shots
+    return grown
+
+
 def write_sheet(pool, topic, article, facts, variant, call, attempts=4):
     """The animation sheet for this story and kit, or None."""
     from story_mode import sheet_text
@@ -425,6 +469,11 @@ def write_sheet(pool, topic, article, facts, variant, call, attempts=4):
                     prompt(topic, facts_text, variant) + feedback, max_tokens=8000,
                     expect={"shots": dict, "kit": dict})
         problems = check(data, variant, source)
+        if isinstance(data, dict) and any("is too short" in p for p in problems):
+            grown = expand_short(pool, call, data, facts_text, topic)
+            if grown:
+                print(f"   ✍️  {grown} short shot(s) written again at length")
+                problems = check(data, variant, source)
         if not problems:
             sheet = assemble(data, variant, facts.get("source", article.get("url", "")))
             sheet["story"] = topic
