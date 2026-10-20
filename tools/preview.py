@@ -203,17 +203,24 @@ def build(prep, episode_dir, out_dir):
     # the bed: a drone and a heartbeat on every cut, swelling under the
     # promise; each F its own sound, landing with its word
     import score
-    from score import crash, groan, lock, ping, pulse_bed
+    from score import crash, groan, lock, ping, trailer_cue
     mixed = os.path.join(out_dir, "mix.wav")
     stay = spans[-1][1]
-    bed = pulse_bed(end, [times[k] for k in KEYS[:4]], stay)
+    # the score: minor under the problem, the fix's own chord (C major) when
+    # the fix lands, a rising run under the promise into the hit
+    seg = (end - stay) / 4
+    chords = [(0.0, times["forces"], "Am"), (times["forces"], times["failure"], "F"),
+              (times["failure"], times["fix"], "Dm"), (times["fix"], stay, "C"),
+              (stay, stay + seg, "F"), (stay + seg, stay + 2 * seg, "G"),
+              (stay + 2 * seg, stay + 3 * seg, "Em"), (stay + 3 * seg, end, "G")]
+    bed = trailer_cue(total, chords, BEAT / 2, times["forces"], times["flaw"], end - 1.2, end)
     bwav = os.path.join(out_dir, "bed.wav")
     sf.write(bwav, bed, SR)
     v2 = np.stack([voice_track, voice_track], axis=1)
     gain = score._duck_gain(voice_track, 0.45)[: len(v2)]
     b = np.zeros_like(v2)
     b[: len(bed)] = bed[: len(v2)]
-    sf.write(mixed, np.clip(b * gain[:, None] * 0.55 + v2, -1, 1), SR)
+    sf.write(mixed, np.clip(b * gain[:, None] * 0.62 + v2, -1, 1), SR)
     credits = []
     # levels balanced by loudness: the ring and the chord are thin, the groan dense
     sfx = [(times["flaw"] - 0.02, ping() * 0.6), (times["forces"] - 0.02, groan() * 0.38),

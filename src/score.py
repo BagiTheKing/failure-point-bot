@@ -341,22 +341,128 @@ def lock(seed=14, length=1.4):
     return _st(_norm(clunk * 0.9 + chord * 0.55, 0.75), 0.12)
 
 
-def pulse_bed(length, beats, swell_from, seed=15):
-    """The bed under the preview: a low drone (a root and its fifth, with a
-    slow filtered hiss) and a heartbeat thump on every cut, swelling from
-    `swell_from` into the end."""
+# ---------------------------------------------------------------------------
+# The preview's score (owner, 2026-10-21: "music to motivate the person for
+# what is coming, matching the sounds"): a short trailer cue, composed here,
+# locked to the cuts. Minor under the problem, the major chord of the fix's
+# own sound when the fix lands, a rising run under the promise into a big
+# hit. Band-limited saws, plucked bass, a bright arpeggio, drums, a room.
+# ---------------------------------------------------------------------------
+
+NOTE = {"C": 130.81, "D": 146.83, "E": 164.81, "F": 174.61, "G": 196.00, "A": 220.00, "B": 246.94}
+CHORDS = {"Am": "ACE", "F": "FAC", "Dm": "DFA", "C": "CEG", "G": "GBD", "Em": "EGB"}
+
+
+def _saw(freq, t, harmonics=10, detune=0.0):
+    out = np.zeros_like(t)
+    for k in range(1, harmonics + 1):
+        if freq * k > SR / 2.4:
+            break
+        out += np.sin(2 * np.pi * freq * (1 + detune) * k * t) / k
+    return out
+
+
+def _tones(name, octave=0):
+    """The chord's three notes, an octave up or down."""
+    return [NOTE[n] * (2 ** octave) for n in CHORDS[name]]
+
+
+def _room(x, seconds=0.9, mix=0.18, seed=21):
+    """A small room: the cue convolved with a short decaying noise tail."""
     rnd = np.random.default_rng(seed)
+    n = int(seconds * SR)
+    ir = rnd.standard_normal(n).astype(np.float32) * np.exp(-np.arange(n) / (n / 5))
+    ir = _lowpass(ir, 6)
+    ir /= np.abs(ir).sum() / 6
+    m = len(x) + n
+    size = 1 << int(np.ceil(np.log2(m)))
+    wet = np.fft.irfft(np.fft.rfft(x, size) * np.fft.rfft(ir, size), size)[: len(x)]
+    return (x * (1 - mix) + wet.astype(np.float32) * mix).astype(np.float32)
+
+
+def trailer_cue(length, chords, beat, arp_from, drums_from, roll_at, hit_at):
+    """chords: [(start, end, name)]; beat: seconds per beat (the cuts fall
+    on every other beat); the arpeggio and drums come in at arp_from and
+    drums_from, a snare roll leads into the hit at hit_at."""
     n = int(length * SR)
+    pad, bass, arp, drums = (np.zeros(n, np.float32) for _ in range(4))
+    for a, b, name in chords:
+        i0, i1 = int(a * SR), min(n, int((b + 0.25) * SR))
+        t = np.arange(i1 - i0) / SR
+        env = np.minimum(1, t / 0.12) * np.minimum(1, np.maximum(0, (b + 0.25 - a) - t) / 0.25)
+        for f in _tones(name) + _tones(name, 1):
+            for dt in (-0.003, 0.003):
+                pad[i0:i1] += _saw(f, t, 8, dt) * env * 0.08
+        # plucked bass on every eighth
+        root = NOTE[CHORDS[name][0]] / 2
+        k = 0
+        while a + k * beat / 2 < b:
+            s0 = int((a + k * beat / 2) * SR)
+            m = min(n - s0, int(beat / 2 * SR))
+            if m <= 0:
+                break
+            tt = np.arange(m) / SR
+            bass[s0:s0 + m] += _saw(root, tt, 6) * np.exp(-tt / 0.16) * (1.0 if k % 2 == 0 else 0.7)
+            k += 1
+        # the arpeggio: sixteenths through the chord, two octaves up
+        if b > arp_from:
+            tones = _tones(name, 1) + _tones(name, 2)[:1]
+            k = 0
+            while a + k * beat / 4 < b:
+                at = a + k * beat / 4
+                if at >= arp_from:
+                    s0 = int(at * SR)
+                    m = min(n - s0, int(beat / 4 * SR))
+                    tt = np.arange(m) / SR
+                    f = tones[k % len(tones)]
+                    arp[s0:s0 + m] += (np.sin(2 * np.pi * f * tt) + 0.3 * np.sin(4 * np.pi * f * tt)) * np.exp(-tt / 0.09)
+                k += 1
+    pad = _lowpass(pad, 14)
+    # drums: kick on every beat, a clap on the off-beats, hats in eighths
+    rnd = np.random.default_rng(22)
+    t_b = drums_from
+    k = 0
+    while t_b + k * beat / 2 < hit_at:
+        at = t_b + k * beat / 2
+        s0 = int(at * SR)
+        if k % 2 == 0:
+            m = min(n - s0, int(0.3 * SR))
+            tt = np.arange(m) / SR
+            f = 45 + 75 * np.exp(-tt / 0.03)
+            drums[s0:s0 + m] += np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-tt / 0.12) * 1.0
+        if k % 4 == 2:
+            m = min(n - s0, int(0.2 * SR))
+            tt = np.arange(m) / SR
+            nz = rnd.standard_normal(m).astype(np.float32)
+            drums[s0:s0 + m] += (nz - _lowpass(nz, 6)) * np.exp(-tt / 0.07) * 0.5 + np.sin(2 * np.pi * 190 * tt) * np.exp(-tt / 0.05) * 0.3
+        m = min(n - s0, int(0.05 * SR))
+        nz = rnd.standard_normal(m).astype(np.float32)
+        drums[s0:s0 + m] += (nz - _lowpass(nz, 2)) * np.exp(-np.arange(m) / (0.012 * SR)) * 0.22
+        k += 1
+    # a snare roll speeding up into the hit
+    at = roll_at
+    gap = beat / 4
+    while at < hit_at - 0.02:
+        s0 = int(at * SR)
+        m = min(n - s0, int(0.12 * SR))
+        tt = np.arange(m) / SR
+        nz = rnd.standard_normal(m).astype(np.float32)
+        grow = 0.3 + 0.7 * (at - roll_at) / max(0.1, hit_at - roll_at)
+        drums[s0:s0 + m] += (nz - _lowpass(nz, 6)) * np.exp(-tt / 0.05) * 0.45 * grow
+        at += gap
+        gap = max(beat / 12, gap * 0.85)
+    # the hit: the fix's chord, big, with a low boom
+    s0 = int(hit_at * SR)
+    m = n - s0
+    if m > 0:
+        tt = np.arange(m) / SR
+        for f in _tones("C", -1) + _tones("C") + _tones("C", 1):
+            pad[s0:] += _saw(f, tt, 8) * np.exp(-tt / 0.9) * 0.09
+        drums[s0:] += np.sin(2 * np.pi * np.cumsum(38 + 60 * np.exp(-tt / 0.06)) / SR) * np.exp(-tt / 0.5) * 1.2
+    mix_ = pad * 0.9 + bass * 0.35 + arp * 0.16 + drums * 0.55
+    # the build: half level under the first word, growing to the hit
     t = np.arange(n) / SR
-    drone = (np.sin(2 * np.pi * 55 * t) + 0.5 * np.sin(2 * np.pi * 82.4 * t) + 0.25 * np.sin(2 * np.pi * 110 * t))
-    hiss = _lowpass(rnd.standard_normal(n).astype(np.float32), 90) * 2.5
-    grow = 0.55 + 0.45 * np.clip((t - swell_from) / max(0.5, length - swell_from), 0, 1)
-    out = (drone * 0.5 + hiss * 0.3) * np.minimum(1, t / 0.4) * grow
-    for at in beats:                                   # thump-thump on each cut
-        for k, dt in enumerate((0.0, 0.16)):
-            a = int((at + dt) * SR)
-            m = int(0.35 * SR)
-            if a + m < n:
-                tt = np.arange(m) / SR
-                out[a:a + m] += np.sin(2 * np.pi * (60 - 20 * tt / 0.35) * tt) * np.exp(-tt / 0.09) * (1.6 if k == 0 else 1.0)
-    return _st(_norm(out, 0.6), 0.03)
+    mix_ = mix_ * np.where(t < hit_at, 0.42 + 0.58 * (t / max(0.1, hit_at)) ** 1.3, 1.0)
+    mix_ = _room(mix_.astype(np.float32))
+    mix_[: int(0.15 * SR)] *= np.linspace(0, 1, int(0.15 * SR))
+    return _st(_norm(mix_, 0.8), 0.06)
