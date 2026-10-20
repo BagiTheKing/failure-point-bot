@@ -1,0 +1,371 @@
+{
+  "story": "Hyatt Regency walkway collapse",
+  "sources": {
+    "source": "https://en.wikipedia.org/wiki/Hyatt_Regency_walkway_collapse"
+  },
+  "kit": {
+    "family": "structure",
+    "variant": "hanging_walkways",
+    "levels": [
+      "Fourth floor walkway",
+      "Second floor walkway"
+    ],
+    "rod_lines": 3,
+    "failed_line": 1,
+    "labels": {
+      "roof": "Roof framing",
+      "rods": "1.25-inch steel hanger rods",
+      "beam": "8-inch welded C-channel box beam",
+      "nut": "Supporting nut and washer",
+      "upper_rod": "Upper rod to roof",
+      "lower_rod": "Lower rod to second floor"
+    }
+  },
+  "model_3d": {
+    "walk_length": 36.0,
+    "walk_width": 2.6,
+    "level_z": [
+      12.0,
+      5.0
+    ],
+    "roof_z": 19.5,
+    "labels_3d": [
+      {
+        "anchor": "upper_deck",
+        "text": "Fourth floor walkway",
+        "color": "cyan",
+        "t": [
+          2.0,
+          6.0
+        ],
+        "at": [
+          140,
+          150
+        ]
+      },
+      {
+        "anchor": "lower_deck",
+        "text": "Second floor walkway",
+        "color": "cyan",
+        "t": [
+          2.0,
+          6.0
+        ],
+        "at": [
+          140,
+          420
+        ]
+      },
+      {
+        "anchor": "lower_rods_mid",
+        "text": "Offset lower hanger rods",
+        "color": "amber",
+        "t": [
+          9.2,
+          12.4
+        ],
+        "at": [
+          820,
+          300
+        ]
+      },
+      {
+        "anchor": "upper_rod",
+        "text": "Continuous hanger rod",
+        "color": "cyan",
+        "t": [
+          15.4,
+          19.4
+        ],
+        "at": [
+          760,
+          150
+        ]
+      },
+      {
+        "anchor": "lower_rod",
+        "text": "Suspended lower rod",
+        "color": "cyan",
+        "t": [
+          15.4,
+          19.4
+        ],
+        "at": [
+          760,
+          520
+        ]
+      }
+    ],
+    "big_3d": {
+      "anchor": "nut",
+      "text": "2×",
+      "label": "LOAD ON FOURTH FLOOR BOX BEAM",
+      "t": [
+        16.8,
+        19.4
+      ]
+    },
+    "ai_prompt": "Inside a multistory hotel atrium, a steel and concrete fourth-floor pedestrian bridge suddenly tears through its welded box beams. The connection fails at the hanger rods. The upper bridge drops straight down onto the matching bridge suspended below it, smashing both spans onto the crowded floor beneath in a massive dust cloud. Static camera.",
+    "shot_seconds": {
+      "establish": 19.99,
+      "load_path": 15.146,
+      "connection": 16.023,
+      "pull": 7.265300000000001,
+      "hold": 3.1137,
+      "drop": 9.0
+    }
+  },
+  "disaster": {
+    "place_date": "KANSAS CITY · 17 JULY 1981 · 7:05 PM",
+    "place": "Hyatt Regency Kansas City atrium",
+    "caption": "Fourth and second floor walkways collapse onto partygoers",
+    "photo_article": "Hyatt Regency walkway collapse"
+  },
+  "hook": {
+    "title": "THE HYATT REGENCY COLLAPSE",
+    "lines": [
+      "July 17, 1981. Hyatt Regency Kansas City.",
+      "Two suspended walkways collapse into a crowded tea dance.",
+      "114 people die. 216 are injured.",
+      "A simple design change doubled the load on a single connection."
+    ],
+    "sub": "KANSAS CITY · 17 JULY 1981"
+  },
+  "design_vs_built": {
+    "designed": {
+      "title": "WHAT IT NEEDED",
+      "detail": "100% of minimum load required by building codes",
+      "load": "Full code required load capacity"
+    },
+    "built": {
+      "title": "AS BUILT",
+      "detail": "Revised hanger rod detail with offset rods",
+      "load": "Supported only 30% of code load"
+    },
+    "multiplier": "2×",
+    "multiplier_label": "LOAD ON FOURTH FLOOR BEAM",
+    "plate_built": "",
+    "plate_needed": "",
+    "source": "source"
+  },
+  "numbers": [
+    {
+      "value": "114",
+      "label": "PEOPLE KILLED",
+      "source": "source"
+    },
+    {
+      "value": "216",
+      "label": "INJURED",
+      "source": "source"
+    },
+    {
+      "value": "14 hours",
+      "label": "RESCUE OPERATION",
+      "source": "source"
+    }
+  ],
+  "clock": {
+    "from_seconds": 50,
+    "label_before": "7:04:{s:02d}",
+    "label_at": "7:05:00",
+    "day": "PM · FRIDAY 17 JULY 1981",
+    "event": "FOURTH FLOOR SKYWALK GIVES WAY"
+  },
+  "timeline": [
+    {
+      "date": "MAY 1978",
+      "title": "CONSTRUCTION BEGINS",
+      "sub": "Work starts on 40-story hotel",
+      "kind": "event",
+      "source": "source"
+    },
+    {
+      "date": "PRIOR TO JULY 1, 1980",
+      "title": "ATRIUM ROOF COLLAPSE",
+      "sub": "2,700-square-foot roof section fails",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "JULY 1, 1980",
+      "title": "HOTEL OPENS",
+      "sub": "Atrium walkways open to the public",
+      "kind": "event",
+      "source": "source"
+    },
+    {
+      "date": "JULY 17, 1981",
+      "title": "SKYWALK DISASTER",
+      "sub": "Two suspended walkways collapse",
+      "kind": "failure",
+      "source": "source"
+    }
+  ],
+  "today": {
+    "title": "COULD IT HAPPEN TODAY?",
+    "lines": [
+      "Structural engineers are strictly accountable for shop drawing reviews.",
+      "Atrium walkways now use direct column support instead of hanger rods.",
+      "Rigorous independent code reviews make duplicate errors far less likely."
+    ],
+    "source": "source"
+  },
+  "shots": [
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photo",
+      "caption": "Hyatt Regency Kansas City atrium before the collapse",
+      "narration": "The Hyatt Regency Kansas City opened in July 1980. The forty-story hotel featured an expansive multistory atrium spanned by three suspended walkways. Each walkway was about one hundred twenty feet long and weighed about sixty-four thousand pounds. The fourth-floor walkway hung directly above the second-floor walkway, suspended from overhead roof framing by steel hanger rods. Guests gathered on and beneath these bridges during weekly Friday evening events.",
+      "seconds": 28.27
+    },
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photos_disaster",
+      "caption": "The collapsed walkways resting on the atrium lobby floor",
+      "narration": "On July 17, 1981, about sixteen hundred people filled the hotel atrium for a tea dance. Just after seven in the evening, the fourth-floor walkway broke free from its supports. It dropped onto the second-floor walkway directly below, and both spans crashed onto the crowded lobby floor. One hundred fourteen people were killed and two hundred sixteen were injured. Rescuers arrived to find heavy steel and concrete pinning victims across the lobby.",
+      "seconds": 26.92
+    },
+    {
+      "part": 2,
+      "tool": "3d",
+      "clip": "establish",
+      "caption": "Overview of the suspended fourth and second floor walkways",
+      "narration": "The hotel atrium featured suspended bridges crossing the open space between walls. The second-floor walkway hung directly beneath the fourth-floor span. Each walkway measured about one hundred twenty feet in length and weighed about sixty-four thousand pounds. These heavy steel structures relied entirely on slender rods anchored to the building roof.",
+      "seconds": 19.19
+    },
+    {
+      "part": 2,
+      "tool": "2d",
+      "clip": "build",
+      "caption": "Assembly of welded C-channel beams and hanger rods",
+      "narration": "Construction began in May 1978. The walkways were built using box beams made of eight-inch-wide C-channel strips welded together face to face. Steel hanger rods measured 1.25 inches in diameter. In the original design, continuous rods were intended to pass down from the roof framing through the fourth-floor beams to the second-floor walkway below. However, Daniel M. Duncan, an engineer at Jack D. Gillum and Associates, accepted Havens Steel's proposed plan via a phone call. The change altered the hanger rod arrangement completely. Two separate sets of rods were installed instead of single long rods, leaving the lower walkway hanging entirely from the upper walkway beams.",
+      "seconds": 39.78
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "load_path",
+      "caption": "Transferred load path through the fourth-floor connection",
+      "narration": "Under the modified plan, the lower walkway hung from rods connected directly to the fourth-floor box girders. The upper rods carried the weight of both walkways combined. All the tension from the second floor had to pass through the welded fourth-floor crossbeams.",
+      "seconds": 15.15
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "connection",
+      "caption": "Cross-section of the box beam and hanger rod nut",
+      "narration": "Each 1.25-inch hanger rod passed through a hole in the box beam. A nut and washer supported the steel beam from underneath. The entire combined weight of both walkways pushed down directly against the bottom flange of that single welded connection.",
+      "seconds": 15.22
+    },
+    {
+      "part": 3,
+      "tool": "2d",
+      "clip": "physics",
+      "caption": "Box beam flanges deforming under doubled tension loads",
+      "narration": "The structural failure stemmed directly from this modified connection. The original design supported only sixty percent of the minimum load required by Kansas City building codes. But the revised design made the connection far weaker. By hanging the lower bridge directly from the upper bridge, the load on the fourth-floor box beams was doubled. The revised design left the fourth-floor beams strong enough to support only thirty percent of the load required by building codes. When hundreds of partygoers gathered for the tea dance, the downward force easily exceeded what the connection could handle. The National Bureau of Standards final report concluded that the walkways had only minimal capacity to resist their own weight. The welded eight-inch-wide C-channel box girders began to distort. The bottom of the box beam bent downward around the supporting washer. With no stiffener plates to reinforce the joint, the nut and washer tore completely through the welded seam of the beam. Once that support slipped through, the fourth-floor beam lost all vertical hold. The upper bridge fell, landing with full force onto the lower bridge and dragging both structures down into the crowded lobby.",
+      "seconds": 62.52
+    },
+    {
+      "part": 4,
+      "tool": "2d",
+      "clip": "clock",
+      "caption": "7:05 PM · July 17, 1981",
+      "narration": "About seven-oh-five in the evening on July 17, 1981, the upper connection failed and both walkways collapsed into the lobby.",
+      "seconds": 9.73
+    },
+    {
+      "part": 4,
+      "tool": "3d",
+      "clip": "fall",
+      "caption": "Walkways crashing onto the atrium floor below",
+      "narration": "The fourth-floor skywalk plunged into the second-floor span. Both sixty-four-thousand-pound walkways sheared away and smashed into the crowd gathered on the lobby floor.",
+      "seconds": 10.38
+    },
+    {
+      "part": 4,
+      "tool": "ai_video",
+      "clip": "dramatization",
+      "caption": "Collapse during the hotel tea dance",
+      "narration": "About sixteen hundred dancers stood in the atrium. A sudden crack split the air, and tons of steel and concrete crashed down without warning.",
+      "seconds": 9.0
+    },
+    {
+      "part": 4,
+      "tool": "archive",
+      "clip": "aftermath",
+      "caption": "Rescue operations underway inside the damaged atrium",
+      "narration": "Kansas City emergency medical director Joseph Waeckerle directed the fourteen-hour rescue operation alongside Deputy Fire Chief Arnett Williams. Heavy equipment suppliers offered assistance, telling crews to take what you want. Mark Williams, the final rescued victim, spent more than nine hours pinned beneath the lower skywalk before workers freed him. The disaster left one hundred fourteen dead and two hundred sixteen injured. Months after the disaster, more than three hundred lawsuits were filed seeking a total of three billion dollars. Ultimately, at least one hundred forty million dollars was awarded to victims and their families.",
+      "seconds": 35.41
+    },
+    {
+      "part": 5,
+      "tool": "2d",
+      "clip": "timeline",
+      "caption": "Sequence of events leading up to the structural collapse",
+      "narration": "The disaster followed years of missed warnings and industry pressures. During the late nineteen-seventies, high unemployment, inflation, and double-digit interest rates put pressure on builders to swiftly complete fast-tracked projects amid nationwide structural failures. Notable structures were failing across the country. In 1978, the Hartford Civic Center roof collapsed. In May 1978, construction began on the forty-story Hyatt Regency Kansas City. In 1979, the Kemper Arena roof collapsed. Prior to July 1, 1980, during construction of the Hyatt, a twenty-seven-hundred-square-foot section of the hotel roof partially collapsed. The hotel opened on July 1, 1980. Then, on July 17, 1981, the fourth-floor and second-floor walkways collapsed.",
+      "seconds": 48.28
+    },
+    {
+      "part": 5,
+      "tool": "archive",
+      "clip": "investigation",
+      "caption": "Investigation of the failed box beams and hanger rods",
+      "narration": "Days after the collapse, Wayne G. Lischka, an architectural engineer hired by The Kansas City Star, discovered the critical design change in the walkways. Testing of the box beams soon began at Lehigh University. Edward Pfrang served as lead investigator for the National Bureau of Standards, later noting everyone wanting to walk away from responsibility. Engineer of record Jack D. Gillum later stated that any first-year engineering student could figure it out. The Kansas City Star and The Kansas City Times won a Pulitzer Prize in 1982 for sixteen months of investigative reporting on the collapse.",
+      "seconds": 35.14
+    },
+    {
+      "part": 6,
+      "tool": "2d",
+      "clip": "compare",
+      "caption": "Original continuous rod concept versus the fatal split-rod change",
+      "narration": "Proper engineering review should have caught the fatal flaw before steel was ever fabricated. The original design called for continuous steel rods that ran from the ceiling directly through both walkways. While that initial plan supported only sixty percent of the code-mandated load, the field change proved fatal. Havens Steel suggested splitting the rods so they would not have to thread seventy feet of rod on site. Daniel M. Duncan accepted the plan over the phone without verifying calculations. The change doubled the load on the fourth-floor connection, reducing its capacity to just thirty percent of the building code requirement. Standard procedure required detailed shop drawing verification by structural engineers, but no calculations were performed.",
+      "seconds": 40.94
+    },
+    {
+      "part": 7,
+      "tool": "archive",
+      "clip": "today_photos",
+      "caption": "Reconstructed atrium of the Hyatt Regency Crown Center",
+      "narration": "On October 1, 1981, the hotel reopened with a redesigned atrium after a committee of engineers and architects found no further structural safety issues. The five-million-dollar reconstruction replaced the second-floor walkway with a column-supported structure and removed the upper spans entirely. In 1983, local authorities reported the building was possibly the safest in the country. In 1987, the facility was renamed the Hyatt Regency Crown Center.",
+      "seconds": 30.05
+    },
+    {
+      "part": 7,
+      "tool": "2d",
+      "clip": "today",
+      "caption": "Lasting legacy and structural engineering reforms",
+      "narration": "The disaster brought sweeping reforms to the engineering profession. In 1981, the American Society of Civil Engineers adopted a policy making structural engineers ultimately responsible for reviewing fabricators' shop drawings. That same year, the Kansas City Codes Administration became an independent department, doubling its staff and assigning a single engineer to all aspects of each building. In 1983, the disaster was cited to stop the Reagan administration from eliminating an agency of the National Bureau of Standards. Today, mandatory independent reviews make such unchecked drawing modifications far harder to overlook.",
+      "seconds": 37.78
+    }
+  ],
+  "timing": {
+    "slots": {
+      "photo": 28.267999999999997,
+      "photos_disaster": 26.916999999999998,
+      "establish": 19.189999999999998,
+      "build": 39.782999999999994,
+      "load_path": 15.146,
+      "connection": 15.223,
+      "physics": 62.515,
+      "clock": 9.728000000000002,
+      "fall": 10.379000000000001,
+      "dramatization": 9.002,
+      "aftermath": 35.413999999999994,
+      "timeline": 48.278,
+      "investigation": 35.141,
+      "compare": 40.939,
+      "today_photos": 30.046999999999997,
+      "today": 37.781
+    },
+    "dissolve": 0.8,
+    "ai": false,
+    "kit": {
+      "build": 40.58299999999999,
+      "physics": 63.315,
+      "compare": 41.739
+    }
+  }
+}
