@@ -56,12 +56,6 @@ jobs:
             git show "origin/preview-media:thumbs/${{ inputs.thumbs }}/thumb_$t.jpg" > ep/thumb_$t.jpg 2>/dev/null || rm -f ep/thumb_$t.jpg
           done
           ls -la ep
-      - name: Take the place of an earlier, unpublished cut
-        if: inputs.replace != ''
-        env:
-          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
-          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
-        run: python tools/replace_video.py "${{ inputs.replace }}"
       - name: 48-hour spacing
         id: gate
         working-directory: src
@@ -69,7 +63,15 @@ jobs:
           YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
           PUBLISH_AT: ${{ inputs.publish_at }}
+          IGNORE_VIDEO: ${{ inputs.replace }}
         run: python upload_gate.py
+      - name: Take the place of an earlier, unpublished cut
+        # only once the gate has said go: never a deleted cut with nothing in its place
+        if: inputs.replace != '' && steps.gate.outputs.go == 'true'
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python tools/replace_video.py "${{ inputs.replace }}"
       - name: Publish
         if: steps.gate.outputs.go == 'true'
         env:

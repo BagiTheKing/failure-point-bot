@@ -22,6 +22,9 @@ import os
 import sys
 
 MIN_HOURS = float(os.getenv("MIN_HOURS_BETWEEN_UPLOADS", "48"))
+# a scheduled video goes public a few seconds after its time, so the slot 48 h
+# after it would be missed by those seconds (the Hyatt cut, 2026-10-20)
+GRACE = datetime.timedelta(minutes=2)
 
 
 def _when(raw):
@@ -55,7 +58,7 @@ def decide(videos, now=None, hours=MIN_HOURS):
     if not when:
         return True, "no earlier post on the channel"
     slot = when + datetime.timedelta(hours=hours)
-    if now >= slot:
+    if now >= slot - GRACE:
         return True, f"last post {(now - when).total_seconds() / 3600:.0f} h ago ({title[:60]!r})"
     return False, (f"last post {title[:60]!r} at {when:%Y-%m-%d %H:%M} UTC; the channel waits "
                    f"{hours:g} h, next slot {slot:%Y-%m-%d %H:%M} UTC")
@@ -76,6 +79,9 @@ def main():
                       + ("a scheduled run stands down" if scheduled else "manual run goes anyway"))
         else:
             at = _when(os.getenv("PUBLISH_AT", "").strip())
+            # the cut being replaced does not count against its own slot
+            skip = os.getenv("IGNORE_VIDEO", "").strip()
+            videos = [v for v in videos if v.get("videoId") != skip] if skip else videos
             go, reason = decide(videos, now=at if at and at.tzinfo else None)
     print(("✅ Go: " if go else "🛑 Standing down: ") + reason)
     out = os.getenv("GITHUB_OUTPUT")

@@ -25,6 +25,11 @@ class UploadGateTest(unittest.TestCase):
         self.assertFalse(go)
         self.assertIn("next slot", reason)
 
+    def test_seconds_late_publish_still_frees_its_slot(self):
+        # the Short went public at 23:45:05: 23:45:00 two days on still goes
+        late = (NOW - datetime.timedelta(hours=48) + datetime.timedelta(seconds=5)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        self.assertTrue(upload_gate.decide([{"title": "short", "publishedAt": late}], now=NOW)[0])
+
     def test_post_older_than_48h_goes(self):
         self.assertTrue(upload_gate.decide([{"title": "Hyatt", "publishedAt": at(49)}], now=NOW)[0])
 
