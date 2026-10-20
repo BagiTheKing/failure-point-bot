@@ -23,7 +23,7 @@ import subprocess
 import numpy as np
 from PIL import Image, ImageFilter
 
-DPI = 110
+DPI = 220                          # crops about 1,200 px wide: sharp enough for HD
 MIN_W, MIN_H = 0.38, 0.16          # of the page: smaller blocks are text or logos
 DARK = 200                         # a blurred text page stays lighter than this
 
@@ -90,6 +90,11 @@ def figures(url_or_path, out_dir, credit, year=None, limit=40):
             continue
         page = Image.open(made[0])
         caps = captions(pages[p - 1])
+        # third-party material in a government report keeps its owner's
+        # rights (the Hyatt report's TV frames are "courtesy of KMBC TV")
+        if any(re.search(r"courtesy|videotape|copyright|©", c, re.I) for c in caps):
+            os.remove(made[0])
+            continue
         for k, (x0, y0, x1, y1) in enumerate(blocks(page)):
             crop = page.crop((x0, y0, x1, y1)).convert("RGB")
             path = os.path.join(out_dir, f"fig_{p:04d}_{k}.jpg")
