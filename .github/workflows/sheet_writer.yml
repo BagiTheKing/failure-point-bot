@@ -5,6 +5,10 @@ name: Sheet writer test
 # uploaded to YouTube; the sheet and the reel are pushed to preview-media.
 on:
   workflow_dispatch:
+    inputs:
+      only:
+        description: "Write only this story (hyatt or i35w; blank = both)"
+        default: ""
 
 permissions:
   contents: write
@@ -17,9 +21,7 @@ jobs:
       fail-fast: false
       max-parallel: 1           # one at a time: the writers' free quotas are shared
       matrix:
-        include:
-          - {name: hyatt, topic: "Hyatt Regency walkway collapse", variant: hanging_walkways}
-          - {name: i35w, topic: "I-35W Mississippi River bridge collapse", variant: truss_bridge}
+        name: ${{ fromJSON(inputs.only && format('["{0}"]', inputs.only) || '["hyatt","i35w"]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -37,7 +39,12 @@ jobs:
           ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           WIKIMEDIA_TOKEN: ${{ secrets.WIKIMEDIA_TOKEN }}
-        run: python tools/write_sheet.py "${{ matrix.topic }}" ${{ matrix.variant }} out/${{ matrix.name }}
+        run: |
+          case "${{ matrix.name }}" in
+            hyatt) python tools/write_sheet.py "Hyatt Regency walkway collapse" hanging_walkways out/hyatt ;;
+            i35w) python tools/write_sheet.py "I-35W Mississippi River bridge collapse" truss_bridge out/i35w ;;
+            *) echo "unknown story ${{ matrix.name }}"; exit 1 ;;
+          esac
       - uses: actions/upload-artifact@v4
         if: always()
         with:
