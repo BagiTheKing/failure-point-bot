@@ -9,7 +9,9 @@ The workflows run this in their small gate job, before anything is rendered:
 
     python src/upload_gate.py      # appends go=true|false to $GITHUB_OUTPUT
 
-A run that only renders (SKIP_UPLOAD=1) always goes. IGNORE_SPACING=1 (a
+A run that only renders (SKIP_UPLOAD=1) always goes. PUBLISH_AT (RFC 3339)
+checks the spacing at that time instead of now, for an upload scheduled to
+go public then. IGNORE_SPACING=1 (a
 manual run whose owner ticked the box) goes too. When the channel cannot be
 read, a scheduled run stands down rather than risk breaking the rule; a
 manual run goes, with a warning.
@@ -73,7 +75,8 @@ def main():
             reason = ("the channel could not be read: "
                       + ("a scheduled run stands down" if scheduled else "manual run goes anyway"))
         else:
-            go, reason = decide(videos)
+            at = _when(os.getenv("PUBLISH_AT", "").strip())
+            go, reason = decide(videos, now=at if at and at.tzinfo else None)
     print(("✅ Go: " if go else "🛑 Standing down: ") + reason)
     out = os.getenv("GITHUB_OUTPUT")
     if out:

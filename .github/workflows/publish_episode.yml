@@ -59,6 +59,7 @@ jobs:
         env:
           YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          PUBLISH_AT: ${{ inputs.publish_at }}
         run: python upload_gate.py
       - name: Publish
         if: steps.gate.outputs.go == 'true'

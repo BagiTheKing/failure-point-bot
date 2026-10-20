@@ -1,0 +1,127 @@
+name: Highlight Short
+
+# Manual. A long video's highlight Short, cut from the finished episode
+# (tools/highlight_short.py): its voice, music and animation, set 9:16 with
+# the hook on top and the words as they are said. Always pushed to
+# preview-media (shorts/<name>/) for review; uploaded only when "publish" is
+# ticked, on the owner's go, after the 48-hour spacing check at the time it
+# goes public (src/upload_gate.py).
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Episode sample run (its prep and episode artifacts)"
+        required: true
+      name:
+        description: "The episode's name (artifact episode-<name>)"
+        required: true
+      spans:
+        description: "Shots to cut, in order: a-b runs shot a to shot b"
+        default: "fall-dramatization,connection"
+      top:
+        description: "The hook, two lines split by |"
+        required: true
+      title:
+        description: "The Short's title (needed to publish)"
+        default: ""
+      full:
+        description: "The long video's id, linked from the Short (needed to publish)"
+        default: ""
+      publish:
+        description: "Upload it to the channel"
+        type: boolean
+        default: false
+      publish_at:
+        description: "RFC 3339 UTC time to go public (blank = public now)"
+        default: ""
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  short:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: prep
+          path: prep
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: episode-${{ inputs.name }}
+          path: ep
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+      - name: Cut the Short
+        env:
+          SPANS: ${{ inputs.spans }}
+          TOP: ${{ inputs.top }}
+        run: python tools/highlight_short.py prep ep/episode.mp4 short --spans "$SPANS" --top "$TOP"
+      - name: Description
+        if: inputs.title != '' && inputs.full != ''
+        env:
+          TITLE: ${{ inputs.title }}
+        run: python tools/publish_short.py short ep --title "$TITLE" --full "${{ inputs.full }}" --dry-run
+      - uses: actions/upload-artifact@v4
+        with:
+          name: short-${{ inputs.name }}
+          path: short/short.*
+          retention-days: 14
+      - name: Push to preview-media
+        run: |
+          mkdir -p pm && cd pm
+          git init -q -b preview-media
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch -q origin preview-media && git checkout -q -B preview-media origin/preview-media || true
+          mkdir -p shorts/${{ inputs.name }}
+          cp ../short/short.mp4 ../short/short.json shorts/${{ inputs.name }}/
+          git add -A
+          git commit -q -m "Highlight Short: ${{ inputs.name }} (run ${{ github.run_number }})"
+          git push -q origin preview-media
+      - name: 48-hour spacing
+        id: gate
+        if: inputs.publish
+        working-directory: src
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          PUBLISH_AT: ${{ inputs.publish_at }}
+        run: python upload_gate.py
+      - name: Publish
+        if: inputs.publish && steps.gate.outputs.go == 'true'
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          TITLE: ${{ inputs.title }}
+        run: |
+          [ -n "$TITLE" ] && [ -n "${{ inputs.full }}" ] || { echo "title and full video id are needed"; exit 1; }
+          python tools/publish_short.py short ep --title "$TITLE" --full "${{ inputs.full }}" \
+            --publish-at "${{ inputs.publish_at }}"
+          cat short/published.json
+      - name: Hold the first comment until the Short is public
+        if: inputs.publish && steps.gate.outputs.go == 'true'
+        run: |
+          [ -f build/pending_comments.json ] || exit 0
+          git fetch -q origin thumb-rotation
+          git worktree add -q rot origin/thumb-rotation
+          ROT_DIR=rot python tools/thumb_rotation.py comments build/pending_comments.json
+          cd rot
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -qm "Hold the first comment of a Short"
+          git push -q origin HEAD:thumb-rotation
