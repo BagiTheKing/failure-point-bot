@@ -59,7 +59,7 @@ jobs:
         env:
           KOKORO_VOICE: am_echo
         run: |
-          python tools/preview.py prep ep out --splice
+          python -u tools/preview.py prep ep out --splice
           cp ep/timed_sheet.json out/
       - uses: actions/upload-artifact@v4
         with:

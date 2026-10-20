@@ -157,34 +157,9 @@ def build(prep, episode_dir, out_dir):
     spans, end = _cut_list(times, took["seconds"])
     total = end + PAUSE
 
-    # picture
-    frames_out = []
-    for i, (key, a, b) in enumerate(spans):
-        n = int(round((b - a) * FPS))
-        clip = _frames(episode_mp4, src[key], n)
-        for j, img in enumerate(clip):
-            k = j / max(1, n - 1)
-            img = _push(img, k)
-            t_local = j / FPS
-            if t_local < 2 / FPS and i > 0:
-                img = _glitch(img, 1 - t_local * 15)
-            if t_local < 3 / FPS:
-                img = Image.blend(img, Image.new("RGB", img.size, WHITE), 0.55 * (1 - t_local * 10))
-            _pill(img, "COMING UP", 1.0)
-            if key == "stay":
-                _close_lines(img, t_local, words, a)
-            else:
-                _caption(img, CAPTIONS[i], t_local)
-            frames_out.append(img)
-    brand = Image.new("RGB", (W, H), (4, 10, 20))
-    d = ImageDraw.Draw(brand)
-    d.text((W / 2, H / 2), "THE POINT OF FAILURE", font=_font("Inter-Bold.otf", 30), fill=(170, 186, 210), anchor="mm")
-    for j in range(int(round(PAUSE * FPS))):
-        k = min(1, j / (PAUSE * FPS * 0.4))
-        frames_out.append(Image.blend(Image.new("RGB", (W, H)), brand, k * (1 - max(0, j / (PAUSE * FPS) - 0.7) / 0.3)))
-
-    # sound: the voice over a tense bed, a whoosh into every cut, a riser
-    # under the promise into a soft hit, then the beat of silence
+    # sound first: the voice over a tense bed, a whoosh into every cut, a
+    # riser under the promise into a soft hit, then the beat of silence
+    print(f"  cuts: {[(k, round(a, 2), round(b, 2)) for k, a, b in spans]}", flush=True)
     voice_track = np.zeros(int(total * SR), np.float32)
     v, vsr = sf.read(took["wav"], dtype="float32")
     if vsr != SR:
@@ -204,16 +179,43 @@ def build(prep, episode_dir, out_dir):
     data[int((end + 0.5) * SR):] *= 0.0                                   # the beat of silence
     sf.write(mixed, data, SR)
     even = even_loudness(mixed, os.path.join(out_dir, "mix_even.wav"))
+    print("  sound mixed", flush=True)
 
+    # picture, streamed into the encoder a frame at a time
     enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
                             "-r", str(FPS), "-i", "-", "-i", even, "-c:v", "libx264", "-preset", "medium", "-crf", "18",
                             "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-shortest",
                             os.path.join(out_dir, "preview.mp4")], stdin=subprocess.PIPE)
-    for img in frames_out:
+    count = 0
+    for i, (key, a, b) in enumerate(spans):
+        n = int(round((b - a) * FPS))
+        for j, img in enumerate(_frames(episode_mp4, src[key], n)):
+            k = j / max(1, n - 1)
+            img = _push(img, k)
+            t_local = j / FPS
+            if t_local < 2 / FPS and i > 0:
+                img = _glitch(img, 1 - t_local * 15)
+            if t_local < 3 / FPS:
+                img = Image.blend(img, Image.new("RGB", img.size, WHITE), 0.55 * (1 - t_local * 10))
+            _pill(img, "COMING UP", 1.0)
+            if key == "stay":
+                _close_lines(img, t_local, words, a)
+            else:
+                _caption(img, CAPTIONS[i], t_local)
+            enc.stdin.write(img.tobytes())
+            count += 1
+        print(f"  {key}: {n} frames from {src[key]:.2f} s", flush=True)
+    brand = Image.new("RGB", (W, H), (4, 10, 20))
+    d = ImageDraw.Draw(brand)
+    d.text((W / 2, H / 2), "THE POINT OF FAILURE", font=_font("Inter-Bold.otf", 30), fill=(170, 186, 210), anchor="mm")
+    for j in range(int(round(PAUSE * FPS))):
+        k = min(1, j / (PAUSE * FPS * 0.4))
+        img = Image.blend(Image.new("RGB", (W, H)), brand, k * (1 - max(0, j / (PAUSE * FPS) - 0.7) / 0.3))
         enc.stdin.write(img.tobytes())
+        count += 1
     enc.stdin.close()
     enc.wait()
-    info = {"seconds": round(len(frames_out) / FPS, 2), "hook_end": round(hook_end, 3), "sources": src,
+    info = {"seconds": round(count / FPS, 2), "hook_end": round(hook_end, 3), "sources": src,
             "spans": spans, "music_credits": credits}
     json.dump(info, open(os.path.join(out_dir, "preview.json"), "w"), indent=1)
     print(f"preview: {info['seconds']} s, set in at {hook_end:.2f} s")
