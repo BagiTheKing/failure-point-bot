@@ -215,7 +215,17 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
+      - name: Cache Kokoro model files
+        uses: actions/cache@v4
+        with:
+          path: models
+          key: kokoro-v1.0-model-files
+      - name: Fetch Kokoro model files (cache miss only)
+        run: |
+          mkdir -p models
+          [ -f models/kokoro-v1.0.onnx ] || curl -sSL -o models/kokoro-v1.0.onnx "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
+          [ -f models/voices-v1.0.bin ] || curl -sSL -o models/voices-v1.0.bin "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
       - run: pip install -r requirements.txt
       - uses: actions/download-artifact@v4
         with:
@@ -258,6 +268,18 @@ jobs:
           A=""; [ -f prep/ai_fall.mp4 ] && A="--ai prep/ai_fall.mp4"
           python tools/episode_sample.py assemble prep raw $A
           python tools/thumbnails.py prep raw prep/thumbs || echo "no thumbnails"
+      - name: The signature preview after the cold open
+        env:
+          KOKORO_VOICE: am_echo
+        run: |
+          # "The flaw. The forces. The failure. And the fix." (tools/preview.py)
+          mkdir -p prep/_ep && cp prep/episode.mp4 prep/episode.json prep/_ep/
+          if python -u tools/preview.py prep prep/_ep prep/_pv --splice; then
+            cp prep/_pv/episode.mp4 prep/_pv/episode.json prep/
+          else
+            echo "no preview: the episode goes out without it"
+          fi
+          rm -rf prep/_ep prep/_pv
       - uses: actions/upload-artifact@v4
         with:
           name: episode-${{ inputs.name }}
