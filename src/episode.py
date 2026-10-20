@@ -684,7 +684,7 @@ def intro_effects(fx):
     each press shot, a boom on the title, a whoosh on each cut, a rumble
     under the 3D collapse, a riser into the last line and a boom on it."""
     out = [(t, score.shutter(k)) for k, t in enumerate(coldopen.shutter_times())]
-    out.append((fx.get("title", coldopen.TITLE_AT), score.boom(1) * 0.9))
+    out.append((fx.get("title", coldopen.TITLE_AT), score.boom(1) * 0.45))      # the title hit: softer (owner, 2026-10-20)
     if fx.get("fall"):
         a, b = fx["fall"]
         out.append((a, score.rumble(max(1.5, b - a), 7) * 0.3))      # under the voice, not over it (owner)
@@ -700,6 +700,9 @@ def intro_effects(fx):
 
 
 SFX_LEVEL = 0.5
+# the cold open's track eases in under the title instead of slamming in with
+# it: with the title's hit, the first second came out the loudest moment
+OPEN_FADE = 0.8
 
 
 def intro_sound(voice_wav, hook_T, total, out_wav, track=None, fx=None):
@@ -902,7 +905,7 @@ def score_plan(part_starts, hook_T, total):
     """The cold open's thriller track, then one quiet bed per part."""
     plan = []
     if hook_T:
-        plan.append((coldopen.TITLE_AT, hook_T + 1.0, score.COLD_OPEN, score.OPEN_LEVEL, 0.3))
+        plan.append((coldopen.TITLE_AT, hook_T + 1.0, score.COLD_OPEN, score.OPEN_LEVEL, OPEN_FADE))
     for i, (p, t) in enumerate(part_starts):
         end = part_starts[i + 1][1] if i + 1 < len(part_starts) else total
         start = max(t, hook_T + 1.0) if i == 0 and hook_T else t

@@ -224,6 +224,26 @@ def _spans(v):
     return out
 
 
+def _shots(v):
+    """The writer's shots as {clip: {"caption", "narration"}}, whatever shape
+    it gave them in: a list of shots with their clip names, a shot as a list
+    of sentences or a bare string."""
+    if isinstance(v, list):
+        v = {x.get("clip"): x for x in v if isinstance(x, dict) and x.get("clip")}
+    out = {}
+    for clip, sh in (v or {}).items() if isinstance(v, dict) else []:
+        if isinstance(sh, list):
+            dicts = [x for x in sh if isinstance(x, dict)]
+            sh = dicts[0] if dicts else {"narration": " ".join(str(x) for x in sh)}
+        elif isinstance(sh, str):
+            sh = {"narration": sh}
+        elif not isinstance(sh, dict):
+            sh = {}
+        out[clip] = {**sh, "caption": str(sh.get("caption", "") or ""),
+                     "narration": str(sh.get("narration", "") or "")}
+    return out
+
+
 def hook_problems(hook, source_text):
     """Problems with a cold open {"title", "lines"}, [] when usable."""
     problems = []
@@ -275,7 +295,7 @@ def check(reply, variant, source_text):
             problems.append("kit.rod_lines / kit.failed_line are not numbers")
         if len(k.get("levels") or []) != 2:
             problems.append("kit.levels needs exactly two names")
-    shots = reply.get("shots") or {}
+    reply["shots"] = shots = _shots(reply.get("shots"))
     for _, _, clip, words in SHOTS:
         sh = shots.get(clip) or {}
         nar = sh.get("narration", "")
