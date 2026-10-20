@@ -1,13 +1,13 @@
 {
- "seconds": 470.0366666666667,
+ "seconds": 472.1666666666667,
  "chapters": [
   "0:00 The disaster",
-  "1:01 The structure and its weak point",
-  "2:00 The physics",
-  "3:33 Second by second",
-  "4:38 The warnings and the investigation",
-  "6:01 How it should have worked",
-  "6:42 Could it happen today?"
+  "1:03 The structure and its weak point",
+  "2:02 The physics",
+  "3:35 Second by second",
+  "4:40 The warnings and the investigation",
+  "6:03 How it should have worked",
+  "6:44 Could it happen today?"
  ],
  "music_credits": [
   "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
@@ -54,40 +54,40 @@
   "sub": "KANSAS CITY · 17 JULY 1981"
  },
  "preview": {
-  "seconds": 8.87,
+  "seconds": 11.0,
   "hook_end": 24.467,
   "sources": {
    "flaw": 138.86899999999997,
    "forces": 200.581625,
    "failure": 224.34562499999998,
    "fix": 390.172375,
-   "stay": 113.19999999999999
+   "stay": 53.733375
   },
   "spans": [
    [
     "flaw",
     0.0,
-    1.016
+    1.3199999999999998
    ],
    [
     "forces",
-    1.016,
-    1.656
+    1.3199999999999998,
+    2.558333333333333
    ],
    [
     "failure",
-    1.656,
-    2.17
+    2.558333333333333,
+    3.708333333333333
    ],
    [
     "fix",
-    2.17,
-    2.66
+    3.708333333333333,
+    4.880583333333333
    ],
    [
     "stay",
-    2.66,
-    8.094
+    4.880583333333333,
+    10.19975
    ]
   ],
   "music_credits": [
