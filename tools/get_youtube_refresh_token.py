@@ -56,6 +56,9 @@ SCOPES = [
     # Thumbnails today, and caption-track uploads whenever we add them.
     # Included now so that improvement never costs another re-authorisation.
     "https://www.googleapis.com/auth/youtube.force-ssl",
+    # Watch time, retention and traffic sources (tools/channel_report.py).
+    # Needs the YouTube Analytics API enabled on the Cloud project (free).
+    "https://www.googleapis.com/auth/yt-analytics.readonly",
 ]
 
 

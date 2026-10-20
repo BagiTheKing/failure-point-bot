@@ -1,0 +1,35 @@
+name: Channel report
+
+# Manual. How the channel's videos are doing (tools/channel_report.py):
+# counts, watch time, retention and traffic sources, for the check-ins.
+# Read only: nothing on the channel is changed.
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Days of analytics"
+        default: "28"
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install google-api-python-client google-auth google-auth-httplib2
+      - name: Report
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python tools/channel_report.py --days "${{ inputs.days }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: channel-report
+          path: report.md
+          retention-days: 30
