@@ -220,9 +220,9 @@ def build(prep, episode_dir, out_dir):
     gain = score._duck_gain(voice_track, 0.45)[: len(v2)]
     b = np.zeros_like(v2)
     b[: len(bed)] = bed[: len(v2)]
-    # the score half as loud as first made (owner, 2026-10-21: "just the music
+    # the score about 6 dB under its first level (owner, 2026-10-21: "just the music
     # that is loud; the narrator and the sound effects are cool")
-    sf.write(mixed, np.clip(b * gain[:, None] * 0.31 + v2, -1, 1), SR)
+    sf.write(mixed, np.clip(b * gain[:, None] * 0.2 + v2, -1, 1), SR)
     credits = []
     # levels balanced by loudness: the ring and the chord are thin, the groan dense
     sfx = [(times["flaw"] - 0.02, ping() * 0.6), (times["forces"] - 0.02, groan() * 0.38),
