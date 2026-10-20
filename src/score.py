@@ -40,12 +40,27 @@ TRACKS = [COLD_OPEN] + sorted(set(PARTS.values()))
 OPEN_LEVEL = 0.55            # the cold open's music, before ducking
 BED_LEVEL = 0.10             # under the analysis
 DUCK = 0.55                  # how far the music drops while the voice speaks
+# a bed mastered hotter than this is turned down to it first: the tracks
+# here range twentyfold (0.013 to 0.24 RMS), and two parts' beds came out
+# "too loud for the ear" (owner, 2026-10-20, at a pause and at a part
+# change). Quiet tracks are never raised, and the cold open's track is left
+# as the owner chose it.
+BED_RMS = 0.06
 
 
 def _load(path, channels=2):
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-f", "f32le", "-ac", str(channels),
                           "-ar", str(SR), "-"], capture_output=True, check=True).stdout
     return np.frombuffer(raw, np.float32).reshape(-1, channels).copy()
+
+
+def _tamed(track):
+    """The track turned down to BED_RMS if it is louder, measured on its
+    sounding parts (a quiet intro or tail does not hide a loud body)."""
+    level = np.sqrt((track ** 2).mean(axis=1))
+    loud = level[level > 1e-3]
+    rms = float(np.sqrt((loud ** 2).mean())) if len(loud) else 0.0
+    return track * (BED_RMS / rms) if rms > BED_RMS else track
 
 
 def _looped(track, n):
@@ -68,7 +83,9 @@ def _duck_gain(voice, depth=DUCK):
     frames = level[: n * hop].reshape(n, hop).mean(axis=1)
     on = np.clip(frames / max(1e-4, np.percentile(frames, 90) * 0.25), 0, 1)
     env = np.zeros_like(on)
-    att, rel = 0.5, 0.04                                     # per 10 ms
+    # fast attack; a release slow enough (about a second) that the music
+    # does not swell back up in the breath between two shots
+    att, rel = 0.5, 0.012                                    # per 10 ms
     for i in range(1, len(on)):
         k = att if on[i] > env[i - 1] else rel
         env[i] = env[i - 1] + k * (on[i] - env[i - 1])
@@ -92,13 +109,14 @@ def mix(voice_wav, plan, total, out_wav):
         if not os.path.exists(path):
             print(f"  music missing, silent instead: {name}")
             continue
-        if name not in cache:
-            cache[name] = _load(path)
+        if (name, level) not in cache:
+            raw = _load(path)
+            cache[(name, level)] = _tamed(raw) if level < OPEN_LEVEL else raw
         a = max(0, int((start - min(XFADE, fade_in) / 2) * SR))
         b = min(n, int((end + XFADE / 2) * SR))
         if b <= a:
             continue
-        seg = _looped(cache[name], b - a) * level
+        seg = _looped(cache[(name, level)], b - a) * level
         f, fi = int(XFADE * SR), max(1, int(fade_in * SR))
         env = np.ones(b - a, np.float32)
         env[:fi] = _ramp(min(fi, b - a), 0, 1)[: len(env[:fi])]

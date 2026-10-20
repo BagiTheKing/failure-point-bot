@@ -76,10 +76,13 @@ def _pictures(sheet, out, name):
         json.dump({}, open(os.path.join(out, "photos.json"), "w"))
 
 
-def recut(out, hook_text="", title="", name="", report="", report_credit=""):
+def recut(out, hook_text="", title="", name="", report="", report_credit="", keep=False):
     """A new cut of an episode already voiced and rendered: keeps the
     timed sheet, the voice takes and the 3D frames; adds or redoes the cold
     open, and fetches the pictures again."""
+    if keep:                               # an approved cut, assembled again as it is
+        print("keeping the cold open and the pictures")
+        return
     sheet = json.load(open(os.path.join(out, "timed_sheet.json")))
     voiced = json.load(open(os.path.join(out, "voiced.json")))
     voiced = {k: v for k, v in voiced.items() if not k.startswith("hook_")}
@@ -143,6 +146,7 @@ if __name__ == "__main__":
     r.add_argument("--name", default="")
     r.add_argument("--report", default="")
     r.add_argument("--report-credit", default="")
+    r.add_argument("--keep", action="store_true", help="keep the cold open and the pictures as they are")
     a = sub.add_parser("assemble")
     a.add_argument("out")
     a.add_argument("raw3d")
@@ -151,6 +155,6 @@ if __name__ == "__main__":
     if args.cmd == "prepare":
         prepare(args.sheet, args.out, args.ai, args.name, args.report, args.report_credit)
     elif args.cmd == "recut":
-        recut(args.out, args.hook, args.title, args.name, args.report, args.report_credit)
+        recut(args.out, args.hook, args.title, args.name, args.report, args.report_credit, args.keep)
     else:
         assemble(args.out, args.raw3d, args.ai)

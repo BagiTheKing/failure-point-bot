@@ -31,6 +31,13 @@ on:
       title:
         description: "Episode title for the cold open (blank = the sheet's / the AI's)"
         default: ""
+      keep:
+        description: "Re-cut keeping the earlier run's cold open and pictures (only assemble again)"
+        type: boolean
+        default: false
+      frames_run:
+        description: "Run whose 3D frames to use (blank = the re-cut run's)"
+        default: ""
       report:
         description: "The investigation report's PDF, for its pictures (public domain; blank = none)"
         default: ""
@@ -94,7 +101,7 @@ jobs:
           REPORT_CREDIT: ${{ inputs.report_credit }}
         run: |
           python tools/episode_sample.py prepare prep/sheet.json prep --name "${{ inputs.name }}" \
-            --report "$REPORT" --report-credit "$REPORT_CREDIT" ${{ inputs.ai && '--ai' || '' }}
+            --report "$REPORT" --report-credit "$REPORT_CREDIT" ${{ inputs.keep && '--keep' || '' }} ${{ inputs.ai && '--ai' || '' }}
       - id: plan
         run: |
           echo "shards=$(python -c 'import json;print(json.dumps(json.load(open("prep/shards.json"))["shards"]))')" >> "$GITHUB_OUTPUT"
@@ -149,7 +156,7 @@ jobs:
           REPORT_CREDIT: ${{ inputs.report_credit }}
         run: |
           python tools/episode_sample.py recut prep --hook "$HOOK" --title "$TITLE" --name "${{ inputs.name }}" \
-            --report "$REPORT" --report-credit "$REPORT_CREDIT"
+            --report "$REPORT" --report-credit "$REPORT_CREDIT" ${{ inputs.keep && '--keep' || '' }}
       - uses: actions/upload-artifact@v4
         with:
           name: prep
@@ -219,7 +226,7 @@ jobs:
           pattern: frames3d-*
           path: raw
           merge-multiple: true
-          run-id: ${{ inputs.reuse_run || github.run_id }}
+          run-id: ${{ inputs.frames_run || inputs.reuse_run || github.run_id }}
           github-token: ${{ github.token }}
       - name: The score's tracks (Kevin MacLeod, CC BY, with their credits)
         run: python tools/fetch_music.py --score

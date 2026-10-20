@@ -684,16 +684,21 @@ def intro_effects(fx):
     under the 3D collapse, a riser into the last line and a boom on it."""
     out = [(t, score.shutter(k)) for k, t in enumerate(coldopen.shutter_times())]
     out.append((fx.get("title", coldopen.TITLE_AT), score.boom(1) * 0.9))
-    for k, at in enumerate(fx.get("cuts") or []):
-        if at != fx.get("last"):
-            out.append((max(0.0, at - 0.3), score.whoosh(10 + k) * 0.7))
     if fx.get("fall"):
         a, b = fx["fall"]
         out.append((a, score.rumble(max(1.5, b - a), 7) * 0.3))      # under the voice, not over it (owner)
     if fx.get("last"):
         out.append((max(0.0, fx["last"] - 2.4), score.riser(2.4) * 0.6))
         out.append((fx["last"], score.boom(5) * 0.8))
-    return out
+    for k, at in enumerate(fx.get("cuts") or []):
+        if at != fx.get("last"):
+            out.append((max(0.0, at - 0.3), score.whoosh(10 + k) * 0.7))
+    # half as loud as first made: "the sound effects at the start are loud"
+    # (owner, 2026-10-20)
+    return [(t, x * SFX_LEVEL) for t, x in out]
+
+
+SFX_LEVEL = 0.5
 
 
 def intro_sound(voice_wav, hook_T, total, out_wav, track=None, fx=None):
