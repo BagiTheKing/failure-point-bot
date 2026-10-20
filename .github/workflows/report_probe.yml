@@ -1,0 +1,52 @@
+name: Report probe
+
+# Manual. The pictures an investigation report gives (tools/report_probe.py),
+# as contact sheets on preview-media (reports/<name>/), to judge before an
+# episode uses them.
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "The report's PDF"
+        required: true
+      name:
+        description: "Folder under reports/ on preview-media"
+        required: true
+      credit:
+        description: "Credit line (agency, report, year)"
+        default: "Investigation report"
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - run: pip install -r requirements.txt
+      - name: Cut the pictures out
+        env:
+          URL: ${{ inputs.url }}
+          CREDIT: ${{ inputs.credit }}
+        run: python tools/report_probe.py "$URL" out --credit "$CREDIT"
+      - name: Push to preview-media
+        run: |
+          mkdir -p pm && cd pm
+          git init -q -b preview-media
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch -q origin preview-media && git checkout -q -B preview-media origin/preview-media || true
+          mkdir -p reports/${{ inputs.name }}
+          cp ../out/sheet_*.jpg ../out/figures.json reports/${{ inputs.name }}/
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -q -m "Report probe: ${{ inputs.name }} (run ${{ github.run_number }})"
+          for i in 1 2 3; do git push -q origin preview-media && break; git pull -q --rebase origin preview-media; done
