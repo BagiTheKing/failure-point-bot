@@ -23,7 +23,6 @@ in after the cold open) and OUT/episode.json (its chapters moved).
 import argparse
 import json
 import os
-import random
 import re
 import subprocess
 import sys
@@ -150,7 +149,6 @@ def _close_lines(img, t_since, words, t0):
 
 def build(prep, episode_dir, out_dir):
     import soundfile as sf
-    import score
     from score import add_sfx, boom, even_loudness, mix, riser, whoosh
     os.makedirs(out_dir, exist_ok=True)
     episode_mp4 = os.path.join(episode_dir, "episode.mp4")
