@@ -570,9 +570,9 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
     music_credits = score.mix(wav, score_plan(part_starts, hook_T, total), total, mixed)
     if hook_T:
         score.add_sfx(mixed, intro_effects(getattr(intro_plan, "fx", {})), mixed)
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", mixed, "-map", "0:v", "-map", "1:a",
-                    "-c:v", "copy", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-c:a", "aac",
-                    "-b:a", "192k", "-ar", "48000", out_mp4], check=True)
+    even = score.even_loudness(mixed, os.path.join(work, "mix_even.wav"))
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", even, "-map", "0:v", "-map", "1:a",
+                    "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", out_mp4], check=True)
     chapters = [f"{int(t) // 60}:{int(t) % 60:02d} {PARTS[p]}" if i else f"0:00 {PARTS[p]}"
                 for i, (p, t) in enumerate(part_starts)]
     print(f"{out_mp4}: {total / 60:.1f} min")
@@ -755,9 +755,9 @@ def build_intro(sheet, raw3d, photos, voiced, out_mp4, work, footage=None, track
     for path, t in (tracks or {out_mp4: track}).items():
         mixed = os.path.join(work, "intro_mix.wav")
         credits = intro_sound(wav, T, T, mixed, t, fx)
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", mixed, "-map", "0:v", "-map", "1:a",
-                        "-c:v", "copy", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-c:a", "aac",
-                        "-b:a", "192k", "-ar", "48000", path], check=True)
+        even = score.even_loudness(mixed, os.path.join(work, "intro_mix_even.wav"))
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", even, "-map", "0:v", "-map", "1:a",
+                        "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", path], check=True)
         print(f"{path}: {T:.1f} s")
         out[path] = {"seconds": T, "track": t, "music_credits": credits}
     return out if tracks else out[out_mp4]

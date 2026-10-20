@@ -45,7 +45,7 @@ DUCK = 0.55                  # how far the music drops while the voice speaks
 # "too loud for the ear" (owner, 2026-10-20, at a pause and at a part
 # change). Quiet tracks are never raised, and the cold open's track is left
 # as the owner chose it.
-BED_RMS = 0.06
+BED_RMS = 0.12
 
 
 def _load(path, channels=2):
@@ -131,6 +131,26 @@ def mix(voice_wav, plan, total, out_wav):
     out[-tail:] *= _ramp(tail, 1, 0)[:, None]
     sf.write(out_wav, np.clip(out, -1, 1), SR)
     return credits
+
+
+def even_loudness(in_wav, out_wav, target=-16.0, peak=-1.5):
+    """The whole mix brought to `target` LUFS with ONE gain (ffmpeg
+    loudnorm, measured first, then applied linearly). The single-pass
+    loudnorm the episodes used rides its gain through the video: it turns
+    up during every pause, so the first words after one, and the cold
+    open's first hit, came out in a loud burst (owner, 2026-10-20: "too
+    loud for the ear" at 0:01, 3:53, 5:53, each right after a pause)."""
+    import json
+    probe = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", in_wav, "-af",
+                            f"loudnorm=I={target}:TP={peak}:LRA=20:print_format=json", "-f", "null", "-"],
+                           capture_output=True, text=True).stderr
+    m = json.loads(probe[probe.rindex("{"):probe.rindex("}") + 1])
+    af = (f"loudnorm=I={target}:TP={peak}:LRA=20:linear=true:measured_I={m['input_i']}:"
+          f"measured_TP={m['input_tp']}:measured_LRA={m['input_lra']}:"
+          f"measured_thresh={m['input_thresh']}:offset={m['target_offset']}")
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", in_wav, "-af", af, "-ar", str(SR), out_wav],
+                   check=True)
+    return out_wav
 
 
 def shutter(seed=0):

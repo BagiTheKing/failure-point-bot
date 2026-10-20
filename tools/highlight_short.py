@@ -204,12 +204,14 @@ def build(prep, episode_mp4, out_dir, spans, top):
     wav = os.path.join(out_dir, "short.wav")
     import soundfile as sf
     sf.write(wav, np.clip(sound, -1, 1), SR)
+    from score import even_loudness
+    wav = even_loudness(wav, os.path.join(out_dir, "short_even.wav"), target=-14.0)
 
     total = len(sound) / SR
     enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24",
                             "-s", f"{SW}x{SH}", "-r", str(FPS), "-i", "-", "-i", wav,
                             "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
-                            "-c:a", "aac", "-b:a", "192k", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11",
+                            "-c:a", "aac", "-b:a", "192k",
                             "-shortest", os.path.join(out_dir, "short.mp4")], stdin=subprocess.PIPE)
     t_short, last = 0.0, None
     for c in cuts:
