@@ -90,16 +90,18 @@ def figures(url_or_path, out_dir, credit, year=None, limit=40):
             continue
         page = Image.open(made[0])
         caps = captions(pages[p - 1])
-        # third-party material in a government report keeps its owner's
-        # rights (the Hyatt report's TV frames are "courtesy of KMBC TV")
-        if any(re.search(r"courtesy|videotape|copyright|©", c, re.I) for c in caps):
-            os.remove(made[0])
-            continue
-        for k, (x0, y0, x1, y1) in enumerate(blocks(page)):
+        found = blocks(page)
+        for k, (x0, y0, x1, y1) in enumerate(found):
+            # pictures and captions both run top to bottom; one caption for
+            # several pictures (a, b) covers them all
+            cap = caps[min(k, len(caps) - 1)] if caps else f"Report page {p}"
+            # third-party material in a government report keeps its owner's
+            # rights (the Hyatt report's TV frames are "courtesy of KMBC TV")
+            if re.search(r"courtesy|videotape|copyright|©", cap, re.I):
+                continue
             crop = page.crop((x0, y0, x1, y1)).convert("RGB")
             path = os.path.join(out_dir, f"fig_{p:04d}_{k}.jpg")
             crop.save(path, quality=92)
-            cap = caps[min(k, len(caps) - 1)] if caps else f"Report page {p}"
             label = (re.match(r"^\S+\s*[\d.]+\w?", cap) or [f"Page {p}"])[0]
             # "title — author — license", the way Commons credits read
             out.append({"path": path, "title": cap[:120], "about": cap,
