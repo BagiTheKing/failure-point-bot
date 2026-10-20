@@ -95,7 +95,10 @@ def figures(url_or_path, out_dir, credit, year=None, limit=40):
             path = os.path.join(out_dir, f"fig_{p:04d}_{k}.jpg")
             crop.save(path, quality=92)
             cap = caps[min(k, len(caps) - 1)] if caps else f"Report page {p}"
-            out.append({"path": path, "title": cap[:120], "about": cap, "credit": f"{credit} — Public domain",
+            label = (re.match(r"^\S+\s*[\d.]+\w?", cap) or [f"Page {p}"])[0]
+            # "title — author — license", the way Commons credits read
+            out.append({"path": path, "title": cap[:120], "about": cap,
+                        "credit": f"{label} — {credit} — Public domain",
                         "width": crop.width, "height": crop.height, "year": year, "url": f"{url_or_path}#page={p}"})
         os.remove(made[0])
     print(f"  report: {len(out)} picture(s) cut out")

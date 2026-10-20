@@ -31,6 +31,12 @@ on:
       title:
         description: "Episode title for the cold open (blank = the sheet's / the AI's)"
         default: ""
+      report:
+        description: "The investigation report's PDF, for its pictures (public domain; blank = none)"
+        default: ""
+      report_credit:
+        description: "Its credit line (agency, report, year)"
+        default: ""
 
 permissions:
   contents: write
@@ -51,7 +57,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng poppler-utils
       - name: Cache Kokoro model files
         uses: actions/cache@v4
         with:
@@ -84,9 +90,11 @@ jobs:
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          REPORT: ${{ inputs.report }}
+          REPORT_CREDIT: ${{ inputs.report_credit }}
         run: |
           python tools/episode_sample.py prepare prep/sheet.json prep --name "${{ inputs.name }}" \
-            ${{ inputs.ai && '--ai' || '' }}
+            --report "$REPORT" --report-credit "$REPORT_CREDIT" ${{ inputs.ai && '--ai' || '' }}
       - id: plan
         run: |
           echo "shards=$(python -c 'import json;print(json.dumps(json.load(open("prep/shards.json"))["shards"]))')" >> "$GITHUB_OUTPUT"
@@ -107,7 +115,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng poppler-utils
       - name: Cache Kokoro model files
         uses: actions/cache@v4
         with:
@@ -137,7 +145,11 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           HOOK: ${{ inputs.hook }}
           TITLE: ${{ inputs.title }}
-        run: python tools/episode_sample.py recut prep --hook "$HOOK" --title "$TITLE" --name "${{ inputs.name }}"
+          REPORT: ${{ inputs.report }}
+          REPORT_CREDIT: ${{ inputs.report_credit }}
+        run: |
+          python tools/episode_sample.py recut prep --hook "$HOOK" --title "$TITLE" --name "${{ inputs.name }}" \
+            --report "$REPORT" --report-credit "$REPORT_CREDIT"
       - uses: actions/upload-artifact@v4
         with:
           name: prep

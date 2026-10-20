@@ -55,6 +55,12 @@ def _hook(sheet, out, hook_text="", title=""):
     return {}
 
 
+def _report(sheet, report="", credit=""):
+    """The investigation report whose pictures join the photos."""
+    if report.strip():
+        sheet["disaster"]["report"] = {"url": report.strip(), "credit": credit.strip() or "Investigation report"}
+
+
 def _pictures(sheet, out, name):
     import episode
     try:
@@ -70,7 +76,7 @@ def _pictures(sheet, out, name):
         json.dump({}, open(os.path.join(out, "photos.json"), "w"))
 
 
-def recut(out, hook_text="", title="", name=""):
+def recut(out, hook_text="", title="", name="", report="", report_credit=""):
     """A new cut of an episode already voiced and rendered: keeps the
     timed sheet, the voice takes and the 3D frames; adds or redoes the cold
     open, and fetches the pictures again."""
@@ -78,12 +84,13 @@ def recut(out, hook_text="", title="", name=""):
     voiced = json.load(open(os.path.join(out, "voiced.json")))
     voiced = {k: v for k, v in voiced.items() if not k.startswith("hook_")}
     voiced.update(_hook(sheet, out, hook_text, title))
+    _report(sheet, report, report_credit)
     json.dump(voiced, open(os.path.join(out, "voiced.json"), "w"), indent=1)
     json.dump(sheet, open(os.path.join(out, "timed_sheet.json"), "w"), indent=2, ensure_ascii=False)
     _pictures(sheet, out, name)
 
 
-def prepare(sheet_path, out, ai=False, name=""):
+def prepare(sheet_path, out, ai=False, name="", report="", report_credit=""):
     import episode
     from kits import timemap
     from kits.blueprint import FPS
@@ -91,6 +98,7 @@ def prepare(sheet_path, out, ai=False, name=""):
     sheet = json.load(open(sheet_path))
     sheet, voiced = episode.prepare(sheet, out, ai=ai)
     voiced.update(_hook(sheet, out))
+    _report(sheet, report, report_credit)
     json.dump(voiced, open(os.path.join(out, "voiced.json"), "w"), indent=1)
     json.dump(sheet, open(os.path.join(out, "timed_sheet.json"), "w"), indent=2, ensure_ascii=False)
     frames = int(math.ceil(timemap.of(sheet).total * FPS)) + 1
@@ -126,19 +134,23 @@ if __name__ == "__main__":
     p.add_argument("out")
     p.add_argument("--ai", action="store_true", help="time the fall for an AI clip")
     p.add_argument("--name", default="", help="footage/<name>/ holds owner-supplied footage")
+    p.add_argument("--report", default="", help="the investigation report's PDF (its pictures)")
+    p.add_argument("--report-credit", default="")
     r = sub.add_parser("recut")
     r.add_argument("out")
     r.add_argument("--hook", default="", help="cold-open lines, split by |")
     r.add_argument("--title", default="")
     r.add_argument("--name", default="")
+    r.add_argument("--report", default="")
+    r.add_argument("--report-credit", default="")
     a = sub.add_parser("assemble")
     a.add_argument("out")
     a.add_argument("raw3d")
     a.add_argument("--ai", default="")
     args = ap.parse_args()
     if args.cmd == "prepare":
-        prepare(args.sheet, args.out, args.ai, args.name)
+        prepare(args.sheet, args.out, args.ai, args.name, args.report, args.report_credit)
     elif args.cmd == "recut":
-        recut(args.out, args.hook, args.title, args.name)
+        recut(args.out, args.hook, args.title, args.name, args.report, args.report_credit)
     else:
         assemble(args.out, args.raw3d, args.ai)

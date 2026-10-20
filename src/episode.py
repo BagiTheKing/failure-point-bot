@@ -202,6 +202,17 @@ def gather_photos(sheet, out_dir, limit=16, pool=None, call=None):
         cands += search_archives(title.replace(" collapse", ""), limit=10)
     seen, got = set(), []
     os.makedirs(os.path.join(out_dir, "photos"), exist_ok=True)
+    report = sheet["disaster"].get("report") or {}
+    if report.get("url"):                  # the investigation's own pictures (public domain)
+        from report_figures import figures
+        try:
+            figs = figures(report["url"], os.path.join(out_dir, "report"),
+                           report.get("credit", "Investigation report"), report.get("year"))
+        except Exception as e:
+            print(f"  no report pictures ({type(e).__name__}: {e})")
+            figs = []
+        got += figs[:24]
+        limit += len(got)
     for c in cands:
         if len(got) >= limit or c.get("url") in seen:
             continue
@@ -489,6 +500,12 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
         lead += [{"path": p["path"], "credit": _short_credit(p["credit"])} for p in spare[-borrow:]]
         taken = {p["path"] for p in spare[-borrow:]}
         photos = {**photos, "aftermath": [p for p in photos["aftermath"] if p["path"] not in taken]}
+    if len(lead) < seconds / 7:
+        # still too few to keep the first minute moving (the Hyatt episode
+        # held one wreckage photo for 30 s): our 3D model, standing, from
+        # its establishing angles, while the narration describes the structure
+        need = int(seconds / 7) - len(lead)
+        lead += [{**x, "credit": ""} for x in stills_3d(1.0, 3.0, 5.0, 9.5, 12.0)[:need]]
     add2d("photo", common.photo(sheet, reel(clips[:1] + lead, seconds), tint_out=False,
                                 toll_at=(narration.PAD_IN + toll_t) if toll_shot == "photo" else None,
                                 quiet=bool(intro)),
