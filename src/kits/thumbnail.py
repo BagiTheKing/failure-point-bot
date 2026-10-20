@@ -147,11 +147,18 @@ def figures(sheet):
     if nums and re.search(r"KILL|DEAD|DIED|DEATH", nums[0].get("label", "").upper()):
         dead = re.sub(r"[^0-9,]", "", str(nums[0]["value"]))
     kit = sheet.get("kit", {})
-    part = {"truss_bridge": "STEEL PLATE", "hanging_walkways": "STEEL ROD"}.get(kit.get("variant"), "PART")
+    # what failed, and the cause in two words: the hanger rods held at the
+    # Hyatt; the nut pulled through the box beam after one design change
+    part = {"truss_bridge": "STEEL PLATE", "hanging_walkways": "CONNECTION"}.get(kit.get("variant"), "PART")
+    cause = {"truss_bridge": "ONE STEEL PLATE", "hanging_walkways": "ONE DESIGN CHANGE"}.get(
+        kit.get("variant"), f"ONE {part}")
     name = (sheet["disaster"].get("photo_article") or "").replace("Mississippi River bridge", "").strip().upper()
     node = kit.get("failed_node_label", "")
     block = " · ".join(x for x in ("THE POINT OF FAILURE", name, node and f"JOINT {node}") if x)
-    return {"big": big, "dead": dead, "part": part, "block": block}
+    # a thickness "wasn't enough"; a load factor is what the change did
+    why = (f"ONE CHANGE. {big} THE LOAD." if big and "×" in big
+           else f"WHY {big} WASN'T ENOUGH" if big else "HOW IT FAILED")
+    return {"big": big, "dead": dead, "part": part, "cause": cause, "why": why, "block": block}
 
 
 def drawing_frame(sheet, which="tear"):
@@ -217,7 +224,7 @@ def model(fall3d, anchor, f, out, zoom=1.45):
         _tag(d, f"{f['big'] or f['part']} · FAILED HERE", int(x - 150 * S), int(y + 95 * S), RED)
     big = f"{f['dead']} DEAD" if f["dead"] else (f["big"] or "")
     px = _headline(d, big, 70 * S, 60 * S, 190 * S, WHITE, max_w=W * S * 0.62)
-    _headline(d, f"ONE {f['part']}", 74 * S, 60 * S + px * 0.92, 92 * S, RED)
+    _headline(d, f["cause"], 74 * S, 60 * S + px * 0.92, 92 * S, RED)
     _frame(d, f["block"])
     return _save(img, out)
 
@@ -255,8 +262,7 @@ def xray(close3d, frame2d, f, out, close_anchor=None):
     d.line([(a[0] + 80 * S, a[1] - 10 * S), (b[0] - 80 * S, b[1] - 6 * S)], fill=RED, width=5 * S)
     _tag(d, "3D MODEL", 60 * S, H * S - 120 * S)
     _tag(d, "THE PHYSICS", W * S // 2 + 34 * S, H * S - 120 * S)
-    text = f"WHY {f['big']} WASN'T ENOUGH" if f["big"] else "HOW IT FAILED"
-    _headline(d, text, W * S / 2, 50 * S, 100 * S, WHITE, max_w=W * S * 0.92, anchor="ma")
+    _headline(d, f["why"], W * S / 2, 50 * S, 100 * S, WHITE, max_w=W * S * 0.92, anchor="ma")
     _frame(d, f["block"])
     return _save(img, out)
 

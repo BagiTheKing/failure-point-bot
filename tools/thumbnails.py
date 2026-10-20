@@ -22,8 +22,12 @@ def main(prep, raw3d, out):
     for p in sorted(os.listdir(raw3d)):
         if p.startswith("anchors_"):
             anchors.update(json.load(open(os.path.join(raw3d, p))))
-    at = lambda n: (anchors.get(str(n)) or {}).get("node")
-    c, fl = tm.frame(17.5), tm.frame(23.4)             # the plate glowing; the span going down
+    joint = lambda n: next((v for k, v in (anchors.get(str(n)) or {}).items() if k in ("node", "nut")), None)
+    at = joint
+    # the part glowing; the structure going down (the walkways drop at 22.0
+    # and are out of the shot a second later, the bridge's span falls slower)
+    fall = {"hanging_walkways": 22.35}.get(sheet["kit"]["variant"], 23.4)
+    c, fl = tm.frame(17.5), tm.frame(fall)
     made = thumbnail.build(sheet, find_frame(raw3d, c), find_frame(raw3d, fl), at(fl), out, at(c))
     json.dump({"figures": thumbnail.figures(sheet), "made": made},
               open(os.path.join(out, "thumbs.json"), "w"), indent=1, ensure_ascii=False)
