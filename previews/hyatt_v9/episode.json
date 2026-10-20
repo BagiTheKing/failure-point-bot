@@ -1,0 +1,97 @@
+{
+ "seconds": 470.0366666666667,
+ "chapters": [
+  "0:00 The disaster",
+  "1:01 The structure and its weak point",
+  "2:00 The physics",
+  "3:33 Second by second",
+  "4:38 The warnings and the investigation",
+  "6:01 How it should have worked",
+  "6:42 Could it happen today?"
+ ],
+ "music_credits": [
+  "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Lightless Dawn\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Hidden Wonders\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Stay the Course\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Man Down\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Tyrant\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Leaving Home\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
+ ],
+ "credits": [
+  "Figure 4.2 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 4.3 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 5.11 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 5.13 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 5.15 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 5.19 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 5.20 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 5.22 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 5.23 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 5.29 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 5.3 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 5.30 a - NARA - 70172364 — Unknown authorUnknown author or not provided — Public domain (via Wikimedia Commons)",
+  "Figure 5.32 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 5.4 - NARA - 70172329 — Unknown authorUnknown author or not provided — Public domain (via Wikimedia Commons)",
+  "Figure 5.6 - NARA - 70172359 — Unknown authorUnknown author or not provided — Public domain (via Wikimedia Commons)",
+  "Figure 5.7 - NARA - 70172360 — Unknown authorUnknown author or not provided — Public domain (via Wikimedia Commons)",
+  "Figure 5.7 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 6.10 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 6.34 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 6.8 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain",
+  "Figure 7.16 — National Bureau of Standards, NBS BSS 143 (1982) — Public domain"
+ ],
+ "ai_clip": false,
+ "hook": {
+  "title": "THE HYATT REGENCY COLLAPSE",
+  "lines": [
+   "July 17, 1981. Hyatt Regency Kansas City.",
+   "Two suspended walkways collapse into a crowded tea dance.",
+   "114 people die. 216 are injured.",
+   "A simple design change doubled the load on a single connection."
+  ],
+  "sub": "KANSAS CITY · 17 JULY 1981"
+ },
+ "preview": {
+  "seconds": 8.87,
+  "hook_end": 24.467,
+  "sources": {
+   "flaw": 138.86899999999997,
+   "forces": 200.581625,
+   "failure": 224.34562499999998,
+   "fix": 390.172375,
+   "stay": 113.19999999999999
+  },
+  "spans": [
+   [
+    "flaw",
+    0.0,
+    1.016
+   ],
+   [
+    "forces",
+    1.016,
+    1.656
+   ],
+   [
+    "failure",
+    1.656,
+    2.17
+   ],
+   [
+    "fix",
+    2.17,
+    2.66
+   ],
+   [
+    "stay",
+    2.66,
+    8.094
+   ]
+  ],
+  "music_credits": [
+   "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
+  ]
+ }
+}

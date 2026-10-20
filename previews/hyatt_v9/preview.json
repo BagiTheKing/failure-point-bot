@@ -1,0 +1,41 @@
+{
+ "seconds": 8.87,
+ "hook_end": 24.467,
+ "sources": {
+  "flaw": 138.86899999999997,
+  "forces": 200.581625,
+  "failure": 224.34562499999998,
+  "fix": 390.172375,
+  "stay": 113.19999999999999
+ },
+ "spans": [
+  [
+   "flaw",
+   0.0,
+   1.016
+  ],
+  [
+   "forces",
+   1.016,
+   1.656
+  ],
+  [
+   "failure",
+   1.656,
+   2.17
+  ],
+  [
+   "fix",
+   2.17,
+   2.66
+  ],
+  [
+   "stay",
+   2.66,
+   8.094
+  ]
+ ],
+ "music_credits": [
+  "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
+ ]
+}
