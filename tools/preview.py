@@ -44,7 +44,6 @@ BEAT = 1.15                  # one word, one cut: slow enough to read each pictu
 PAUSE = 0.8                  # the beat of silence before the episode
 FONTS = os.path.join(HERE, "..", "fonts")
 RED, WHITE = (255, 75, 58), (255, 255, 255)
-BED = "Volatile Reaction - Kevin MacLeod.mp3"
 
 
 def _font(name, size):
@@ -186,7 +185,7 @@ def _close_lines(img, t_since, words, t0):
 
 def build(prep, episode_dir, out_dir):
     import soundfile as sf
-    from score import add_sfx, boom, even_loudness, mix, riser, whoosh
+    from score import add_sfx, boom, even_loudness, riser, whoosh
     os.makedirs(out_dir, exist_ok=True)
     episode_mp4 = os.path.join(episode_dir, "episode.mp4")
     src, hook_end = sources(prep, episode_mp4)
@@ -201,10 +200,25 @@ def build(prep, episode_dir, out_dir):
     voice_track = np.pad(voice_track, (0, max(0, int(total * SR) - len(voice_track))))[: int(total * SR)]
     vwav = os.path.join(out_dir, "voice_track.wav")
     sf.write(vwav, voice_track, SR)
+    # the bed: a drone and a heartbeat on every cut, swelling under the
+    # promise; each F its own sound, landing with its word
+    import score
+    from score import crash, groan, lock, ping, pulse_bed
     mixed = os.path.join(out_dir, "mix.wav")
-    credits = mix(vwav, [(0.0, end, BED, 0.22, 0.2)], total, mixed)
-    sfx = [(max(0.0, a - 0.25), whoosh(20 + i) * 0.35) for i, (_, a, _) in enumerate(spans) if a > 0]
     stay = spans[-1][1]
+    bed = pulse_bed(end, [times[k] for k in KEYS[:4]], stay)
+    bwav = os.path.join(out_dir, "bed.wav")
+    sf.write(bwav, bed, SR)
+    v2 = np.stack([voice_track, voice_track], axis=1)
+    gain = score._duck_gain(voice_track, 0.45)[: len(v2)]
+    b = np.zeros_like(v2)
+    b[: len(bed)] = bed[: len(v2)]
+    sf.write(mixed, np.clip(b * gain[:, None] * 0.55 + v2, -1, 1), SR)
+    credits = []
+    # levels balanced by loudness: the ring and the chord are thin, the groan dense
+    sfx = [(times["flaw"] - 0.02, ping() * 0.6), (times["forces"] - 0.02, groan() * 0.38),
+           (times["failure"] - 0.02, crash() * 0.55), (times["fix"] - 0.02, lock() * 0.6)]
+    sfx += [(max(0.0, a - 0.2), whoosh(20 + i) * 0.18) for i, (_, a, _) in enumerate(spans) if a > 0]
     sfx.append((stay, riser(max(1.0, end - stay), 7) * 0.22))
     sfx.append((end - 0.05, boom(6) * 0.3))
     add_sfx(mixed, sfx, mixed)

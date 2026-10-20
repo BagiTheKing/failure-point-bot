@@ -268,3 +268,95 @@ def rumble(length=4.0, seed=4):
         f = 260 - 140 * (t - at) / 0.7
         groan += np.where(m, np.sin(2 * np.pi * np.cumsum(f) / SR) * np.sin(np.pi * (t - at) / 0.7), 0)
     return _st(_norm(low * env * 3 + 0.25 * groan * env, 0.8), 0.05)
+
+
+# ---------------------------------------------------------------------------
+# The signature preview's sounds (tools/preview.py; owner, 2026-10-21: "a
+# matching soundtrack with a sound for each of the four Fs"). Synthesized,
+# stereo float32 at SR, peak about 0.8.
+# ---------------------------------------------------------------------------
+
+def _env(n, attack, decay):
+    t = np.arange(n) / SR
+    return (np.minimum(1, t / max(1e-4, attack)) * np.exp(-t / decay)).astype(np.float32)
+
+
+def ping(seed=11, length=1.3):
+    """The flaw: steel under stress, a crack starting: a bright metallic
+    strike, its inharmonic ring, and a dry tick."""
+    rnd = np.random.default_rng(seed)
+    n = int(length * SR)
+    t = np.arange(n) / SR
+    ring = sum(a * np.sin(2 * np.pi * f * t) * np.exp(-t / d)
+               for f, a, d in ((1870, 1.0, 0.35), (2730, 0.6, 0.22), (4410, 0.35, 0.12), (980, 0.4, 0.5)))
+    tick = rnd.standard_normal(n).astype(np.float32)
+    tick = (tick - _lowpass(tick, 3)) * np.exp(-t / 0.006)
+    return _st(_norm(ring * 0.7 + tick * 0.8, 0.75), 0.08)
+
+
+def groan(seed=12, length=1.3):
+    """The forces: a load pulling on steel, a low strained groan sliding
+    down in pitch, with a rough edge."""
+    rnd = np.random.default_rng(seed)
+    n = int(length * SR)
+    t = np.arange(n) / SR
+    f = 120 - 55 * (t / length)
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    tone = np.sin(ph) + 0.5 * np.sin(2.01 * ph) + 0.3 * np.sin(3.03 * ph)
+    rough = 1 + 0.35 * np.sin(2 * np.pi * 23 * t + rnd.uniform(0, 6))
+    env = np.minimum(1, t / 0.08) * np.exp(-np.maximum(0, t - length * 0.55) / 0.25)
+    sub = np.sin(2 * np.pi * 42 * t) * np.exp(-t / 0.6) * 0.8
+    return _st(_norm((tone * rough * 0.6 + sub) * env, 0.8), 0.04)
+
+
+def crash(seed=13, length=1.6):
+    """The failure: a heavy impact, the structure coming down: a sub drop,
+    a wide noise burst and debris rattling after it."""
+    rnd = np.random.default_rng(seed)
+    n = int(length * SR)
+    t = np.arange(n) / SR
+    f = 30 + 70 * np.exp(-t / 0.05)
+    sub = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.45)
+    burst = _lowpass(rnd.standard_normal(n).astype(np.float32), 4) * np.exp(-t / 0.12)
+    debris = np.zeros(n, np.float32)
+    for _ in range(26):
+        at = int(rnd.uniform(0.05, length * 0.7) * SR)
+        m = int(0.03 * SR)
+        if at + m < n:
+            debris[at:at + m] += rnd.standard_normal(m).astype(np.float32) * np.exp(-np.arange(m) / (m / 4)) * rnd.uniform(0.1, 0.5)
+    return _st(_norm(sub + 0.6 * burst + debris * np.exp(-t / 0.5), 0.85), 0.1)
+
+
+def lock(seed=14, length=1.4):
+    """The fix: something locking into place: a solid mechanical clunk,
+    then a bright, settled chord (the answer)."""
+    rnd = np.random.default_rng(seed)
+    n = int(length * SR)
+    t = np.arange(n) / SR
+    clunk = (np.sin(2 * np.pi * 180 * t) * np.exp(-t / 0.03)
+             + _lowpass(rnd.standard_normal(n).astype(np.float32), 8) * np.exp(-t / 0.015) * 0.6)
+    late = np.maximum(0, t - 0.06)
+    chord = sum(np.sin(2 * np.pi * f * late) for f in (523.25, 659.25, 783.99, 1046.5)) / 4
+    chord = chord * np.minimum(1, late / 0.02) * np.exp(-late / 0.55) * (t > 0.06)
+    return _st(_norm(clunk * 0.9 + chord * 0.55, 0.75), 0.12)
+
+
+def pulse_bed(length, beats, swell_from, seed=15):
+    """The bed under the preview: a low drone (a root and its fifth, with a
+    slow filtered hiss) and a heartbeat thump on every cut, swelling from
+    `swell_from` into the end."""
+    rnd = np.random.default_rng(seed)
+    n = int(length * SR)
+    t = np.arange(n) / SR
+    drone = (np.sin(2 * np.pi * 55 * t) + 0.5 * np.sin(2 * np.pi * 82.4 * t) + 0.25 * np.sin(2 * np.pi * 110 * t))
+    hiss = _lowpass(rnd.standard_normal(n).astype(np.float32), 90) * 2.5
+    grow = 0.55 + 0.45 * np.clip((t - swell_from) / max(0.5, length - swell_from), 0, 1)
+    out = (drone * 0.5 + hiss * 0.3) * np.minimum(1, t / 0.4) * grow
+    for at in beats:                                   # thump-thump on each cut
+        for k, dt in enumerate((0.0, 0.16)):
+            a = int((at + dt) * SR)
+            m = int(0.35 * SR)
+            if a + m < n:
+                tt = np.arange(m) / SR
+                out[a:a + m] += np.sin(2 * np.pi * (60 - 20 * tt / 0.35) * tt) * np.exp(-tt / 0.09) * (1.6 if k == 0 else 1.0)
+    return _st(_norm(out, 0.6), 0.03)
