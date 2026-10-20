@@ -135,6 +135,8 @@ def prompt(topic, facts_text, variant):
         "plain words; its ai_prompt describes the collapse as it physically "
         "happened.\n"
         "- Labels under 48 characters, captions under 90.\n"
+        "- The narration is read aloud by a synthetic voice: write clock times as a "
+        "narrator says them (\"just after seven in the evening\", never \"7:05 p.m.\").\n"
         "- hook is the cold open, the first 30 seconds over fast footage and tense "
         "music, there to make the viewer stay: open on the moment (date, time, "
         "place), one hard image of what happened, the toll, and close on the "

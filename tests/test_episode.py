@@ -78,6 +78,16 @@ class EpisodeTimingTest(unittest.TestCase):
             "I-35W collapse — Kevin Rofidal, USCG — Public domain (via Wikimedia Commons)"),
             "Photo: Kevin Rofidal, USCG · Public domain")
 
+    def test_clock_times_are_said_like_a_narrator(self):
+        self.assertEqual(narration.spoken("August 1, 2007. 6:05 p.m. Rush hour."),
+                         "August 1, 2007. five past six in the evening. Rush hour.")
+        self.assertEqual(narration.spoken("at 7:05 p.m., the walkways fell"),
+                         "at five past seven in the evening, the walkways fell")
+        self.assertEqual(narration.spoken("opened at 5 a.m. on September 18"),
+                         "opened at five in the morning on September 18")
+        self.assertEqual(narration.spoken("by 18:30"), "by half past six in the evening")
+        self.assertEqual(narration.spoken("In 1990, 13 people, a 2:1 ratio"), "In 1990, 13 people, a 2:1 ratio")
+
 
 if __name__ == "__main__":
     unittest.main()

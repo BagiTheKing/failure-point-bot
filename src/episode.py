@@ -113,7 +113,8 @@ def write_hook(sheet, pool, call):
             f"FACTS (the only ones you may use, figures written the same way):\n{source}\n\n"
             "Write {\"title\": \"THE ... COLLAPSE (under 32 characters, capitals)\", "
             "\"lines\": [3 to 5 lines, each under 90 characters, 60 words in all at most]}. "
-            "Open on the moment (date, time, place), then what happened in one hard image, "
+            "Open on the moment (date, time, place; a time written as a narrator says it, "
+            "\"just after six in the evening\", never \"6:05 p.m.\"), then what happened in one hard image, "
             "the toll, and close on the question the episode answers: a hidden cause, "
             "stated as a fact, not a question.")
     for _ in range(2):
