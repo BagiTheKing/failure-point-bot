@@ -40,6 +40,7 @@ CAPTIONS = ["THE FLAW", "THE FORCES", "THE FAILURE", "THE FIX"]
 KEYS = ["flaw", "forces", "failure", "fix", "stay"]
 W, H, FPS, SR = 1280, 720, 30, 48000
 LEAD = 0.25                  # the voice starts this long into the preview
+BEAT = 1.15                  # one word, one cut: slow enough to read each picture
 PAUSE = 0.8                  # the beat of silence before the episode
 FONTS = os.path.join(HERE, "..", "fonts")
 RED, WHITE = (255, 75, 58), (255, 255, 255)
@@ -54,26 +55,37 @@ def sources(prep, episode_mp4):
     """Where each cut's picture is in the episode: {key: start seconds}, and
     where the cold open ends (the preview goes in there)."""
     from highlight_short import plan
-    cuts, _ = plan(prep, episode_mp4, ["connection", "physics", "dramatization", "compare", "load_path", "photo"])
+    cuts, _ = plan(prep, episode_mp4, ["connection", "physics", "dramatization", "compare", "establish", "photo"])
     at = {c["span"]: c for c in cuts}
     return {"flaw": at["connection"]["end"] - 2.8,           # the part red-hot, close up
             "forces": at["physics"]["end"] - 3.6,            # the tear
             "failure": at["dramatization"]["shot_start"] - 0.3,   # the drop
             "fix": at["compare"]["end"] - 2.8,               # HOLDS / FAILS
-            "stay": at["load_path"]["shot_start"] + 1.5}, at["photo"]["shot_start"]
+            "stay": at["establish"]["shot_start"] + 1.0}, at["photo"]["shot_start"]
 
 
 def voice(out_dir):
-    """The signature, voiced, with its word timings."""
+    """The signature, voiced a phrase at a time and laid on a steady beat:
+    each of the four words opens its cut, the promise follows. Returns the
+    voice track (mono, SR), when each part starts, and its length."""
+    import soundfile as sf
     import narration
-    text = " ".join(WORDS + [CLOSE])
-    took = narration.record({"shots": [{"clip": "preview", "narration": text}]}, out_dir)["preview"]
-    words = narration.words_of(text, took["wav"])
-    times = {}
-    for key in KEYS:
-        t = narration.find_word(words, key)
-        times[key] = LEAD + (t if t is not None else 0.0)
-    return took, times, words
+    parts = WORDS + [CLOSE]
+    took = narration.record({"shots": [{"clip": f"p{i}", "narration": t} for i, t in enumerate(parts)]}, out_dir)
+    times, clips = {}, []
+    t = LEAD
+    for i, key in enumerate(KEYS):
+        times[key] = t
+        v, vsr = sf.read(took[f"p{i}"]["wav"], dtype="float32")
+        if vsr != SR:
+            v = np.interp(np.arange(int(len(v) * SR / vsr)) / SR * vsr, np.arange(len(v)), v).astype(np.float32)
+        clips.append((t, v))
+        t += max(BEAT, len(v) / SR + 0.15) if i < len(WORDS) else len(v) / SR
+    track = np.zeros(int((t + 1) * SR), np.float32)
+    for at, v in clips:
+        a = int(at * SR)
+        track[a:a + len(v)] += v
+    return track, times, t - LEAD
 
 
 def _cut_list(times, total_voice):
@@ -113,11 +125,27 @@ def _glitch(img, k):
     return Image.merge("RGB", (ImageChops.offset(r, off, 0), g, ImageChops.offset(b, -off, 0)))
 
 
+def _band(img, top, strength=245):
+    """A dark band from `top` down: our words over it, the episode's own
+    caption under it out of the way."""
+    key = (top, strength)
+    if key not in _bands:
+        band = Image.new("L", (1, H))
+        for y in range(H):
+            band.putpixel((0, y), 0 if y < top else min(strength, int((y - top) / 60 * strength)))
+        _bands[key] = band.resize((W, H))
+    img.paste(Image.new("RGB", (W, H), (0, 0, 0)), (0, 0), _bands[key])
+
+
+_bands = {}
+
+
 def _caption(img, text, k, words_left=None):
+    _band(img, H - 300)
     d = ImageDraw.Draw(img, "RGBA")
     f = _font("InterDisplay-Black.otf", 74)
     tw = f.getlength(text)
-    x, y = (W - tw) / 2, H - 170
+    x, y = (W - tw) / 2, H - 190
     a = int(255 * min(1, k * 4))
     d.text((x + 3, y + 3), text, font=f, fill=(0, 0, 0, int(a * 0.6)))
     d.text((x, y), text, font=f, fill=WHITE + (a,))
@@ -135,16 +163,17 @@ def _pill(img, text, alpha):
 
 
 def _close_lines(img, t_since, words, t0):
-    """The last sentence on screen, its second half in red: the promise."""
+    """The promise on screen over a darkened picture: big, white, then red."""
+    shade = Image.new("RGB", (W, H), (0, 0, 0))
+    img.paste(Image.blend(img, shade, min(0.62, t_since * 2)), (0, 0))
     d = ImageDraw.Draw(img, "RGBA")
-    first, second = "STAY TO THE END", "AND YOU'LL UNDERSTAND IT BETTER THAN THE PEOPLE WHO SIGNED OFF ON IT"
     a1 = min(1, t_since * 3)
-    f1, f2 = _font("InterDisplay-Black.otf", 60), _font("InterDisplay-Black.otf", 34)
-    d.text((W / 2, H - 196), first, font=f1, fill=WHITE + (int(255 * a1),), anchor="mm")
-    k2 = min(1, max(0, t_since - 0.9) * 2)
-    while f2.getlength(second) > W - 120:
-        f2 = _font("InterDisplay-Black.otf", f2.size - 2)
-    d.text((W / 2, H - 132), second, font=f2, fill=RED + (int(255 * k2),), anchor="mm")
+    d.text((W / 2, H / 2 - 90), "STAY TO THE END", font=_font("InterDisplay-Black.otf", 84),
+           fill=WHITE + (int(255 * a1),), anchor="mm")
+    k2 = min(1, max(0, t_since - 0.8) * 2)
+    for i, line in enumerate(("YOU'LL UNDERSTAND IT BETTER THAN", "THE PEOPLE WHO SIGNED OFF ON IT")):
+        d.text((W / 2, H / 2 + 10 + i * 60), line, font=_font("InterDisplay-Black.otf", 48),
+               fill=(RED if i else WHITE) + (int(255 * k2),), anchor="mm")
 
 
 def build(prep, episode_dir, out_dir):
@@ -153,19 +182,15 @@ def build(prep, episode_dir, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     episode_mp4 = os.path.join(episode_dir, "episode.mp4")
     src, hook_end = sources(prep, episode_mp4)
-    took, times, words = voice(os.path.join(out_dir, "voice"))
-    spans, end = _cut_list(times, took["seconds"])
+    voice_track, times, spoken = voice(os.path.join(out_dir, "voice"))
+    spans, end = _cut_list(times, spoken)
+    words = None
     total = end + PAUSE
 
     # sound first: the voice over a tense bed, a whoosh into every cut, a
     # riser under the promise into a soft hit, then the beat of silence
     print(f"  cuts: {[(k, round(a, 2), round(b, 2)) for k, a, b in spans]}", flush=True)
-    voice_track = np.zeros(int(total * SR), np.float32)
-    v, vsr = sf.read(took["wav"], dtype="float32")
-    if vsr != SR:
-        v = np.interp(np.arange(int(len(v) * SR / vsr)) / SR * vsr, np.arange(len(v)), v).astype(np.float32)
-    a0 = int(LEAD * SR)
-    voice_track[a0:a0 + len(v)] += v[: len(voice_track) - a0]
+    voice_track = np.pad(voice_track, (0, max(0, int(total * SR) - len(voice_track))))[: int(total * SR)]
     vwav = os.path.join(out_dir, "voice_track.wav")
     sf.write(vwav, voice_track, SR)
     mixed = os.path.join(out_dir, "mix.wav")
