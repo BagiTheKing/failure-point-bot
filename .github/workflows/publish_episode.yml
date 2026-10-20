@@ -24,6 +24,9 @@ on:
       publish_at:
         description: "RFC 3339 UTC time to go public (blank = public now)"
         default: ""
+      replace:
+        description: "A scheduled or private upload this cut takes the place of (deleted first; a public one is refused)"
+        default: ""
 
 permissions:
   contents: write
@@ -53,6 +56,12 @@ jobs:
             git show "origin/preview-media:thumbs/${{ inputs.thumbs }}/thumb_$t.jpg" > ep/thumb_$t.jpg 2>/dev/null || rm -f ep/thumb_$t.jpg
           done
           ls -la ep
+      - name: Take the place of an earlier, unpublished cut
+        if: inputs.replace != ''
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python tools/replace_video.py "${{ inputs.replace }}"
       - name: 48-hour spacing
         id: gate
         working-directory: src

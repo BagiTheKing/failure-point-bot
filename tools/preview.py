@@ -225,10 +225,10 @@ def build(prep, episode_dir, out_dir):
     sf.write(mixed, np.clip(b * gain[:, None] * 0.2 + v2, -1, 1), SR)
     credits = []
     # levels balanced by loudness: the ring and the chord are thin, the groan dense
-    # about 3 dB under their first level: still the signature, never a blast
-    # (owner, 2026-10-21)
-    sfx = [(times["flaw"] - 0.02, ping() * 0.42), (times["forces"] - 0.02, groan() * 0.27),
-           (times["failure"] - 0.02, crash() * 0.39), (times["fix"] - 0.02, lock() * 0.42)]
+    # about 9 dB under their first level: heard on every word, never a blast
+    # (owner, 2026-10-21: "adjust it as you did with the soundtrack")
+    sfx = [(times["flaw"] - 0.02, ping() * 0.21), (times["forces"] - 0.02, groan() * 0.135),
+           (times["failure"] - 0.02, crash() * 0.2), (times["fix"] - 0.02, lock() * 0.21)]
     sfx += [(max(0.0, a - 0.2), whoosh(20 + i) * 0.18) for i, (_, a, _) in enumerate(spans) if a > 0]
     sfx.append((stay, riser(max(1.0, end - stay), 7) * 0.22))
     sfx.append((end - 0.05, boom(6) * 0.3))
