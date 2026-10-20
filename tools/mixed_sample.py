@@ -27,7 +27,9 @@ from kits.truss_bridge import TrussBridge  # noqa: E402
 from kits import timemap  # noqa: E402
 from kits.assemble import frames_of, render_3d_part, dramatization, join  # noqa: E402
 
-KITS = {"hanging_walkways": HangingWalkways, "truss_bridge": TrussBridge}
+from kits.fuselage import Fuselage  # noqa: E402
+
+KITS = {"hanging_walkways": HangingWalkways, "truss_bridge": TrussBridge, "fuselage": Fuselage}
 
 def main():
     ap = argparse.ArgumentParser()

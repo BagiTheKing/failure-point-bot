@@ -1,0 +1,158 @@
+{
+  "story": "Aloha Airlines Flight 243",
+  "sources": {
+    "ntsb": "NTSB AAR-89/03"
+  },
+  "kit": {
+    "family": "aircraft",
+    "variant": "fuselage",
+    "aircraft": "Boeing 737-200",
+    "joint_label": "S-10L",
+    "cycles": "89,680",
+    "section": "18 feet of cabin roof",
+    "labels": {
+      "fuselage": "Boeing 737-200, 19 years old",
+      "cabin": "pressurised cabin, 95 aboard",
+      "skin": "aluminium skin, thinner than a coin",
+      "joint": "lap joint S-10L",
+      "rivets": "three rows of rivets",
+      "bond": "cold bond: epoxy tape",
+      "tear_strap": "tear straps"
+    }
+  },
+  "model_3d": {
+    "labels_3d": [],
+    "big_3d": {
+      "anchor": "joint",
+      "text": "89,680",
+      "label": "FLIGHTS",
+      "t": [
+        16.8,
+        19.4
+      ]
+    }
+  },
+  "disaster": {
+    "place_date": "MAUI · 28 APRIL 1988 · 1:46 PM",
+    "place": "24,000 ft over Maui",
+    "photo_article": "Aloha Airlines Flight 243"
+  },
+  "design_vs_built": {
+    "designed": {
+      "title": "AS DESIGNED",
+      "detail": "a crack stops at a tear strap",
+      "load": "a small flap opens; the cabin vents"
+    },
+    "built": {
+      "title": "AS IT WAS",
+      "detail": "every rivet in the row cracked",
+      "load": "18 feet of roof tear away"
+    },
+    "multiplier": "89,680",
+    "multiplier_label": "FLIGHTS ON ONE AIRFRAME"
+  },
+  "numbers": [
+    {
+      "value": "1",
+      "label": "FLIGHT ATTENDANT KILLED"
+    },
+    {
+      "value": "65",
+      "label": "INJURED"
+    }
+  ],
+  "clock": {
+    "from_seconds": 50,
+    "label_before": "1:45:{s:02d}",
+    "label_at": "1:46:00",
+    "day": "PM · THURSDAY 28 APRIL 1988",
+    "event": "THE ROOF TEARS AWAY"
+  },
+  "timeline": [],
+  "today": {
+    "title": "COULD IT HAPPEN TODAY?",
+    "lines": []
+  },
+  "shots": [
+    {
+      "clip": "photo",
+      "caption": "caption for photo",
+      "narration": "x"
+    },
+    {
+      "clip": "photos_disaster",
+      "caption": "caption for photos_disaster",
+      "narration": "x"
+    },
+    {
+      "clip": "establish",
+      "caption": "caption for establish",
+      "narration": "x"
+    },
+    {
+      "clip": "build",
+      "caption": "caption for build",
+      "narration": "x"
+    },
+    {
+      "clip": "load_path",
+      "caption": "caption for load_path",
+      "narration": "x"
+    },
+    {
+      "clip": "connection",
+      "caption": "caption for connection",
+      "narration": "x"
+    },
+    {
+      "clip": "physics",
+      "caption": "caption for physics",
+      "narration": "x"
+    },
+    {
+      "clip": "clock",
+      "caption": "caption for clock",
+      "narration": "x"
+    },
+    {
+      "clip": "fall",
+      "caption": "caption for fall",
+      "narration": "x"
+    },
+    {
+      "clip": "dramatization",
+      "caption": "caption for dramatization",
+      "narration": "x"
+    },
+    {
+      "clip": "aftermath",
+      "caption": "caption for aftermath",
+      "narration": "x"
+    },
+    {
+      "clip": "timeline",
+      "caption": "caption for timeline",
+      "narration": "x"
+    },
+    {
+      "clip": "investigation",
+      "caption": "caption for investigation",
+      "narration": "x"
+    },
+    {
+      "clip": "compare",
+      "caption": "caption for compare",
+      "narration": "x"
+    },
+    {
+      "clip": "today_photos",
+      "caption": "caption for today_photos",
+      "narration": "x"
+    },
+    {
+      "clip": "today",
+      "caption": "caption for today",
+      "narration": "x"
+    }
+  ]
+}

@@ -37,9 +37,10 @@ ARCHIVE = ("photo", "photos_disaster", "aftermath", "investigation", "today_phot
 
 
 def kit_class(variant):
+    from kits.fuselage import Fuselage
     from kits.hanging_walkway import HangingWalkways
     from kits.truss_bridge import TrussBridge
-    return {"hanging_walkways": HangingWalkways, "truss_bridge": TrussBridge}[variant]
+    return {"hanging_walkways": HangingWalkways, "truss_bridge": TrussBridge, "fuselage": Fuselage}[variant]
 
 
 # --------------------------------------------------------------------------

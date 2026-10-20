@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       only:
-        description: "Write only this story (hyatt or i35w; blank = both)"
+        description: "Write only this story (hyatt, i35w or aloha; blank = hyatt and i35w)"
         default: ""
 
 permissions:
@@ -43,6 +43,7 @@ jobs:
           case "${{ matrix.name }}" in
             hyatt) python tools/write_sheet.py "Hyatt Regency walkway collapse" hanging_walkways out/hyatt ;;
             i35w) python tools/write_sheet.py "I-35W Mississippi River bridge collapse" truss_bridge out/i35w ;;
+            aloha) python tools/write_sheet.py "Aloha Airlines Flight 243" fuselage out/aloha ;;
             *) echo "unknown story ${{ matrix.name }}"; exit 1 ;;
           esac
       - uses: actions/upload-artifact@v4

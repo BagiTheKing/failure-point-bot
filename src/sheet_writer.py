@@ -40,6 +40,25 @@ KITS = {
         "model_3d": {"walk_length": 36.0, "walk_width": 2.6, "level_z": [12.0, 5.0],
                      "roof_z": 19.5},
     },
+    "fuselage": {
+        "what": ("A pressurised airliner fuselage: thin aluminium skin joined along its "
+                 "length by overlapping lap joints, bonded and riveted; the bond lets go, "
+                 "fatigue cracks grow at the rivets of one row and join, and a section "
+                 "of the cabin tears away in flight."),
+        "params": {"aircraft": "the aircraft type, e.g. Boeing 737-200",
+                   "joint_label": "the failed joint's name in the report, e.g. S-10L",
+                   "cycles": "how many flights (pressurisation cycles) the airframe had flown, a figure from the facts",
+                   "section": "what tore away, short, e.g. 18 feet of cabin roof"},
+        "labels": ["fuselage", "cabin", "skin", "joint", "rivets", "bond", "tear_strap"],
+        "labels_3d": [("cabin", [2.0, 6.0], [140, 140], "cyan"),
+                      ("wing", [2.6, 6.0], [760, 600], "cyan"),
+                      ("skin", [9.0, 12.4], [820, 150], "amber"),
+                      ("joint", [15.4, 19.4], [760, 150], "cyan")],
+        "multiplier": "the flights the airframe had flown, e.g. 89,680 (multiplier_label: FLIGHTS ON ONE AIRFRAME)",
+        "big_3d_anchor": "joint",
+        "title_hint": "THE ... FLIGHT 243 or THE ... DISASTER",
+        "model_3d": {"section_x": [-8.6, -3.1], "seam_x": -6.0},
+    },
     "truss_bridge": {
         "what": ("A steel truss bridge over one or more spans; one joint (a gusset "
                  "plate where beams meet) is weaker than the forces through it and "
@@ -78,7 +97,8 @@ SHOTS = [
 ]
 # ~1,260 words: 8-10 minutes in the am_echo voice with the pauses (owner, 2026-10-18)
 
-LIMITS = {"label": 48, "caption": 90, "title": 28, "big_label": 34, "sub": 44, "today": 90}
+LIMITS = {"label": 48, "caption": 90, "title": 28, "big_label": 34, "sub": 44, "today": 90,
+          "thumb_top": 18, "thumb_sub": 22}
 
 
 def _template(variant):
@@ -89,7 +109,8 @@ def _template(variant):
         "labels_3d": {a: "<label for this part in the 3D view>" for a, *_ in k["labels_3d"]},
         "big_3d": {"text": "<the design_vs_built multiplier again, e.g. 2× or ½>",
                    "label": "<the multiplier label again>"},
-        "hook": {"title": "<THE ... COLLAPSE: the episode's title, capitals, under 32 characters>",
+        "hook": {"title": f"<{k.get('title_hint', 'THE ... COLLAPSE')}: the episode's title, capitals, "
+                          "under 32 characters>",
                  "lines": ["<cold open: 3 to 5 lines, each under 90 characters, 60 words in all>"]},
         "disaster": {"place_date": "<CITY · DAY MONTH YEAR · TIME>", "place": "<where, one line>",
                      "caption": "<one line: what happened>"},
@@ -106,6 +127,8 @@ def _template(variant):
                   "event": "<WHAT FAILS, in capitals>"},
         "timeline": [{"date": "", "title": "", "sub": "", "kind": "warning|event|failure"}],
         "today": {"title": "COULD IT HAPPEN TODAY?", "lines": ["", "", "<could it happen again now>"]},
+        "thumbnail": {"top": "<2 to 3 words, capitals: the failure as one image, e.g. ROOF TORN OFF>",
+                      "sub": "<2 to 4 words, capitals, with the key figure, e.g. AT 24,000 FEET>"},
         "ai_prompt": "<how the collapse looks, physically accurate, plain words, "
                      "ending with 'Static camera.'>",
         "photo_article": "<the Wikipedia article title of the event>",
@@ -166,6 +189,8 @@ def prompt(topic, facts_text, variant):
         "- Kit parameters the facts do not give: use the kit's usual values "
         "(hanging walkways: 3 rod lines, the middle one failed; truss bridge: "
         "28 panels).\n"
+        "- thumbnail.top under 18 characters and thumbnail.sub under 22: the words "
+        "on the episode's picture, true to the facts.\n"
         "- The archive shots (photo, photos_disaster, aftermath, investigation, "
         "today_photos) are narrated over real photographs: say what they show.\n\n"
         "Output ONLY JSON in exactly this shape (replace every <...>):\n"
@@ -238,6 +263,9 @@ def check(reply, variant, source_text):
                 problems.append("kit.spans needs the span lengths as numbers")
         except (TypeError, ValueError):
             problems.append("kit.panels / kit.failed_node are not numbers")
+    if variant == "fuselage":
+        if not re.search(r"\d", str(k.get("cycles", ""))):
+            problems.append("kit.cycles needs the number of flights the airframe had flown")
     if variant == "hanging_walkways":
         try:
             n, i = int(k.get("rod_lines", 0)), int(k.get("failed_line", -1))
@@ -263,6 +291,8 @@ def check(reply, variant, source_text):
     for i, e in enumerate(reply.get("timeline") or []):
         shorts += [(f"timeline[{i}].title", e.get("title", ""), "title"),
                    (f"timeline[{i}].sub", e.get("sub", ""), "sub")]
+    th = reply.get("thumbnail") or {}
+    shorts += [("thumbnail.top", th.get("top", ""), "thumb_top"), ("thumbnail.sub", th.get("sub", ""), "thumb_sub")]
     shorts += [(f"today.lines[{i}]", line, "today")
                for i, line in enumerate((reply.get("today") or {}).get("lines") or [])]
     for where, text, limit in shorts:
@@ -322,8 +352,10 @@ def assemble(reply, variant, facts_source="", source_name="source"):
         kit["failed_node"] = int(kit["failed_node"])
         kit["load_near_node"] = str(kit.get("load_near_node")).lower() in ("true", "1", "yes")
         kit["river"] = True
-    else:
+    elif variant == "hanging_walkways":
         kit["rod_lines"], kit["failed_line"] = int(kit["rod_lines"]), int(kit["failed_line"])
+    else:
+        kit["family"] = "aircraft"
     m3 = dict(k["model_3d"])
     texts = r.get("labels_3d") or {}
     m3["labels_3d"] = [{"anchor": a, "text": texts.get(a, ""), "color": c, "t": t, "at": at}
@@ -356,6 +388,7 @@ def assemble(reply, variant, facts_source="", source_name="source"):
         "clock": clock_of(r.get("clock", {})),
         "timeline": r.get("timeline", []),
         "today": {**r.get("today", {}), "source": tag},
+        "thumbnail": {k_: str(v).upper() for k_, v in (r.get("thumbnail") or {}).items() if v},
         "shots": shots,
     }
 

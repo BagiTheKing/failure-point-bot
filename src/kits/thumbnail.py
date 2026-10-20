@@ -149,16 +149,24 @@ def figures(sheet):
     kit = sheet.get("kit", {})
     # what failed, and the cause in two words: the hanger rods held at the
     # Hyatt; the nut pulled through the box beam after one design change
-    part = {"truss_bridge": "STEEL PLATE", "hanging_walkways": "CONNECTION"}.get(kit.get("variant"), "PART")
-    cause = {"truss_bridge": "ONE STEEL PLATE", "hanging_walkways": "ONE DESIGN CHANGE"}.get(
-        kit.get("variant"), f"ONE {part}")
+    part = {"truss_bridge": "STEEL PLATE", "hanging_walkways": "CONNECTION",
+            "fuselage": "LAP JOINT"}.get(kit.get("variant"), "PART")
+    cause = {"truss_bridge": "ONE STEEL PLATE", "hanging_walkways": "ONE DESIGN CHANGE",
+             "fuselage": "ONE CRACKED SEAM"}.get(kit.get("variant"), f"ONE {part}")
     name = (sheet["disaster"].get("photo_article") or "").replace("Mississippi River bridge", "").strip().upper()
     node = kit.get("failed_node_label", "")
     block = " · ".join(x for x in ("THE POINT OF FAILURE", name, node and f"JOINT {node}") if x)
     # a thickness "wasn't enough"; a load factor is what the change did
     why = (f"ONE CHANGE. {big} THE LOAD." if big and "×" in big
+           else f"{big} FLIGHTS. ONE SEAM." if big and kit.get("variant") == "fuselage"
            else f"WHY {big} WASN'T ENOUGH" if big else "HOW IT FAILED")
-    return {"big": big, "dead": dead, "part": part, "cause": cause, "why": why, "block": block}
+    # the writer's own two lines for the 3D thumbnail, when it gave them
+    # (a toll of one makes a weak headline: "ROOF TORN OFF / AT 24,000 FT")
+    th = sheet.get("thumbnail") or {}
+    top = th.get("top") or (f"{dead} DEAD" if dead else (big or ""))
+    sub = th.get("sub") or cause
+    return {"big": big, "dead": dead, "part": part, "cause": cause, "why": why, "block": block,
+            "top": top, "sub": sub}
 
 
 def drawing_frame(sheet, which="tear"):
@@ -222,9 +230,8 @@ def model(fall3d, anchor, f, out, zoom=1.45):
         y = (ay * src.height - y0) / ch * H * S
         _ring(d, x, y, 70 * S)
         _tag(d, f"{f['big'] or f['part']} · FAILED HERE", int(x - 150 * S), int(y + 95 * S), RED)
-    big = f"{f['dead']} DEAD" if f["dead"] else (f["big"] or "")
-    px = _headline(d, big, 70 * S, 60 * S, 190 * S, WHITE, max_w=W * S * 0.62)
-    _headline(d, f["cause"], 74 * S, 60 * S + px * 0.92, 92 * S, RED)
+    px = _headline(d, f["top"], 70 * S, 60 * S, 190 * S, WHITE, max_w=W * S * 0.62)
+    _headline(d, f["sub"], 74 * S, 60 * S + px * 0.92, 92 * S, RED)
     _frame(d, f["block"])
     return _save(img, out)
 

@@ -85,6 +85,20 @@ class SheetWriterTest(unittest.TestCase):
         r["shots"]["timeline"]["narration"] = " ".join(["word"] * 150)
         self.assertTrue(any("never said" in p for p in SW.check(r, "hanging_walkways", SOURCE)))
 
+    def test_fuselage_kit_asks_for_its_parts(self):
+        text = SW.prompt("Aloha Airlines Flight 243", "facts", "fuselage")
+        self.assertIn("lap joint", text)
+        self.assertIn("thumbnail", text)
+        r = reply()
+        r["kit"] = {"variant": "fuselage", "aircraft": "Boeing 737-200", "joint_label": "S-10L",
+                    "cycles": "", "section": "18 feet of cabin roof", "labels": {}}
+        self.assertTrue(any("kit.cycles" in p for p in SW.check(r, "fuselage", SOURCE)))
+
+    def test_thumbnail_words_are_short(self):
+        r = reply()
+        r["thumbnail"] = {"top": "THE WHOLE ROOF TORE RIGHT OFF", "sub": "OK"}
+        self.assertTrue(any("thumbnail.top" in p for p in SW.check(r, "hanging_walkways", SOURCE)))
+
     def test_timeline_dates_need_a_year(self):
         r = reply()
         r["timeline"][0]["date"] = "During construction"

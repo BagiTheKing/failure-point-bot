@@ -73,7 +73,9 @@ def tags(sheet):
         base.append("NTSB")
     kit = sheet.get("kit", {}).get("variant", "")
     base += {"truss_bridge": ["bridge collapse", "gusset plate", "truss bridge"],
-             "hanging_walkways": ["walkway collapse", "skywalk collapse", "hanger rod", "structural engineering"]}.get(kit, [])
+             "hanging_walkways": ["walkway collapse", "skywalk collapse", "hanger rod", "structural engineering"],
+             "fuselage": ["metal fatigue", "aviation disaster", "air crash investigation", "plane crash explained",
+                          "aircraft structure"]}.get(kit, [])
     return list(dict.fromkeys(t for t in base if t))[:15]
 
 
