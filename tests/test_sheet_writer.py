@@ -85,6 +85,11 @@ class SheetWriterTest(unittest.TestCase):
         r["shots"]["timeline"]["narration"] = " ".join(["word"] * 150)
         self.assertTrue(any("never said" in p for p in SW.check(r, "hanging_walkways", SOURCE)))
 
+    def test_timeline_dates_need_a_year(self):
+        r = reply()
+        r["timeline"][0]["date"] = "During construction"
+        self.assertTrue(any("without a year" in p for p in SW.check(r, "hanging_walkways", SOURCE)))
+
     def test_long_screen_text_is_refused(self):
         r = reply()
         r["timeline"][0]["sub"] = "x" * 60

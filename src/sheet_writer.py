@@ -150,7 +150,9 @@ def prompt(topic, facts_text, variant):
         "WHAT IT NEEDED / WHAT IT HAD, and never call the faulty design adequate. "
         "plate_needed is a figure from the fact sheet, or empty if it gives none.\n"
         "- Every timeline date is said in the timeline shot's narration, in the "
-        "same words (the picture shows each event as its date is spoken).\n"
+        "same words (the picture shows each event as its date is spoken), and "
+        "carries its year (\"MAY 1978\", \"1979\"): a warning nobody dated belongs "
+        "in the narration, not on the timeline.\n"
         "- timeline: 3 to 6 moments in THIS structure's own story (design "
         "changes, earlier damage, inspections, warnings, decisions), not other "
         "disasters; titles under 28 characters, subs under 44.\n"
@@ -265,7 +267,8 @@ def check(reply, variant, source_text):
                for i, line in enumerate((reply.get("today") or {}).get("lines") or [])]
     for where, text, limit in shorts:
         if len(text or "") > LIMITS[limit]:
-            problems.append(f"{where} is over {LIMITS[limit]} characters")
+            problems.append(f"{where} is over {LIMITS[limit]} characters "
+                            f"({len(text)}: {text!r}; write it shorter)")
     for name, text in (k.get("labels") or {}).items():
         if len(text) > LIMITS["label"]:
             problems.append(f"kit.labels.{name} is over {LIMITS['label']} characters")
@@ -285,8 +288,13 @@ def check(reply, variant, source_text):
         problems.append("figures not in the fact sheet: " + ", ".join(missing[:8]))
     problems += hook_problems(reply.get("hook") or {}, source_text)
     tl_text = ((reply.get("shots") or {}).get("timeline") or {}).get("narration", "")
+    undated = [e.get("date", "") for e in reply.get("timeline") or []
+               if not re.search(r"\b(?:1[89]|20)\d\d\b", str(e.get("date", "")))]
+    if undated:
+        problems.append("timeline dates without a year (give the year, or move the event "
+                        "into the narration): " + ", ".join(undated))
     unsaid = [e.get("date", "") for e in reply.get("timeline") or []
-              if not any(y in tl_text for y in re.findall(r"\b(?:1[89]|20)\d\d\b", str(e.get("date", ""))))]
+              if e.get("date", "") not in undated and not any(y in tl_text for y in re.findall(r"\b(?:1[89]|20)\d\d\b", str(e.get("date", ""))))]
     if unsaid:
         problems.append("timeline dates never said in the timeline narration: " + ", ".join(unsaid))
     if not (reply.get("timeline") and 3 <= len(reply["timeline"]) <= 6):
@@ -352,7 +360,7 @@ def assemble(reply, variant, facts_source="", source_name="source"):
     }
 
 
-def write_sheet(pool, topic, article, facts, variant, call, attempts=2):
+def write_sheet(pool, topic, article, facts, variant, call, attempts=4):
     """The animation sheet for this story and kit, or None."""
     from story_mode import sheet_text
     facts_text = sheet_text(facts)
