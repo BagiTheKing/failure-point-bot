@@ -684,7 +684,7 @@ def intro_effects(fx):
     each press shot, a boom on the title, a whoosh on each cut, a rumble
     under the 3D collapse, a riser into the last line and a boom on it."""
     out = [(t, score.shutter(k)) for k, t in enumerate(coldopen.shutter_times())]
-    out.append((fx.get("title", coldopen.TITLE_AT), score.boom(1) * 0.45))      # the title hit: softer (owner, 2026-10-20)
+    out.append((fx.get("title", coldopen.TITLE_AT), score.boom(1) * 0.3))       # the title hit: soft (owner, 2026-10-20: "loud at the start")
     if fx.get("fall"):
         a, b = fx["fall"]
         out.append((a, score.rumble(max(1.5, b - a), 7) * 0.3))      # under the voice, not over it (owner)

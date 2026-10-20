@@ -37,7 +37,7 @@ PARTS = {1: "Lightless Dawn - Kevin MacLeod.mp3",          # the disaster: sombe
 # all Kevin MacLeod (incompetech.com, CC BY 4.0), fetched with their credit
 # by tools/fetch_music.py: the owner turned down the old horror-style beds
 TRACKS = [COLD_OPEN] + sorted(set(PARTS.values()))
-OPEN_LEVEL = 0.55            # the cold open's music, before ducking
+OPEN_LEVEL = 0.42            # the cold open's music, before ducking (its first beat was the loudest second)
 BED_LEVEL = 0.10             # under the analysis
 DUCK = 0.55                  # how far the music drops while the voice speaks
 # a bed mastered hotter than this is turned down to it first: the tracks
