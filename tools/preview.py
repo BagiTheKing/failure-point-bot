@@ -125,7 +125,7 @@ def _glitch(img, k):
     return Image.merge("RGB", (ImageChops.offset(r, off, 0), g, ImageChops.offset(b, -off, 0)))
 
 
-def _band(img, top, strength=245):
+def _band(img, top, strength=235):
     """A dark band from `top` down: our words over it, the episode's own
     caption under it out of the way."""
     key = (top, strength)
@@ -140,13 +140,21 @@ def _band(img, top, strength=245):
 _bands = {}
 
 
-def _caption(img, text, k, words_left=None):
-    _band(img, H - 300)
-    d = ImageDraw.Draw(img, "RGBA")
+def _caption(img, text, k, where="bottom"):
+    """The cut's word: low, over a short dark band that hides the episode's
+    own caption bar; or in the middle, on a dark plate, where the bottom
+    holds the picture's point (the comparison's HOLDS / FAILS)."""
     f = _font("InterDisplay-Black.otf", 74)
     tw = f.getlength(text)
-    x, y = (W - tw) / 2, H - 190
+    if where == "bottom":
+        _band(img, H - 190)
+        x, y = (W - tw) / 2, H - 150
+    else:
+        x, y = (W - tw) / 2, H / 2 - 60
+    d = ImageDraw.Draw(img, "RGBA")
     a = int(255 * min(1, k * 4))
+    if where != "bottom":
+        d.rounded_rectangle([x - 34, y - 14, x + tw + 34, y + 112], radius=14, fill=(0, 0, 0, int(a * 0.72)))
     d.text((x + 3, y + 3), text, font=f, fill=(0, 0, 0, int(a * 0.6)))
     d.text((x, y), text, font=f, fill=WHITE + (a,))
     sweep = tw * min(1, k * 2.5)
@@ -226,7 +234,7 @@ def build(prep, episode_dir, out_dir):
             if key == "stay":
                 _close_lines(img, t_local, words, a)
             else:
-                _caption(img, CAPTIONS[i], t_local)
+                _caption(img, CAPTIONS[i], t_local, "middle" if key == "fix" else "bottom")
             enc.stdin.write(img.tobytes())
             count += 1
         print(f"  {key}: {n} frames from {src[key]:.2f} s", flush=True)
