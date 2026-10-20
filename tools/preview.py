@@ -220,19 +220,22 @@ def build(prep, episode_dir, out_dir):
     gain = score._duck_gain(voice_track, 0.45)[: len(v2)]
     b = np.zeros_like(v2)
     b[: len(bed)] = bed[: len(v2)]
-    sf.write(mixed, np.clip(b * gain[:, None] * 0.62 + v2, -1, 1), SR)
+    sf.write(mixed, np.clip(b * gain[:, None] * 0.45 + v2, -1, 1), SR)
     credits = []
     # levels balanced by loudness: the ring and the chord are thin, the groan dense
-    sfx = [(times["flaw"] - 0.02, ping() * 0.6), (times["forces"] - 0.02, groan() * 0.38),
-           (times["failure"] - 0.02, crash() * 0.55), (times["fix"] - 0.02, lock() * 0.6)]
-    sfx += [(max(0.0, a - 0.2), whoosh(20 + i) * 0.18) for i, (_, a, _) in enumerate(spans) if a > 0]
-    sfx.append((stay, riser(max(1.0, end - stay), 7) * 0.22))
-    sfx.append((end - 0.05, boom(6) * 0.3))
+    # (owner, 2026-10-21: "a little too loud": all about 4 dB down)
+    sfx = [(times["flaw"] - 0.02, ping() * 0.38), (times["forces"] - 0.02, groan() * 0.24),
+           (times["failure"] - 0.02, crash() * 0.35), (times["fix"] - 0.02, lock() * 0.38)]
+    sfx += [(max(0.0, a - 0.2), whoosh(20 + i) * 0.12) for i, (_, a, _) in enumerate(spans) if a > 0]
+    sfx.append((stay, riser(max(1.0, end - stay), 7) * 0.15))
+    sfx.append((end - 0.05, boom(6) * 0.2))
     add_sfx(mixed, sfx, mixed)
     data, _ = sf.read(mixed, dtype="float32", always_2d=True)
     data[int((end + 0.5) * SR):] *= 0.0                                   # the beat of silence
     sf.write(mixed, data, SR)
-    even = even_loudness(mixed, os.path.join(out_dir, "mix_even.wav"))
+    # a little under the episode (-16): music and effects make it denser,
+    # so at the same measured loudness it sounds louder
+    even = even_loudness(mixed, os.path.join(out_dir, "mix_even.wav"), target=-18.0)
     print("  sound mixed", flush=True)
 
     # picture, streamed into the encoder a frame at a time
