@@ -79,6 +79,7 @@ jobs:
           path: short/short.*
           retention-days: 14
       - name: Push to preview-media
+        continue-on-error: true            # the review copy never holds back publishing
         run: |
           mkdir -p pm && cd pm
           git init -q -b preview-media
@@ -89,8 +90,9 @@ jobs:
           mkdir -p shorts/${{ inputs.name }}
           cp ../short/short.mp4 ../short/short.json shorts/${{ inputs.name }}/
           git add -A
+          git diff --cached --quiet && { echo "same Short as before"; exit 0; }
           git commit -q -m "Highlight Short: ${{ inputs.name }} (run ${{ github.run_number }})"
-          git push -q origin preview-media
+          for i in 1 2 3; do git push -q origin preview-media && break; git pull -q --rebase origin preview-media; done
       - name: 48-hour spacing
         id: gate
         if: inputs.publish
