@@ -490,6 +490,14 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
 
     # part 1: real footage first (security cameras before anything), then photos;
     # a long opening shot borrows spare wreckage photos so no picture holds for long
+    if intro and photos.get("photos_disaster"):
+        # with a cold open the disaster shot is not made: its photos (the
+        # writer filed the Hyatt report's two aftermath pictures there) go to
+        # the opening shot and the aftermath instead of being lost
+        extra = list(photos["photos_disaster"])
+        half = (len(extra) + 1) // 2
+        photos = {**photos, "photo": (photos.get("photo") or []) + extra[:half],
+                  "aftermath": (photos.get("aftermath") or []) + extra[half:], "photos_disaster": []}
     seconds = slots["photo"] + d
     lead = pictures("photo")
     # spare wreckage only: never photos of officials visiting
