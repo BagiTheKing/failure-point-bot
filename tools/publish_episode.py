@@ -31,12 +31,15 @@ def description(sheet, info):
         lines += info["chapters"] + [""]
     src = [u for u in (sheet.get("sources") or {}).values() if u]
     lines += ["SOURCES"] + [f"• {u}" for u in src]
-    if "ntsb" in json.dumps(sheet).lower():
+    report = sheet["disaster"].get("report") or {}
+    if report.get("url"):
+        lines += [f"• {report.get('credit', 'Investigation report')}: {report['url']}"]
+    elif "ntsb" in json.dumps(sheet).lower():
         lines += ["• NTSB accident report on the collapse (National Transportation Safety Board)"]
     lines += ["", "The 3D and 2D animations are reconstructions made for this video from the "
               "investigation's findings; they show the mechanism, not footage of the event.", ""]
     if info.get("credits"):
-        lines += ["PHOTOS AND FOOTAGE"] + [f"• {c}" for c in info["credits"]] + [""]
+        lines += ["PHOTOS AND FOOTAGE"] + [f"• {c}" for c in grouped(info["credits"])] + [""]
     if info.get("music_credits"):
         lines += ["MUSIC"] + [c.strip() for c in info["music_credits"]] + [""]
     lines += [f"{CHANNEL}: engineering disasters, explained."]
@@ -44,14 +47,34 @@ def description(sheet, info):
     return text[:4900]                                   # YouTube's limit is 5,000 characters
 
 
+def grouped(credits):
+    """One line per source for a report's figures ("Figure 4.2 — NBS ... —
+    Public domain" times twenty): their numbers listed once."""
+    import re
+    out, by = [], {}
+    for c in credits:
+        m = re.match(r"^(Figure [\d.]+\w?) — (.+)$", c)
+        if m and "Wikimedia" not in c:
+            by.setdefault(m.group(2), []).append(m.group(1).split()[1])
+        else:
+            out.append(c)
+    for src, nums in by.items():
+        key = lambda n: [int(x) if x.isdigit() else 0 for x in re.findall(r"\d+", n)]
+        out.insert(0, f"{src.replace(' — Public domain', '')}, figures "
+                      f"{', '.join(sorted(set(nums), key=key))} — Public domain")
+    return out
+
+
 def tags(sheet):
     place = sheet["disaster"].get("photo_article") or sheet["disaster"].get("place", "")
-    base = [place, f"{place} collapse", "engineering disaster", "structural failure",
-            "engineering explained", "disaster explained", "3D animation", "NTSB"]
+    base = [place, place if "collapse" in place.lower() else f"{place} collapse", "engineering disaster", "structural failure",
+            "engineering explained", "disaster explained", "3D animation"]
+    if "ntsb" in json.dumps(sheet).lower():
+        base.append("NTSB")
     kit = sheet.get("kit", {}).get("variant", "")
     base += {"truss_bridge": ["bridge collapse", "gusset plate", "truss bridge"],
-             "hanging_walkways": ["walkway collapse", "hanger rod", "structural engineering"]}.get(kit, [])
-    return [t for t in base if t][:15]
+             "hanging_walkways": ["walkway collapse", "skywalk collapse", "hanger rod", "structural engineering"]}.get(kit, [])
+    return list(dict.fromkeys(t for t in base if t))[:15]
 
 
 def main():
