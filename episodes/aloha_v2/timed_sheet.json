@@ -1,0 +1,359 @@
+{
+  "story": "Aloha Airlines Flight 243",
+  "sources": {
+    "source": "https://en.wikipedia.org/wiki/Aloha_Airlines_Flight_243"
+  },
+  "kit": {
+    "family": "aircraft",
+    "variant": "fuselage",
+    "aircraft": "Boeing 737-200",
+    "joint_label": "lap joint",
+    "cycles": "89,680",
+    "section": "about 18 feet (5.5 m) of roof skin",
+    "labels": {
+      "fuselage": "Fuselage shell",
+      "cabin": "Passenger cabin",
+      "skin": "Aluminium skin panels",
+      "joint": "Cold-bonded lap joint",
+      "rivets": "Fastener line",
+      "bond": "Bonded joint layer",
+      "tear_strap": "Tear strap structure"
+    }
+  },
+  "model_3d": {
+    "section_x": [
+      -8.6,
+      -3.1
+    ],
+    "seam_x": -6.0,
+    "labels_3d": [
+      {
+        "anchor": "cabin",
+        "text": "Cabin interior",
+        "color": "cyan",
+        "t": [
+          2.0,
+          6.0
+        ],
+        "at": [
+          140,
+          140
+        ]
+      },
+      {
+        "anchor": "wing",
+        "text": "Aircraft wing",
+        "color": "cyan",
+        "t": [
+          2.6,
+          6.0
+        ],
+        "at": [
+          760,
+          600
+        ]
+      },
+      {
+        "anchor": "skin",
+        "text": "Fuselage skin",
+        "color": "amber",
+        "t": [
+          9.0,
+          12.4
+        ],
+        "at": [
+          820,
+          150
+        ]
+      },
+      {
+        "anchor": "joint",
+        "text": "Lap joint seam",
+        "color": "cyan",
+        "t": [
+          15.4,
+          19.4
+        ],
+        "at": [
+          760,
+          150
+        ]
+      }
+    ],
+    "big_3d": {
+      "anchor": "joint",
+      "text": "89,680",
+      "label": "FLIGHT CYCLES ACCUMULATED",
+      "t": [
+        16.8,
+        19.4
+      ]
+    },
+    "ai_prompt": "An airliner in flight experiences catastrophic structural failure as an eighteen-foot section of upper fuselage skin peels back and tears away under internal pressurization, exposing the passenger cabin to the open sky. Static camera.",
+    "shot_seconds": {
+      "establish": 25.576999999999998,
+      "load_path": 21.002,
+      "connection": 20.558999999999997,
+      "pull": 6.785100000000001,
+      "hold": 2.9079,
+      "drop": 9.0
+    }
+  },
+  "disaster": {
+    "place_date": "MAUI · 28 APRIL 1988 · 13:46 HST",
+    "place": "About 23 nautical miles south-southeast of Kahului on Maui",
+    "caption": "A roof section ruptures at 24,000 feet, tearing open the cabin.",
+    "photo_article": "Aloha Airlines Flight 243"
+  },
+  "hook": {
+    "title": "ALOHA AIRLINES FLIGHT 243",
+    "lines": [
+      "April 28, 1988. Hilo to Honolulu.",
+      "At 24,000 feet, a large section of roof tears completely off a Boeing 737-200.",
+      "One crew member dies and 65 passengers and crew are injured.",
+      "The failure began at a cold-bonded lap joint on an airframe flown 89,680 times."
+    ],
+    "sub": "MAUI · 28 APRIL 1988"
+  },
+  "design_vs_built": {
+    "designed": {
+      "title": "WHAT IT NEEDED",
+      "detail": "an outer doubler at the lap joint (line 292 on)",
+      "load": "a crack stops at a tear strap: a flap vents"
+    },
+    "built": {
+      "title": "WHAT IT HAD",
+      "detail": "a cold bond and rivets alone (line 152)",
+      "load": "cracks joined along the rivets: the roof tore off"
+    },
+    "multiplier": "89,680",
+    "multiplier_label": "FLIGHT CYCLES ON AIRFRAME",
+    "plate_built": "",
+    "plate_needed": "",
+    "source": "source"
+  },
+  "numbers": [
+    {
+      "value": "1",
+      "label": "FLIGHT ATTENDANT KILLED",
+      "source": "source"
+    },
+    {
+      "value": "65",
+      "label": "INJURED",
+      "source": "source"
+    },
+    {
+      "value": "8",
+      "label": "SERIOUSLY INJURED",
+      "source": "source"
+    }
+  ],
+  "clock": {
+    "from_seconds": 50,
+    "label_before": "1:45:{s:02d}",
+    "label_at": "1:46:00",
+    "day": "PM · THURSDAY 28 APRIL 1988",
+    "event": "ROOF SKIN TEARS AWAY"
+  },
+  "timeline": [
+    {
+      "date": "1969",
+      "title": "LINE 152 IS BUILT",
+      "sub": "Cold-bonded lap joints, no doubler",
+      "kind": "event",
+      "source": "source"
+    },
+    {
+      "date": "MARCH 1969",
+      "title": "ALOHA'S 737S ENTER SERVICE",
+      "sub": "Short hops: a pressure cycle every flight",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "APRIL 1988",
+      "title": "89,680 FLIGHTS",
+      "sub": "On a skin 0.035 in thick",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "APRIL 28, 1988",
+      "title": "A CRACK IS SEEN",
+      "sub": "A passenger notices it, tells no one",
+      "kind": "failure",
+      "source": "source"
+    }
+  ],
+  "today": {
+    "title": "COULD IT HAPPEN TODAY?",
+    "lines": [
+      "High-cycle airframes are now tracked flight by flight, not just year by year.",
+      "Lap joints are inspected for cracks long before they can link up.",
+      "From line number 292 on, 737s carry an outer doubler at the joint."
+    ],
+    "source": "source"
+  },
+  "thumbnail": {
+    "top": "ROOF TEARS OFF",
+    "sub": "AT 24,000 FEET"
+  },
+  "shots": [
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photo",
+      "caption": "Aloha Airlines Boeing 737-200, registered N73711, line number 152.",
+      "narration": "Aloha Airlines began operating passenger flights in 1946. In 1968, the carrier placed an order for two Boeing 737-200 jetliners. The aircraft involved here was manufactured in 1969 as a Boeing 737-297, line number 152, registered N73711. In March 1969, the jets named Funbirds entered service in Hawaii. Over 19 years of continuous inter-island flying, this single airframe accumulated 35,496 flight hours and 89,680 flight cycles.",
+      "seconds": 39.67
+    },
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photos_disaster",
+      "caption": "Flight 243 on the runway at Kahului Airport on Maui with its cabin roof missing.",
+      "narration": "On April 28, 1988, at 13:25 Hawaii Standard Time, Flight 243 departed Hilo International Airport bound for Honolulu. There were 5 crew members and 90 passengers on board. At 13:46, while reaching 24,000 feet, a section on the left side of the roof ruptured. A large section tore away with a whooshing sound. Chief flight attendant Clarabelle Lansing was ejected. First Officer Mimi Tompkins saw debris floating in the cockpit. Captain Robert Schornstheimer turned and saw blue sky where the first-class ceiling had been. Thirteen minutes later, the aircraft landed on Runway 2 at Kahului Airport on Maui.",
+      "seconds": 39.45
+    },
+    {
+      "part": 2,
+      "tool": "3d",
+      "clip": "establish",
+      "caption": "Boeing 737-200 fuselage shell and passenger cabin structure.",
+      "narration": "The Boeing 737-200 carries passenger loads inside a pressurized aluminium tube. Thin metal sheets wrap the frames to form an airtight envelope. Each pressurization cycle expands the cylinder. Cabin pressure creates hoop stress that pulls the skin outwards along every joint. The entire structure depends on continuous joints holding tight through tens of thousands of takeoffs and landings across years of routine service.",
+      "seconds": 24.78
+    },
+    {
+      "part": 2,
+      "tool": "2d",
+      "clip": "build",
+      "caption": "Cold-bonded lap joint connecting 0.035 in (0.9 mm) fuselage panels.",
+      "narration": "The fuselage skin panels were manufactured with a thickness of 0.035 in (0.9 mm). To join the sheets along the aircraft length, the design used cold-bonded lap joints held together with adhesive and rows of rivets. The adhesive layer was intended to transfer the primary cabin pressure loads across the joint, leaving the fasteners to secure the seam. When the bond stayed intact, stress spread smoothly over the joint surface. Later aircraft, from line number 292 onwards, were manufactured with an outer layer or doubler sheet providing an additional thickness of 0.036 in (0.91 mm) at the lap joint. But on line number 152, the thin 0.035 in (0.9 mm) skin carried the load alone.",
+      "seconds": 45.23
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "load_path",
+      "caption": "Pressure loads acting across the cold-bonded lap joint.",
+      "narration": "During normal flight, internal cabin pressure pushes outward against the skin panels. That pressure produces tension across the lap joint. The bonded adhesive transfers the load between the overlapping sheets. As long as the chemical bond remains sealed, the stress stays distributed across the entire area, shielding the individual rivet holes from carrying the full outward pull.",
+      "seconds": 21.0
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "connection",
+      "caption": "Fastener lines through overlapping aluminium skin sheets.",
+      "narration": "When the cold bond begins to break down, the load path shifts instantly. The outward pull drops directly onto the rows of rivets. Fasteners designed as a secondary hold become the sole connection. Stress concentrates at the edges of every rivet hole drilled through the 0.035 in (0.9 mm) sheet metal.",
+      "seconds": 19.76
+    },
+    {
+      "part": 3,
+      "tool": "2d",
+      "clip": "physics",
+      "caption": "Multiple fatigue cracks linking between fastener holes along the joint.",
+      "narration": "The aircraft accumulated 89,680 flight cycles during 19 years of operation. Each flight required pressurizing and depressurizing the cabin. During original 737 certification testing, a representative half section of fuselage had undergone 150,000 full pressurization cycles. But in regular flight, environmental exposure degraded the cold-bonded joint. The adhesive let go. Without the bond carrying the cabin pressure loads, the outward force fell entirely upon the rivets. Each cycle bent and pulled the thin 0.035 in (0.9 mm) skin against the fasteners. Microscopic fatigue cracks started forming at the edges of the fastener holes along the joint seam. Flight after flight, through 89,680 cycles, these tiny cracks crept outward through the metal. Instead of stopping at tear straps, cracks formed simultaneously at adjacent rivets along the left side of the cabin. When multiple cracks linked together, the structural integrity of the fuselage shell vanished. At 24,000 feet, the internal pressure simply blew the unzipped seam open. The internal air rushed out, and about 18 feet (5.5 m) of the aircraft roof skin tore off in the slipstream.",
+      "seconds": 68.97
+    },
+    {
+      "part": 4,
+      "tool": "2d",
+      "clip": "clock",
+      "caption": "13:46 HST: left roof section ruptures at 24,000 feet (7,300 m).",
+      "narration": "At 13:46 Hawaii Standard Time, reaching 24,000 feet, the fuselage seam gives way completely. The cabin roof opens to the sky.",
+      "seconds": 10.82
+    },
+    {
+      "part": 4,
+      "tool": "3d",
+      "clip": "fall",
+      "caption": "About 18 feet (5.5 m) of roof skin separates in flight.",
+      "narration": "A section on the left side ruptures with a whooshing sound. About 18 feet (5.5 m) of roof skin tears away from the climbing airliner.",
+      "seconds": 9.69
+    },
+    {
+      "part": 4,
+      "tool": "ai_video",
+      "clip": "dramatization",
+      "caption": "Debris in the cockpit and open sky above the passenger cabin.",
+      "narration": "Wind screams through the exposed cabin. Clarabelle Lansing is ejected. In the cockpit, First Officer Mimi Tompkins sees papers floating. Captain Robert Schornstheimer looks back at open sky where the first-class ceiling had been.",
+      "seconds": 14.01
+    },
+    {
+      "part": 4,
+      "tool": "archive",
+      "clip": "aftermath",
+      "caption": "Evacuation slides deployed and triage established at Kahului Airport.",
+      "narration": "Thirteen minutes after the roof tore away, the pilots brought the Boeing 737-200 down on Runway 2 at Kahului Airport on Maui. Emergency evacuation slides were deployed immediately. Drivers on the ground set up a triage right on the runway, and tour vans carried the injured to the hospital. Out of 95 people on board, 65 passengers and crew were reported injured, including 8 people who suffered serious injuries. Clarabelle Lansing was the sole fatality. The airframe never flew again: it was taken apart where it stood and written off.",
+      "seconds": 33.12
+    },
+    {
+      "part": 5,
+      "tool": "2d",
+      "clip": "timeline",
+      "caption": "Warnings in the life of line number 152",
+      "narration": "This airframe's story is written in its flights. Line number 152 was built in 1969, with cold-bonded lap joints: glue and rows of rivets holding the overlapping skin. In March 1969, Aloha Airlines put its new 737s into service, flying short hops between the islands. Every hop meant one more pressurization cycle: the cabin pumped up, the skin stretched, then let go. Later 737s, from line number 292 onwards, got an outer doubler sheet at the lap joint, 0.036 inches thick. This aircraft never did. By April 1988, it had flown 89,680 flight cycles in 19 years. On April 28, 1988, it completed three round trips. While boarding in Hilo, passenger Gayle Yamamoto noticed a crack in the fuselage. She told no one. The aircraft took off for Honolulu.",
+      "seconds": 53.54
+    },
+    {
+      "part": 5,
+      "tool": "archive",
+      "clip": "investigation",
+      "caption": "Inspection of the cold-bonded lap joint along the failure line.",
+      "narration": "Investigators inspected the remaining structure at Kahului Airport. The aircraft had accumulated 89,680 flight cycles and 35,496 flight hours over 19 years. The failure tracked along the cold-bonded lap joint. Without the adhesive bond transferring the pressurization forces, cyclic stress had concentrated directly at the rivet line in the 0.035 in (0.9 mm) skin panels. Multiple fatigue cracks had spread from rivet to rivet until the entire upper seam pulled apart under normal flight altitude pressure.",
+      "seconds": 35.72
+    },
+    {
+      "part": 6,
+      "tool": "2d",
+      "clip": "compare",
+      "caption": "Original 0.035 in (0.9 mm) skin compared to later reinforced joints.",
+      "narration": "The certification testing had subjected a representative half section of fuselage to 150,000 full pressurization cycles. But line number 152 lacked the reinforcements introduced on later production aircraft. From line number 292 onwards, Boeing added an outer layer or doubler sheet that provided an additional thickness of 0.036 in (0.91 mm) at the lap joint. On the older airframe, the skin was only 0.035 in (0.9 mm) thick. When the cold bond failed over thousands of island flights, the thin metal could not resist fatigue crack propagation without the doubler reinforcement.",
+      "seconds": 39.14
+    },
+    {
+      "part": 7,
+      "tool": "archive",
+      "clip": "today_photos",
+      "caption": "In memory of Clarabelle Lansing",
+      "narration": "In 1995, a memorial garden opened in Terminal 1 of Honolulu International Airport, in honor of Clarabelle Lansing. Her aircraft had flown 89,680 cycles with no one counting what they did to its joints. The airliners that came after would be watched far more closely.",
+      "seconds": 18.57
+    },
+    {
+      "part": 7,
+      "tool": "2d",
+      "clip": "today",
+      "caption": "Structural fatigue inspections and airframe cycle tracking.",
+      "narration": "The accident transformed how airlines and aviation authorities inspect aging aircraft. Airframes that accumulate high flight cycles are tracked with mandatory structural examinations. Cracks along fuselage fastener rows must be detected long before they link across lap joints. Cold-bonded seams on early production aircraft were replaced with redesigned joints to ensure cabin integrity across tens of thousands of flights.",
+      "seconds": 24.17
+    }
+  ],
+  "timing": {
+    "slots": {
+      "photo": 39.672999999999995,
+      "photos_disaster": 39.454,
+      "establish": 24.776999999999997,
+      "build": 45.227,
+      "load_path": 21.002,
+      "connection": 19.758999999999997,
+      "physics": 68.97000000000001,
+      "clock": 10.817,
+      "fall": 9.693000000000001,
+      "dramatization": 14.014000000000001,
+      "aftermath": 33.115,
+      "timeline": 53.54,
+      "investigation": 35.715999999999994,
+      "compare": 39.144999999999996,
+      "today_photos": 18.572999999999997,
+      "today": 24.170999999999996
+    },
+    "dissolve": 0.8,
+    "ai": false,
+    "kit": {
+      "build": 46.026999999999994,
+      "physics": 69.77000000000001,
+      "compare": 39.94499999999999
+    }
+  }
+}
