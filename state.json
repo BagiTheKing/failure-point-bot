@@ -18,7 +18,7 @@
         "videos/fWmMBV3dFCE/1_xray.jpg",
         "videos/fWmMBV3dFCE/2_drawing.jpg"
       ],
-      "status": "waiting",
+      "status": "done",
       "current": null,
       "since": null,
       "views_at_start": null,
@@ -30,7 +30,7 @@
         "videos/0LzIA3S95o0/1_xray.jpg",
         "videos/0LzIA3S95o0/2_drawing.jpg"
       ],
-      "status": "waiting",
+      "status": "done",
       "current": null,
       "since": null,
       "views_at_start": null,
@@ -64,7 +64,6 @@
     }
   },
   "comments": {
-    "G7mENU3fa2c": "The full story, step by step: https://www.youtube.com/watch?v=5ex5EQ0CxGg",
     "1lIWQB8S9ss": "The full story, step by step: https://www.youtube.com/watch?v=aeJcY4PWNDU"
   }
 }
