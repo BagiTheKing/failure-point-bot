@@ -1,0 +1,20 @@
+{
+ "seconds": 35.8,
+ "top": "ONE ROD CHANGED.|114 PEOPLE DIED.",
+ "spans": [
+  {
+   "span": "fall-dramatization",
+   "start": 214.56662500000002,
+   "end": 233.247625
+  },
+  {
+   "span": "connection",
+   "start": 127.146,
+   "end": 141.66899999999998
+  }
+ ],
+ "parts": [
+  3,
+  4
+ ]
+}
