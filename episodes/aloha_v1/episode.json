@@ -1,0 +1,76 @@
+{
+ "seconds": 517.1,
+ "chapters": [
+  "0:00 The disaster",
+  "1:20 The structure and its weak point",
+  "2:30 The physics",
+  "4:20 Second by second",
+  "5:31 The warnings and the investigation",
+  "7:00 How it should have worked",
+  "7:39 Could it happen today?"
+ ],
+ "music_credits": [
+  "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Lightless Dawn\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Hidden Wonders\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Stay the Course\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Man Down\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Tyrant\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Leaving Home\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
+ ],
+ "credits": [
+  "Aloha Airlines Flight 243 fuselage left side — NTSB — Public domain (via Wikimedia Commons)",
+  "N73711 Aloha Airlines Boeing 737-297, Kahului Airport February 1988 — Juerg Schmid — CC BY-SA 4.0 (via Wikimedia Commons)"
+ ],
+ "ai_clip": false,
+ "hook": {
+  "title": "ALOHA AIRLINES FLIGHT 243",
+  "lines": [
+   "April 28, 1988. Kahului, Maui.",
+   "At 24,000 feet, a large section of roof tears completely off a Boeing 737-200.",
+   "One crew member dies and 65 passengers and crew are injured.",
+   "The failure began at a cold-bonded lap joint on an airframe flown 89,680 times."
+  ],
+  "sub": "MAUI · 28 APRIL 1988"
+ },
+ "preview": {
+  "seconds": 11.0,
+  "hook_end": 30.133,
+  "sources": {
+   "flaw": 177.361,
+   "forces": 245.536625,
+   "failure": 269.726375,
+   "fix": 445.51162500000004,
+   "stay": 70.8
+  },
+  "spans": [
+   [
+    "flaw",
+    0.0,
+    1.3199999999999998
+   ],
+   [
+    "forces",
+    1.3199999999999998,
+    2.558333333333333
+   ],
+   [
+    "failure",
+    2.558333333333333,
+    3.708333333333333
+   ],
+   [
+    "fix",
+    3.708333333333333,
+    4.880583333333333
+   ],
+   [
+    "stay",
+    4.880583333333333,
+    10.19975
+   ]
+  ],
+  "music_credits": []
+ }
+}
