@@ -100,7 +100,7 @@
   "hook": {
     "title": "ALOHA AIRLINES FLIGHT 243",
     "lines": [
-      "April 28, 1988. Kahului, Maui.",
+      "April 28, 1988. Hilo to Honolulu.",
       "At 24,000 feet, a large section of roof tears completely off a Boeing 737-200.",
       "One crew member dies and 65 passengers and crew are injured.",
       "The failure began at a cold-bonded lap joint on an airframe flown 89,680 times."
@@ -181,9 +181,9 @@
   "today": {
     "title": "COULD IT HAPPEN TODAY?",
     "lines": [
-      "The story of Flight 243 was made into the television movie Miracle Landing in 1990.",
-      "A memorial garden opened in Terminal 1 of Honolulu International Airport in 1995.",
-      "High-cycle airframes now face strict structural tracking to stop catastrophic separation."
+      "High-cycle airframes are now tracked flight by flight, not just year by year.",
+      "Lap joints are inspected for cracks long before they can link up.",
+      "From line number 292 on, 737s carry an outer doubler at the joint."
     ],
     "source": "source"
   },
@@ -267,7 +267,7 @@
       "tool": "archive",
       "clip": "aftermath",
       "caption": "Evacuation slides deployed and triage established at Kahului Airport.",
-      "narration": "Thirteen minutes after the roof tore away, the pilots brought the Boeing 737-200 down on Runway 2 at Kahului Airport on Maui. Emergency evacuation slides were deployed immediately. Akamai drivers established a triage on the runway to care for the injured. Tour vans transported the injured to the hospital. Out of 95 people on board, 65 passengers and crew were reported injured, including 8 people who suffered serious injuries. Clarabelle Lansing was the sole fatality. After April 28, 1988, the heavily damaged airframe was dismantled on site and written off."
+      "narration": "Thirteen minutes after the roof tore away, the pilots brought the Boeing 737-200 down on Runway 2 at Kahului Airport on Maui. Emergency evacuation slides were deployed immediately. Drivers on the ground set up a triage right on the runway, and tour vans carried the injured to the hospital. Out of 95 people on board, 65 passengers and crew were reported injured, including 8 people who suffered serious injuries. Clarabelle Lansing was the sole fatality. The airframe never flew again: it was taken apart where it stood and written off."
     },
     {
       "part": 5,
@@ -294,8 +294,8 @@
       "part": 7,
       "tool": "archive",
       "clip": "today_photos",
-      "caption": "Clarabelle Lansing memorial garden at Honolulu International Airport.",
-      "narration": "The disaster left a lasting cultural mark. In 1990, the story of Flight 243 was made into the television movie Miracle Landing. In 1995, a memorial garden was opened in Terminal 1 of Honolulu International Airport in honor of Clarabelle Lansing. In 2005, the Canadian television series Mayday featured the accident in the season-three episode Hanging by a Thread. In 2007, Flight 243 was featured in the Mayday season six Science of Disaster special titled Ripped Apart."
+      "caption": "In memory of Clarabelle Lansing",
+      "narration": "In 1995, a memorial garden opened in Terminal 1 of Honolulu International Airport, in honor of Clarabelle Lansing. Her aircraft had flown 89,680 cycles with no one counting what they did to its joints. The airliners that came after would be watched far more closely."
     },
     {
       "part": 7,
