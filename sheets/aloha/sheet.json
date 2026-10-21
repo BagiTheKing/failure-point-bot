@@ -110,13 +110,13 @@
   "design_vs_built": {
     "designed": {
       "title": "WHAT IT NEEDED",
-      "detail": "0.036 in (0.91 mm) additional thickness provided at the lap joint by the outer layer",
-      "load": "Fuselage tested to 150,000 full pressurization cycles during certification"
+      "detail": "an outer doubler at the lap joint (line 292 on)",
+      "load": "a crack stops at a tear strap: a flap vents"
     },
     "built": {
       "title": "WHAT IT HAD",
-      "detail": "0.035 in (0.9 mm) thickness of the skin panels joined by the cold-bonded joint",
-      "load": "Accumulated 89,680 flight cycles and 35,496 flight hours over 19 years"
+      "detail": "a cold bond and rivets alone (line 152)",
+      "load": "cracks joined along the rivets: the roof tore off"
     },
     "multiplier": "89,680",
     "multiplier_label": "FLIGHT CYCLES ON AIRFRAME",
@@ -127,7 +127,7 @@
   "numbers": [
     {
       "value": "1",
-      "label": "PEOPLE KILLED",
+      "label": "FLIGHT ATTENDANT KILLED",
       "source": "source"
     },
     {
@@ -151,36 +151,29 @@
   "timeline": [
     {
       "date": "1969",
-      "title": "AIRCRAFT MANUFACTURED",
-      "sub": "Line 152 built as Boeing 737-297",
+      "title": "LINE 152 IS BUILT",
+      "sub": "Cold-bonded lap joints, no doubler",
       "kind": "event",
       "source": "source"
     },
     {
       "date": "MARCH 1969",
-      "title": "ENTERED SERVICE",
-      "sub": "Delivered to Aloha Airlines as Funbird",
-      "kind": "event",
-      "source": "source"
-    },
-    {
-      "date": "EARLIER ON APRIL 28, 1988",
-      "title": "THREE ROUND TRIPS",
-      "sub": "Flies between Honolulu, Hilo, Maui, Kauai",
-      "kind": "event",
-      "source": "source"
-    },
-    {
-      "date": "APRIL 28, 1988, BOARDING",
-      "title": "CRACK NOTICED",
-      "sub": "Passenger Gayle Yamamoto sees crack",
+      "title": "ALOHA'S 737S ENTER SERVICE",
+      "sub": "Short hops: a pressure cycle every flight",
       "kind": "warning",
       "source": "source"
     },
     {
-      "date": "APRIL 28, 1988, 13:46 HST",
-      "title": "ROOF RUPTURE",
-      "sub": "About 18 feet of roof tears off",
+      "date": "APRIL 1988",
+      "title": "89,680 FLIGHTS",
+      "sub": "On a skin 0.035 in thick",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "APRIL 28, 1988",
+      "title": "A CRACK IS SEEN",
+      "sub": "A passenger notices it, tells no one",
       "kind": "failure",
       "source": "source"
     }
@@ -280,8 +273,8 @@
       "part": 5,
       "tool": "2d",
       "clip": "timeline",
-      "caption": "Key events in the service life and operation of the aircraft.",
-      "narration": "The aircraft entered service in March 1969. In 1970, Aloha Airlines made the first of three unsuccessful merger attempts with Hawaiian Airlines. In late 1986, Aloha Airlines executive Ching and vice-chairman Sheridan Ing announced plans to take the company private after surviving hostile takeover bids. Earlier on April 28, 1988, the aircraft completed three uneventful round-trip flights between Honolulu and Hilo, Maui, and Kauai. Then, during boarding at Hilo International Airport on April 28, 1988, passenger Gayle Yamamoto noticed a crack in the fuselage upon boarding the aircraft, but did not notify anyone. At 13:25, the flight departed Hilo. At 13:46, about 23 nautical miles south-southeast of Kahului, the roof failed. Later in 1988, Aloha Airlines made a second unsuccessful merger attempt with Hawaiian Airlines."
+      "caption": "Warnings in the life of line number 152",
+      "narration": "This airframe's story is written in its flights. Line number 152 was built in 1969, with cold-bonded lap joints: glue and rows of rivets holding the overlapping skin. In March 1969, Aloha Airlines put its new 737s into service, flying short hops between the islands. Every hop meant one more pressurization cycle: the cabin pumped up, the skin stretched, then let go. Later 737s, from line number 292 onwards, got an outer doubler sheet at the lap joint, 0.036 inches thick. This aircraft never did. By April 1988, it had flown 89,680 flight cycles in 19 years. On April 28, 1988, it completed three round trips. While boarding in Hilo, passenger Gayle Yamamoto noticed a crack in the fuselage. She told no one. The aircraft took off for Honolulu."
     },
     {
       "part": 5,
