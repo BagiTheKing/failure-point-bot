@@ -1,6 +1,6 @@
 name: Episode preview
 
-# Manual. The signature preview (tools/preview.py): about ten seconds after
+# Manual. The signature preview (tools/preview.py): about ten seconds before
 # the cold open, "The flaw. The forces. The failure. And the fix.", cut from
 # a finished episode run, alone and set into the episode. The preview goes
 # to preview-media (previews/<name>/); the episode with it is the run's

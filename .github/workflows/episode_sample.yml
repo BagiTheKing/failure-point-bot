@@ -268,7 +268,7 @@ jobs:
           A=""; [ -f prep/ai_fall.mp4 ] && A="--ai prep/ai_fall.mp4"
           python tools/episode_sample.py assemble prep raw $A
           python tools/thumbnails.py prep raw prep/thumbs || echo "no thumbnails"
-      - name: The signature preview after the cold open
+      - name: The signature preview, before the cold open
         env:
           KOKORO_VOICE: am_echo
         run: |

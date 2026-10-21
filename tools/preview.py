@@ -1,8 +1,9 @@
 """
 The episode's signature preview (owner, 2026-10-20: "we just need to survive
-that first one minute"): right after the cold open, about ten seconds that
-show what the viewer is about to get, then a beat of silence, then the
-episode. The same four words every time, so they become the channel's own:
+that first one minute"): the very first thing the viewer sees, about ten
+seconds that show what they are about to get, then a beat of silence, then
+the cold open and the episode (owner, 2026-10-21: "the signature should be
+the intro of our channel"). The same four words every time, so they become the channel's own:
 
     The flaw. The forces. The failure. And the fix.
     Stay to the end, and you'll understand this disaster better than the
@@ -17,7 +18,7 @@ nothing is rendered again.
     python tools/preview.py PREP EPISODE_DIR OUT [--splice]
 
 Writes OUT/preview.mp4; with --splice also OUT/episode.mp4 (the preview set
-in after the cold open) and OUT/episode.json (its chapters moved).
+before the cold open) and OUT/episode.json (its chapters moved).
 """
 
 import argparse
@@ -188,7 +189,7 @@ def build(prep, episode_dir, out_dir):
     from score import add_sfx, boom, even_loudness, riser, whoosh
     os.makedirs(out_dir, exist_ok=True)
     episode_mp4 = os.path.join(episode_dir, "episode.mp4")
-    src, hook_end = sources(prep, episode_mp4)
+    src, _ = sources(prep, episode_mp4)
     voice_track, times, spoken = voice(os.path.join(out_dir, "voice"))
     spans, end = _cut_list(times, spoken)
     words = None
@@ -273,32 +274,34 @@ def build(prep, episode_dir, out_dir):
         count += 1
     enc.stdin.close()
     enc.wait()
-    info = {"seconds": round(count / FPS, 2), "hook_end": round(hook_end, 3), "sources": src,
+    info = {"seconds": round(count / FPS, 2), "at": 0.0, "sources": src,
             "spans": spans, "music_credits": credits}
     json.dump(info, open(os.path.join(out_dir, "preview.json"), "w"), indent=1)
-    print(f"preview: {info['seconds']} s, set in at {hook_end:.2f} s")
+    print(f"preview: {info['seconds']} s, before the cold open")
     return info
 
 
 def splice(episode_dir, out_dir, info):
-    """The episode with the preview after its cold open; chapters moved."""
+    """The episode with the preview in front of it; chapters moved."""
     from score import even_loudness
     ep = os.path.join(episode_dir, "episode.mp4")
     pv = os.path.join(out_dir, "preview.mp4")
-    at = info["hook_end"]
+    at = info.get("at", 0.0)
     # in pieces, each read once (one filter graph reading the episode twice
     # held minutes of video in memory and took the runner down)
     enc = ["-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-r", "30",
            "-c:a", "pcm_s16le", "-ar", "48000", "-ac", "2"]
     a_part, b_part = os.path.join(out_dir, "part_a.mkv"), os.path.join(out_dir, "part_b.mkv")
     p_part = os.path.join(out_dir, "part_p.mkv")
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", ep, "-t", f"{at:.3f}",
-                    "-af", f"afade=t=out:st={max(0.0, at - 0.25):.3f}:d=0.25"] + enc + [a_part], check=True)
+    if at > 0:
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", ep, "-t", f"{at:.3f}",
+                        "-af", f"afade=t=out:st={max(0.0, at - 0.25):.3f}:d=0.25"] + enc + [a_part], check=True)
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{at:.3f}", "-i", ep, "-af", "afade=t=in:d=0.3"]
                    + enc + [b_part], check=True)
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", pv] + enc + [p_part], check=True)
     lst = os.path.join(out_dir, "parts.txt")
-    open(lst, "w").write("".join(f"file '{os.path.abspath(x)}'\n" for x in (a_part, p_part, b_part)))
+    parts = ([a_part] if at > 0 else []) + [p_part, b_part]
+    open(lst, "w").write("".join(f"file '{os.path.abspath(x)}'\n" for x in parts))
     joined = os.path.join(out_dir, "spliced.mkv")
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", joined],
                    check=True)
@@ -308,7 +311,7 @@ def splice(episode_dir, out_dir, info):
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", joined, "-i", even, "-map", "0:v", "-map", "1:a",
                     "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
                     os.path.join(out_dir, "episode.mp4")], check=True)
-    for x in (a_part, b_part, p_part, joined):
+    for x in parts + [joined]:
         os.remove(x)
     e = json.load(open(os.path.join(episode_dir, "episode.json")))
     shift = info["seconds"]
