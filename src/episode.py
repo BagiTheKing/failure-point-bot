@@ -457,11 +457,15 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
         jobs.append((make, trans, shots))
 
     def stills_3d(*canon):
-        out = [find_frame(raw3d, tm.frame(c)) for c in canon]
+        # the render ends a frame short of the canonical 28 s: the last frame
+        # there is the one wanted (Aloha's aftermath fell back to the intact
+        # plane of the opening when frame 28.0 was missing)
+        out = [next((p for n in range(tm.frame(c), tm.frame(c) - 6, -1)
+                     if (p := find_frame(raw3d, n))), None) for c in canon]
         return [{"path": p, "credit": ""} for p in out if p]
 
     def stand_in(name):                    # no free photo: our own 3D frames stand in
-        return {"aftermath": stills_3d(28.0), "investigation": stills_3d(17.0, 15.0),
+        return {"aftermath": stills_3d(24.5, 26.5, 28.0), "investigation": stills_3d(17.0, 15.0),
                 "today_photos": stills_3d(1.0, 4.0)}.get(name) or stills_3d(2.0, 5.0)
 
     def pictures(name):
