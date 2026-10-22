@@ -1,8 +1,9 @@
 name: Highlight Short
 
 # Manual. A long video's highlight Short, cut from the finished episode
-# (tools/highlight_short.py): its voice, music and animation, set 9:16 with
-# the hook on top and the words as they are said. Always pushed to
+# (tools/highlight_short.py): its voice and music, the 3D model over the 2D
+# drawing on the full 9:16 screen, the failure first, the words as they are
+# said, looping back into its start. Always pushed to
 # preview-media (shorts/<name>/) for review; uploaded only when "publish" is
 # ticked, on the owner's go, after the 48-hour spacing check at the time it
 # goes public (src/upload_gate.py).
@@ -19,7 +20,7 @@ on:
         description: "Shots to cut, in order: a-b runs shot a to shot b"
         default: "fall-dramatization,connection"
       top:
-        description: "The hook, two lines split by |"
+        description: "The hook, two lines split by |; a new hook per span, split by ||"
         required: true
       title:
         description: "The Short's title (needed to publish)"
@@ -33,6 +34,9 @@ on:
         default: false
       publish_at:
         description: "RFC 3339 UTC time to go public (blank = public now)"
+        default: ""
+      replace:
+        description: "A scheduled or private Short this one takes the place of (deleted first; a public one is refused)"
         default: ""
 
 permissions:
@@ -101,7 +105,15 @@ jobs:
           YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
           PUBLISH_AT: ${{ inputs.publish_at }}
+          IGNORE_VIDEO: ${{ inputs.replace }}
         run: python upload_gate.py
+      - name: Take the place of an earlier, unpublished cut
+        # only once the gate has said go: never a deleted Short with nothing in its place
+        if: inputs.publish && inputs.replace != '' && steps.gate.outputs.go == 'true'
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python tools/replace_video.py "${{ inputs.replace }}"
       - name: Publish
         if: inputs.publish && steps.gate.outputs.go == 'true'
         env:

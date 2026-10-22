@@ -181,7 +181,7 @@ class Frame:
 
     def caption(self, s, alpha=1.0):
         """Lower caption bar: what the narrator would be saying."""
-        if alpha <= 0:
+        if alpha <= 0 or not s:
             return
         f = font("Inter-Medium.otf", 22)
         tw = self.d.textlength(s, font=f)
