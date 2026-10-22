@@ -1,45 +1,44 @@
 """
-A Short from its own script (owner, 2026-10-22): not cut from the long
-video's narration, written for the Short and voiced fresh, each line telling
-something new over a picture that shows it. Shorts are where the channel
-gets found, so they get their own story:
+A Short made for the phone (owner, 2026-10-22): its own script, voiced
+fresh, and its own pictures, not cut from the long video. Four scenes, one
+continuous shot each, nothing shown twice and nothing standing still:
 
-    1. the collapse, once, briefly: both views at the same time
-    2. what was built: the 3D model alone
-    3. why it failed: the 2D drawings alone
-    4. the people: the real photos, the toll counting up, where the full
-       story is (YouTube then replays the Short into its first frame)
+    1. "fall"   the collapse, once, from the 3D model's tall fall camera
+    2. "close"  the best 3D moment: down the rod to the connection, the nut
+                heating, held while it pulls through (the tall close camera)
+    3. "stack"  the best 2D moment: "what it needed" above "as built", both
+                drawn from nothing at once, the change stamped on, the load
+                doubling, then the built one falls while the other holds
+    4. "photo"  the real photo, the toll counting from its first frame to
+                the word that says it, then where the full story is
 
-The pictures come from the finished episode (its 3D frames and photos) and
-from the kit, drawn fresh. The script is a JSON file of lines:
+The 3D frames are rendered for the Short (kits/*_3d.py short_camera, the
+short3d workflow), the 2D drawn by the kit (side()). The script:
 
     {"hook": "ONE ROD CHANGED.|114 PEOPLE DIED.",
-     "lines": [
-       {"say": "In 1981, ...", "show": "collapse"},
-       {"say": "Each walkway ...", "show": "3d", "shot": "load_path"},
-       {"say": "The original ...", "show": "2d", "clip": "compare", "from": "show", "to": "loads",
-        "hook": "THE CHANGE|THAT DOUBLED THE LOAD"},
-       {"say": "The fabricator ...", "show": "2d", "clip": "compare", "hold": "loads",
-        "zoom": [1.0, 1.7], "focus": [0.75, 0.42]},
-       {"say": "It held ...", "show": "2d", "clip": "physics", "from": "panel", "to": "slip",
-        "cue": {"thirty": "panel", "tore": "slip"}, "hit": "tore"},
-       {"say": "Sixteen hundred ...", "show": "photos", "toll": "fourteen"}]}
+     "toll": {"value": "114", "label": "PEOPLE KILLED"},
+     "scenes": [
+       {"show": "fall", "say": "..."},
+       {"show": "close", "say": "...", "cue": "tore", "label": {"text": "ONE NUT", "from": "one", "to": "tore"}},
+       {"show": "stack", "say": "...", "stamp": "APPROVED BY PHONE",
+        "cues": {"rods_needed": "rod", "rods_built": "split", "stamp": "approved",
+                 "people": "same", "double": "double"}},
+       {"show": "photo", "photo": "photo.jpg", "say": "...", "toll": "fourteen"}]}
 
-"from"/"to" are the kit clip's beats (kits/*.py Beats), played across the
-line; "cue" pins a beat to the word that names it; "hold" keeps the frame
-just before a beat; "zoom" and "focus" move the camera across the line.
+    python tools/story_short.py SHEET FRAMES3D SCRIPT OUT [--photo P]
 
-    python tools/story_short.py PREP EPISODE_MP4 SCRIPT OUT
-
-Writes OUT/short.mp4 and OUT/short.json (length, script, music credits).
+FRAMES3D holds fall/ and close/ (frames and anchors_*.json). Writes
+OUT/short.mp4 and OUT/short.json (length, script, music credits).
 """
 
 import argparse
+import glob
 import json
 import os
 import re
 import subprocess
 import sys
+from importlib import import_module
 
 import numpy as np
 from PIL import Image, ImageDraw
@@ -48,52 +47,38 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "src"))
 sys.path.insert(0, HERE)
 
-import highlight_short as hs                                    # noqa: E402
-from highlight_short import (EH, EP_ROWS, FPS, PH, PW, SH, SOLO_H, SR, SW, WHITE,  # noqa: E402
-                             Episode, _beats_drop, _fit, _kit_focus, _panel, _uncaption, chunks, compose,
-                             motion)
+from highlight_short import RED, WHITE, _brand, _font, _text, chunks     # noqa: E402
 
-LEAD = 0.2                  # the first words start this far in
-GAP = 0.22                  # breath between lines
-END_HOLD = 1.9              # after the last word: the toll and where the full story is
-WIDE_H = SW * 9 // 16      # a 2D drawing alone: its own 16:9, whole
-WIDE_Y = 200                # down from the hook, so the words sit just under it
+SW, SH, FPS, SR = 1080, 1920, 30, 48000
+HOOK_H = 290
+LEAD = 0.2                  # each scene's words start this far in
+GAP = 0.25                  # breath after a scene's words
+DISSOLVE = 0.3              # one scene into the next
+END_HOLD = 1.8              # after the last word: the toll and where the full story is
+STACK_TAIL = 2.2            # after the stack's words: the fall and the verdict
+PANEL_H = SW * 9 // 16      # a 2D side, whole, full width
+STACK_Y = (300, 300 + PANEL_H + 92)          # the two sides; the words between them
+CAP_Y = {"stack": 300 + PANEL_H + 46, "photo": 1360}
+CAP_DEFAULT = 1250          # the words: clear of YouTube's title and buttons below
 MUSIC = ("Volatile Reaction - Kevin MacLeod.mp3", "Man Down - Kevin MacLeod.mp3")
 MUSIC_LEVEL = 0.3
+MODELS_3D = {"hanging_walkways": "kits.hanging_walkway_3d", "truss_bridge": "kits.truss_bridge_3d",
+             "fuselage": "kits.fuselage_3d"}
+CYAN, NAVY = (90, 200, 255), (8, 18, 34)
 
 
-def _wide(img, zoom=1.0, cx=0.5, cy=0.5):
-    """A 2D drawing on the tall picture: its whole width at zoom 1 (labels
-    and both sides of a comparison), closer on its focus as zoom grows;
-    set a little down, the words under it."""
-    cw, ch = img.width / zoom, img.height / zoom
-    x = min(img.width - cw, max(0.0, cx * img.width - cw / 2))
-    y = min(img.height - ch, max(0.0, cy * img.height - ch / 2))
-    ground = img.getpixel((4, 4))
-    out = Image.new("RGB", (SW, SOLO_H), ground)
-    d = ImageDraw.Draw(out)                              # the blueprint's grid, on past the drawing
-    line = tuple(min(255, c + 9) for c in ground)
-    for gx in range(0, SW, 54):
-        d.line([(gx, 0), (gx, SOLO_H)], fill=line)
-    for gy in range(0, SOLO_H, 54):
-        d.line([(0, gy), (SW, gy)], fill=line)
-    out.paste(img.resize((SW, WIDE_H), Image.LANCZOS, box=(x, y, x + cw, y + ch)), (0, WIDE_Y))
-    return out
-
-
-def voice(lines, out_dir):
-    """Each line voiced; returns [(start, wav, seconds, words)] on the Short's clock."""
+def voice(scenes, out_dir):
+    """Each scene's words voiced; [(wav, seconds, words from the take's start)]."""
     import narration
-    took = narration.record({"shots": [{"clip": f"l{i}", "narration": ln["say"]} for i, ln in enumerate(lines)]},
-                            out_dir)
-    placed, t = [], LEAD
-    for i, ln in enumerate(lines):
-        take = took[f"l{i}"]
-        words = [(w["word"], t + w["start"], t + w.get("end", w["start"] + 0.3))
-                 for w in narration.words_of(ln["say"], take["wav"])]
-        placed.append((t, take["wav"], take["seconds"], words))
-        t += take["seconds"] + GAP
-    return placed
+    took = narration.record({"shots": [{"clip": f"s{i}", "narration": sc["say"]}
+                                       for i, sc in enumerate(scenes)]}, out_dir)
+    out = []
+    for i, sc in enumerate(scenes):
+        take = took[f"s{i}"]
+        words = [(w["word"], w["start"], w.get("end", w["start"] + 0.3))
+                 for w in narration.words_of(sc["say"], take["wav"])]
+        out.append((take["wav"], take["seconds"], words))
+    return out
 
 
 def _word_at(words, needle, after=0.0):
@@ -105,197 +90,273 @@ def _word_at(words, needle, after=0.0):
     return None
 
 
-def _kit_time(beats, ln, t0, t1, words):
-    """The kit clip's second for each moment of a line [t0, t1): from its
-    "from" beat to its "to" beat, with "cue" beats pinned to their words."""
-    a = beats.start(ln["from"]) if ln.get("from") else 0.0
-    b = beats.end(ln["to"]) + 0.4 if ln.get("to") else beats.total
-    knots = [(t0, a)]
-    for word, beat in (ln.get("cue") or {}).items():
-        hit = _word_at(words, word, t0)
-        if hit and beat in beats.at:
-            knots.append((hit[0], beats.start(beat)))
-    knots.append((t1, min(beats.total - 1 / FPS, b)))
-    knots = sorted(knots)
-    xs, ys = [k[0] for k in knots], list(np.maximum.accumulate([k[1] for k in knots]))
-    return lambda t: float(np.interp(t, xs, ys))
+def _ramp(t, a, length):
+    return 0.0 if t <= a else 1.0 if t >= a + length else (t - a) / length
 
 
-def build(prep, episode_mp4, script, out_dir, starts=None, sheet=None):
+class Renders:
+    """The Short's 3D frames: <dir>/<camera>/NNNN.(png|jpg), canonical second
+    s at frame round(s * 30) + 1, and their anchors (screen 0..1, y down)."""
+
+    def __init__(self, root):
+        self.root, self.anchors, self.last = root, {}, None
+        for p in glob.glob(os.path.join(root, "*", "anchors_*.json")):
+            cam = os.path.basename(os.path.dirname(p))
+            self.anchors.setdefault(cam, {}).update({int(k): v for k, v in json.load(open(p)).items()})
+
+    def _file(self, cam, n):
+        for d in range(0, 40):                         # the nearest rendered frame
+            for k in (n - d, n + d):
+                for ext in ("png", "jpg"):
+                    p = os.path.join(self.root, cam, f"{k:04d}.{ext}")
+                    if os.path.exists(p):
+                        return p
+        return None
+
+    def frame(self, cam, sec):
+        p = self._file(cam, int(round(sec * FPS)) + 1)
+        if not p:
+            return self.last or Image.new("RGB", (SW, SH))
+        img = Image.open(p).convert("RGB")
+        if img.size != (SW, SH):
+            img = img.resize((SW, SH), Image.LANCZOS)
+        self.last = img
+        return img
+
+    def anchor(self, cam, sec, name):
+        row = self.anchors.get(cam, {}).get(int(round(sec * FPS)) + 1)
+        return row.get(name) if row else None
+
+
+def _grid_canvas():
+    out = Image.new("RGB", (SW, SH), NAVY)
+    d = ImageDraw.Draw(out)
+    for gx in range(0, SW, 54):
+        d.line([(gx, 0), (gx, SH)], fill=(16, 30, 50))
+    for gy in range(0, SH, 54):
+        d.line([(0, gy), (SW, gy)], fill=(16, 30, 50))
+    return out
+
+
+def _cover(img, w, h, zoom=1.0, cx=0.5, cy=0.5):
+    ch = min(img.height, img.width * h / w) / zoom
+    cw = ch * w / h
+    x = min(img.width - cw, max(0.0, cx * img.width - cw / 2))
+    y = min(img.height - ch, max(0.0, cy * img.height - ch / 2))
+    return img.resize((w, h), Image.LANCZOS, box=(x, y, x + cw, y + ch))
+
+
+def _words(d, caption, y):
+    words, now = caption
+    size = 92
+    line = " ".join(w for w, _, _ in words).upper()
+    while _font("InterDisplay-Black.otf", size).getlength(line) > SW - 90 and size > 44:
+        size -= 4
+    fnt = _font("InterDisplay-Black.otf", size)
+    x = (SW - fnt.getlength(line)) / 2
+    lit = max((i for i, (_, a, _) in enumerate(words) if a <= now), default=None)
+    for i, (w, a, b) in enumerate(words):
+        d.text((x, y), w.upper(), font=fnt, fill=(255, 214, 64) if i == lit else WHITE, anchor="lm",
+               stroke_width=8, stroke_fill=(0, 0, 0))
+        x += fnt.getlength(w.upper() + " ")
+
+
+def _overlay(img, hook, caption, cap_y, tags=(), toll=None, label=None):
+    """The hook's band, the scene's tags, a label on a part, the words, the toll."""
+    d = ImageDraw.Draw(img, "RGBA")
+    if label:
+        text, (x, y), a = label
+        px, py = x * SW, y * SH
+        tx, ty = max(60.0, px - 470), py - 230
+        col = RED + (int(255 * a),)
+        d.line([(tx + 200, ty + 34), (px - 14, py - 10)], fill=col, width=5)
+        d.ellipse([px - 16, py - 16, px + 16, py + 16], outline=col, width=5)
+        f = _font("InterDisplay-Black.otf", 54)
+        d.rounded_rectangle([tx - 18, ty - 34, tx + f.getlength(text) + 18, ty + 34], 16,
+                            fill=(4, 10, 20, int(200 * a)))
+        d.text((tx, ty), text, font=f, fill=WHITE + (int(255 * a),), anchor="lm")
+    for text, (x, y), col in tags:
+        f = _font("Inter-Bold.otf", 30)
+        w = f.getlength(text)
+        d.rounded_rectangle([x, y - 26, x + w + 36, y + 26], 26, fill=(4, 10, 20, 190))
+        d.text((x + 18, y), text, font=f, fill=col, anchor="lm")
+    d.rectangle([0, 0, SW, HOOK_H], fill=(4, 10, 20, 255))
+    d.rectangle([0, HOOK_H - 4, SW, HOOK_H], fill=RED + (255,))
+    _brand(d)
+    for i, line in enumerate([x.strip() for x in hook.split("|") if x.strip()][:2]):
+        _text(d, line, SW / 2, 160 + i * 84, 76, WHITE if i == 0 else RED)
+    if toll:
+        value, what, count, cta = toll
+        digits = re.sub(r"\D", "", value)
+        shown = str(int(round(int(digits) * (1 - (1 - min(1.0, count)) ** 3)))) if digits else value
+        _text(d, shown, SW / 2, 820, 300, RED, stroke=6)
+        _text(d, what.upper(), SW / 2, 1020, 64, WHITE, "InterDisplay-Bold.otf", stroke=4)
+        if cta > 0:
+            _text(d, "FULL STORY ON THE CHANNEL", SW / 2, 1200, 58, (255, 214, 64, int(255 * min(1, cta))),
+                  stroke=4)
+    if caption:
+        _words(d, caption, cap_y)
+    return img
+
+
+def build(sheet, frames3d, script, out_dir, photo=None):
     import soundfile as sf
     import score
     from episode import kit_class
-    from kits import timemap
     os.makedirs(out_dir, exist_ok=True)
-    sheet = sheet or json.load(open(os.path.join(prep, "timed_sheet.json")))
-    lines = script["lines"]
-    order = [s["clip"] for s in sheet["shots"]]
-    if starts is None:
-        need = ["fall", "aftermath"] + [ln["shot"] for ln in lines if ln.get("shot")]
-        starts = hs.shot_starts(prep, episode_mp4, need)
+    scenes = script["scenes"]
     kit = kit_class(sheet["kit"]["variant"])(sheet)
-    kit.captions = {}                                   # the Short has its own words on screen
-    kit.sheet = {**kit.sheet, "numbers": []}             # and its own toll
     toll = script.get("toll") or (sheet.get("numbers") or [{}])[0]
+    renders = Renders(frames3d)
+    m3d = import_module(MODELS_3D[sheet["kit"]["variant"]])
+    t_fall = getattr(m3d, "T_FALL", 22.0)
 
-    # the voice, line by line, and the clock it sets
-    placed = voice(lines, os.path.join(out_dir, "voice"))
-    spans = [(p[0], (placed[i + 1][0] if i + 1 < len(placed) else p[0] + p[2] + END_HOLD))
-             for i, p in enumerate(placed)]
-    spans[0] = (0.0, spans[0][1])
-    total = spans[-1][1]
+    # the clock: each scene as long as its words and what follows them
+    takes = voice(scenes, os.path.join(out_dir, "voice"))
+    starts, t = [], 0.0
+    for i, (sc, (_, secs, _)) in enumerate(zip(scenes, takes)):
+        starts.append(t)
+        tail = STACK_TAIL if sc["show"] == "stack" else END_HOLD if i == len(scenes) - 1 else GAP
+        t += LEAD + secs + tail
+    total = t
     n_total = int(round(total * FPS))
-    words = [w for p in placed for w in p[3]]
+    words = [(w, s0 + LEAD + a, s0 + LEAD + b) for s0, (_, _, ws) in zip(starts, takes) for w, a, b in ws]
     track = np.zeros(int(total * SR) + 1, np.float32)
-    for t, wav, _, _ in placed:
+    for s0, (wav, _, _) in zip(starts, takes):
         v, vsr = sf.read(wav, dtype="float32")
         if vsr != SR:
             v = np.interp(np.arange(int(len(v) * SR / vsr)) / SR * vsr, np.arange(len(v)), v).astype(np.float32)
-        a = int(t * SR)
+        a = int((s0 + LEAD) * SR)
         track[a:a + len(v)] += v[: len(track) - a]
     vwav = os.path.join(out_dir, "voice.wav")
     sf.write(vwav, track, SR)
 
-    # the picture plan, line by line
-    tm = timemap.of(sheet)
-    fs = starts.get("fall", 0.0)
-    drop = fs + tm.real(22.0) - tm.real(20.0)
-    _, _, path = motion(episode_mp4, drop - 0.8, drop + 4.0, track=True)
-    follow = lambda t: path[min(len(path) - 1, max(0, int(round((t - drop + 0.8) * FPS))))]
-    fb = kit.FALL
-    kd = fb.start(_beats_drop(fb))
-    kx = _kit_focus(kit, "fall", kd - 0.3, kd + 1.5)[0]
-    plan = []                     # per frame: (layout, top, bottom, tag, line index)
-    sfx = []                      # (second, sound)
-    for i, (ln, (t0, t1)) in enumerate(zip(lines, spans)):
-        f0, f1 = int(round(t0 * FPS)), int(round(t1 * FPS))
-        n = f1 - f0
-        show = ln["show"]
-        if show == "collapse":
-            for k in range(n):
-                t = drop - 0.8 + k / FPS
-                plan.append(("split", ("ep", t, 1.3, follow(t)),
-                             ("kit", "fall", min(fb.total - 1 / FPS, kd - 0.8 + k / FPS), 1.5, (kx, 0.72)),
-                             "3D MODEL", i))
-            sfx.append((t0 + 0.75, score.boom(6) * 0.5))
-        elif show == "3d":
-            shot = ln["shot"]
-            nxt = order[order.index(shot) + 1]
-            a, e = starts[shot] + hs.DISSOLVE, starts[nxt]
-            times, diff, focus = motion(episode_mp4, a, e)
-            still = max(0.25, 0.03 * (diff.max() if len(diff) else 0))
-            moving = [t for t, d in zip(times, diff) if d > still] or list(times)
-            shown = _fit(moving, n, keep=ln.get("keep", "tail"))
-            focus = tuple(min(0.7, max(0.3, v)) for v in focus)
-            for k in range(n):
-                z = 1.0 + 0.12 * max(0, k - len(shown)) / max(1, n)
-                plan.append(("solo", ("ep", shown[min(k, len(shown) - 1)], z, focus), None, "3D MODEL", i))
-        elif show == "2d":
-            clip = ln["clip"]
-            beats = getattr(kit, kit.CLIPS[clip])
-            if ln.get("hold"):
-                kt = lambda t, h=max(0.0, beats.start(ln["hold"]) - 0.05): h
+    def span(i):
+        return starts[i], (starts[i + 1] if i + 1 < len(scenes) else total)
+
+    def voice_end(i):
+        return starts[i] + LEAD + takes[i][1]
+
+    sfx = [(max(0.0, starts[i] - 0.2), score.whoosh(20 + i) * 0.28) for i in range(1, len(scenes))]
+    pictures = []                    # per scene: the Short's second -> (picture, overlays)
+    for i, sc in enumerate(scenes):
+        t0, t1 = span(i)
+        if sc["show"] == "fall":
+            a0 = t_fall - 0.9                                   # the break, just under a second in
+            sfx.append((t0 + 0.85, score.boom(6) * 0.5))
+            pictures.append(lambda t, a0=a0, t0=t0: (renders.frame("fall", a0 + (t - t0)), {}))
+        elif sc["show"] == "close":
+            a, b = m3d.SHORT["close"]
+            hit = _word_at(words, sc.get("cue", "tore"), t0)
+            knots = [(t0, a)]
+            if hit:                                             # the pull-through on the word that says it
+                knots.append((hit[0], t_fall + 0.15))
+                sfx.append((hit[0] - 0.05, score.crash() * 0.45))
+                knots.append((t1, min(b, t_fall + 0.15 + (t1 - hit[0]))))
             else:
-                kt = _kit_time(beats, ln, t0, t1, words)
-            z = ln.get("zoom", 1.0)
-            z0, z1 = (z, z) if not isinstance(z, list) else z
-            fx, fy = ln.get("focus", [0.5, 0.5])
-            for k in range(n):
-                u = k / max(1, n - 1)
-                zz = z0 + (z1 - z0) * (1 - (1 - u) ** 2)
-                plan.append(("wide", ("kit", clip, kt(t0 + k / FPS), zz, (fx, fy)), None, "2D DRAWING", i))
-            if ln.get("hit"):
-                hit = _word_at(words, ln["hit"], t0)
-                if hit:
-                    sfx.append((hit[0] - 0.05, score.crash() * 0.4))
-        elif show == "photos":
-            nxt = order[order.index("aftermath") + 1]
-            a, e = starts["aftermath"] + hs.DISSOLVE, starts[nxt]
-            frames = [a + k / FPS for k in range(int((e - a) * FPS))]
-            shown = _fit(frames, n, speed_max=1.6, keep="head")
-            for k in range(n):
-                t = shown[min(k, len(shown) - 1)]
-                plan.append(("end", ("ep", t, 1.05 + 0.1 * k / max(1, n), (0.5, 0.45)), None, "PHOTO", i))
-            sfx.append((t0 - 0.3, score.riser(1.2, 7) * 0.12))
-        if i and show != lines[i - 1]["show"]:
-            sfx.append((max(0.0, t0 - 0.2), score.whoosh(20 + i) * 0.3))
-    plan = plan[:n_total] + [plan[-1]] * max(0, n_total - len(plan))
+                knots.append((t1, b))
+            xs, ys = zip(*knots)
+            lab = sc.get("label")
+            l_from = _word_at(words, lab["from"], t0) if lab else None
+            l_to = _word_at(words, lab["to"], t0) if lab else None
 
-    # the toll counts up to the word that says it; the full story after the last word
-    toll_line = next((i for i, ln in enumerate(lines) if ln.get("toll")), None)
-    toll_from = toll_to = cta_at = None
-    if toll_line is not None and toll.get("value"):
-        hit = _word_at(words, lines[toll_line]["toll"], spans[toll_line][0])
-        toll_to = hit[1] if hit else spans[toll_line][0] + 1.5
-        toll_from = toll_to - 1.0
-        cta_at = placed[-1][0] + placed[-1][2] + 0.15
-        sfx.append((toll_to - 0.05, score.boom(7) * 0.45))
+            def close(t, xs=xs, ys=ys, lab=lab, l_from=l_from, l_to=l_to):
+                sec = float(np.interp(t, xs, ys))
+                extras = {}
+                if lab and l_from:
+                    a_ = _ramp(t, l_from[0], 0.3) * (1 - _ramp(t, l_to[0], 0.4) if l_to else 1)
+                    pos = renders.anchor("close", sec, lab.get("at", "nut"))
+                    if a_ > 0 and pos:
+                        extras["label"] = (lab["text"], (pos[0], pos[1]), a_)
+                return renders.frame("close", sec), extras
+            pictures.append(close)
+        elif sc["show"] == "stack":
+            at = {k: (v[0] if v else None) for k, v in
+                  ((k, _word_at(words, w, t0)) for k, w in (sc.get("cues") or {}).items())}
+            v_end = voice_end(i)
+            if at.get("stamp"):
+                sfx.append((at["stamp"], score.lock() * 0.35))
+            sfx.append((v_end + 0.3, score.crash() * 0.45))
+            dvb = sheet.get("design_vs_built", {})
+            tags = [(dvb.get("designed", {}).get("title", "AS DESIGNED"), (36, STACK_Y[0] + 44), CYAN),
+                    (dvb.get("built", {}).get("title", "AS BUILT"), (36, STACK_Y[1] + 44), RED)]
 
-    # the sound: the voice over the score (ducked), the sounds on their moments
-    people = next((spans[i][0] for i, ln in enumerate(lines) if ln["show"] == "photos"), total)
+            def stack(t, t0=t0, at=at, v_end=v_end, sc=sc, tags=tags):
+                def cue(k, length, default):
+                    return _ramp(t, at[k] if at.get(k) is not None else default, length)
+                common = dict(walls=_ramp(t, t0, 1.0), walks=_ramp(t, t0 + 0.5, 1.0),
+                              people=cue("people", 0.6, v_end), loads=cue("people", 0.4, v_end),
+                              verdict=_ramp(t, v_end + 1.3, 0.4))
+                top = kit.side(False, rods=cue("rods_needed", 0.8, t0 + 1.5), **common)
+                bot = kit.side(True, rods=cue("rods_built", 0.8, t0 + 3.0), double=cue("double", 0.5, v_end),
+                               fall=_ramp(t, v_end + 0.3, 0.9), stamp=cue("stamp", 0.35, v_end),
+                               stamp_text=sc.get("stamp", ""), **common)
+                img = _grid_canvas()
+                z = 1.0 + 0.06 * _ramp(t, t0, 12.0)                  # a slow push in: nothing stands still
+                img.paste(_cover(top, SW, PANEL_H, z), (0, STACK_Y[0]))
+                img.paste(_cover(bot, SW, PANEL_H, z), (0, STACK_Y[1]))
+                d = ImageDraw.Draw(img)
+                for y in STACK_Y:
+                    d.line([(0, y), (SW, y)], fill=(40, 70, 110), width=2)
+                    d.line([(0, y + PANEL_H), (SW, y + PANEL_H)], fill=(40, 70, 110), width=2)
+                return img, {"tags": tags}
+            pictures.append(stack)
+        elif sc["show"] == "photo":
+            pic = Image.open(photo or sc["photo"]).convert("RGB")
+            hit = _word_at(words, sc.get("toll", ""), t0) if sc.get("toll") else None
+            count_to = hit[1] if hit else t0 + 2.5
+            cta_at = voice_end(i) + 0.15
+            sfx.append((count_to - 0.05, score.boom(7) * 0.45))
+
+            def photo_(t, t0=t0, t1=t1, pic=pic, count_to=count_to, cta_at=cta_at):
+                k = (t - t0) / max(0.1, t1 - t0)
+                img = Image.new("RGB", (SW, SH), (4, 10, 20))
+                shot = _cover(pic, SW, SH - HOOK_H, 1.0 + 0.1 * k)
+                shade = Image.new("RGBA", shot.size, (4, 10, 20, 110))
+                shot.paste(shade, (0, 0), shade)
+                img.paste(shot, (0, HOOK_H))
+                count = _ramp(t, t0, max(0.3, count_to - t0))         # counting from the first frame
+                return img, {"tags": [("PHOTO", (36, HOOK_H + 60), (170, 206, 255))],
+                             "toll": (str(toll.get("value", "")), toll.get("label", ""), count,
+                                      _ramp(t, cta_at, 0.3))}
+            pictures.append(photo_)
+
+    # the sound: the voice over the episode's own score (ducked), the sounds on their moments
+    people = next((starts[i] for i, sc in enumerate(scenes) if sc["show"] == "photo"), total)
     mixed = os.path.join(out_dir, "mix.wav")
     credits = score.mix(vwav, [(0.0, people, MUSIC[0], MUSIC_LEVEL, 0.05),
                                (people, total, MUSIC[1], MUSIC_LEVEL, 0.6)], total, mixed)
     score.add_sfx(mixed, sfx, mixed)
     even = score.even_loudness(mixed, os.path.join(out_dir, "short_even.wav"), target=-14.0)
 
-    # the picture
     enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24",
                             "-s", f"{SW}x{SH}", "-r", str(FPS), "-i", "-", "-i", even,
                             "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
                             "-c:a", "aac", "-b:a", "192k", "-shortest",
                             os.path.join(out_dir, "short.mp4")], stdin=subprocess.PIPE)
-    ep = Episode(episode_mp4)
-    cache = {}
-
-    def kit_frame(clip, t):
-        key = (clip, round(t * FPS))
-        if key not in cache:
-            cache.clear() if len(cache) > 8 else None
-            fn = getattr(kit, clip)
-            cache[key] = fn(t, None, lead=False) if clip == "physics" else fn(t)
-        return cache[key]
-
-    def picture(src, size, rows=EP_ROWS):
-        if src[0] == "ep":
-            _, t, z, (cx, cy) = src
-            return _panel(_uncaption(ep.at(t)), z, cx, cy, rows, size=size)
-        _, clip, t, z, (fx, fy) = src
-        if size == "wide":
-            return _wide(kit_frame(clip, t), z, fx, fy)
-        return _panel(kit_frame(clip, t), z, fx, fy, pad=160, size=size)
-
     groups = chunks(words)
-    hook = script.get("hook", "")
-    prev_view, flash_from = None, -99
-    for n, (layout, top, bot, tag, li) in enumerate(plan):
-        now = n / FPS
-        hook = next((ln["hook"] for ln in reversed(lines[:li + 1]) if ln.get("hook")), script.get("hook", ""))
-        g = next((g for g in groups if g[0][1] - 0.05 <= now < g[-1][2] + 0.15), None)
-        cap = (g, now) if g else None
-        tol = None
-        if toll_from is not None and now >= toll_from:
-            count = min(1.0, (now - toll_from) / (toll_to - toll_from))
-            cta = min(1.0, (now - cta_at) / 0.3) if now >= cta_at else 0.0
-            tol = (str(toll["value"]), toll.get("label", ""), count, cta)
-            cap = None
-        if layout == "split":
-            img = compose("split", picture(top, (PW, PH)), picture(bot, (PW, PH)), hook, cap, tag=tag)
-        elif layout == "wide":
-            img = compose("solo", picture(top, "wide"), None, hook, cap, tag=tag)
-        else:
-            rows = (EP_ROWS[0], EH - 92) if layout == "end" else EP_ROWS
-            img = compose("end" if layout == "end" else "solo", picture(top, (SW, SOLO_H), rows), None,
-                          hook, cap, tag=tag, toll=tol)
-        view = (layout, top[0], top[1] if top[0] == "kit" else "", li if layout == "solo" else -1)
-        if prev_view is not None and view[:3] != prev_view[:3]:
-            flash_from = n
-        prev_view = view
-        if n - flash_from < 4:
-            img = Image.blend(img, Image.new("RGB", img.size, WHITE), 0.45 * (1 - (n - flash_from) / 4))
-        enc.stdin.write(img.tobytes())
-        if n % 150 == 0:
-            print(f"  {n}/{n_total} frames", flush=True)
+    prev_last = None
+    for i, sc in enumerate(scenes):
+        t0, t1 = span(i)
+        f0, f1 = int(round(t0 * FPS)), (int(round(t1 * FPS)) if i + 1 < len(scenes) else n_total)
+        cap_y = CAP_Y.get(sc["show"], CAP_DEFAULT)
+        hook = sc.get("hook") or script.get("hook", "")
+        last = prev_last
+        for n in range(f0, f1):
+            t = n / FPS
+            base, extras = pictures[i](t)
+            toll_on = extras.get("toll") and extras["toll"][3] > 0
+            g = next((g for g in groups if g[0][1] - 0.05 <= t < g[-1][2] + 0.15), None)
+            img = _overlay(base.copy(), hook, (g, t) if g and not toll_on else None, cap_y,
+                           extras.get("tags", ()), extras.get("toll"), extras.get("label"))
+            k = (n - f0) / (DISSOLVE * FPS)
+            if prev_last is not None and k < 1:                  # one scene dissolves into the next
+                img = Image.blend(prev_last, img, k)
+            enc.stdin.write(img.tobytes())
+            last = img
+            if n % 150 == 0:
+                print(f"  {n}/{n_total} frames", flush=True)
+        prev_last = last
     enc.stdin.close()
     enc.wait()
     info = {"seconds": round(total, 2), "top": script.get("hook", ""), "script": script,
@@ -307,9 +368,10 @@ def build(prep, episode_mp4, script, out_dir, starts=None, sheet=None):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("prep")
-    ap.add_argument("episode")
+    ap.add_argument("sheet")
+    ap.add_argument("frames3d")
     ap.add_argument("script")
     ap.add_argument("out")
+    ap.add_argument("--photo", default=None, help="the real photo (else the script's)")
     a = ap.parse_args()
-    build(a.prep, a.episode, json.load(open(a.script)), a.out)
+    build(json.load(open(a.sheet)), a.frames3d, json.load(open(a.script)), a.out, a.photo)

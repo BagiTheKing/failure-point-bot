@@ -1,10 +1,9 @@
 name: Highlight Short
 
-# Manual. A long video's Short. With a script (tools/story_short.py, the
-# owner's way since 2026-10-22): its own lines, voiced fresh, each over the
-# picture that shows it (the collapse once, the 3D, the 2D, the people), the
-# episode's 3D frames and photos and the kit's drawings. Without one: cut
-# from the finished episode's narration (tools/highlight_short.py). Always pushed to
+# Manual. A long video's highlight Short, cut from the finished episode
+# (tools/highlight_short.py): its voice and music, the 3D model over the 2D
+# drawing on the full 9:16 screen, the failure first, the words as they are
+# said, looping back into its start. Always pushed to
 # preview-media (shorts/<name>/) for review; uploaded only when "publish" is
 # ticked, on the owner's go, after the 48-hour spacing check at the time it
 # goes public (src/upload_gate.py).
@@ -17,15 +16,12 @@ on:
       name:
         description: "The episode's name (artifact episode-<name>)"
         required: true
-      script:
-        description: "The Short's script: a repo path or preview-media:<path> (blank = cut from the episode)"
-        default: ""
       spans:
-        description: "Without a script: shots to cut, in order: a-b runs shot a to shot b"
+        description: "Shots to cut, in order: a-b runs shot a to shot b"
         default: "fall-dramatization,connection"
       top:
-        description: "Without a script: the hook, two lines split by |; a new hook per span, split by ||"
-        default: ""
+        description: "The hook, two lines split by |; a new hook per span, split by ||"
+        required: true
       title:
         description: "The Short's title (needed to publish)"
         default: ""
@@ -58,16 +54,6 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
-      - name: Cache Kokoro model files
-        uses: actions/cache@v4
-        with:
-          path: models
-          key: kokoro-v1.0-model-files
-      - name: Fetch Kokoro model files (cache miss only)
-        run: |
-          mkdir -p models
-          [ -f models/kokoro-v1.0.onnx ] || curl -sSL -o models/kokoro-v1.0.onnx "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
-          [ -f models/voices-v1.0.bin ] || curl -sSL -o models/voices-v1.0.bin "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
       - run: pip install -r requirements.txt
       - uses: actions/download-artifact@v4
         with:
@@ -81,27 +67,11 @@ jobs:
           path: ep
           run-id: ${{ inputs.run_id }}
           github-token: ${{ github.token }}
-      - name: The score's tracks
-        if: inputs.script != ''
-        run: python tools/fetch_music.py --score
-      - name: Make the Short
+      - name: Cut the Short
         env:
           SPANS: ${{ inputs.spans }}
           TOP: ${{ inputs.top }}
-          SCRIPT: ${{ inputs.script }}
-          KOKORO_VOICE: am_echo
-        run: |
-          if [ -z "$SCRIPT" ]; then
-            python tools/highlight_short.py prep ep/episode.mp4 short --spans "$SPANS" --top "$TOP"
-            exit 0
-          fi
-          case "$SCRIPT" in
-            preview-media:*)
-              git fetch -q origin preview-media
-              git show "origin/preview-media:${SCRIPT#preview-media:}" > script.json ;;
-            *) cp "$SCRIPT" script.json ;;
-          esac
-          python -u tools/story_short.py prep ep/episode.mp4 script.json short
+        run: python tools/highlight_short.py prep ep/episode.mp4 short --spans "$SPANS" --top "$TOP"
       - name: Description
         if: inputs.title != '' && inputs.full != ''
         env:

@@ -1,0 +1,203 @@
+name: Short
+
+# Manual. A Short made for the phone (tools/story_short.py, the owner's way
+# since 2026-10-22): its own script, voiced fresh; the 3D model rendered
+# again with its tall Short cameras (the fall, and the close look at the
+# point of failure), the 2D drawn by the kit, the real photo last. The
+# script and the photo live on preview-media under shorts/<short>/. Always
+# pushed to preview-media for review; uploaded only when "publish" is
+# ticked, on the owner's go, after the 48-hour spacing check.
+on:
+  workflow_dispatch:
+    inputs:
+      episode:
+        description: "The episode's folder on preview-media (episodes/<episode>/: its sheet and description)"
+        required: true
+      short:
+        description: "The Short's folder on preview-media (shorts/<short>/: script.json, photo.jpg)"
+        required: true
+      samples:
+        description: "3D render samples per pixel"
+        default: "16"
+      frames_run:
+        description: "Reuse this earlier run's 3D frames (blank = render them)"
+        default: ""
+      title:
+        description: "The Short's title (needed to publish)"
+        default: ""
+      full:
+        description: "The long video's id, linked from the Short (needed to publish)"
+        default: ""
+      publish:
+        description: "Upload it to the channel"
+        type: boolean
+        default: false
+      publish_at:
+        description: "RFC 3339 UTC time to go public (blank = public now)"
+        default: ""
+      replace:
+        description: "A scheduled or private Short this one takes the place of (deleted first; a public one is refused)"
+        default: ""
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  render:
+    if: inputs.frames_run == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        camera: [fall, close]
+        shard: [0, 1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install bpy pillow
+      - name: The episode's sheet
+        run: |
+          git fetch -q origin preview-media
+          git show "origin/preview-media:episodes/${{ inputs.episode }}/timed_sheet.json" > sheet.json
+      - name: Render this shard of the camera's frames
+        working-directory: src
+        run: |
+          read FIRST LAST < <(python -m kits.render3d ../sheet.json ../raw --short ${{ matrix.camera }} --range | tail -1)
+          PER=$(( (LAST - FIRST + 6) / 6 ))
+          A=$(( FIRST + ${{ matrix.shard }} * PER ))
+          B=$(( A + PER - 1 )); [ $B -gt $LAST ] && B=$LAST
+          [ $A -gt $LAST ] && { echo "nothing to render"; mkdir -p ../raw/${{ matrix.camera }}; exit 0; }
+          python -m kits.render3d ../sheet.json ../raw/${{ matrix.camera }} --short ${{ matrix.camera }} \
+            --first $A --last $B --samples ${{ inputs.samples }}
+      - name: Ship as JPEG
+        run: |
+          python - <<'PY'
+          import glob, os
+          from PIL import Image
+          for p in glob.glob("raw/*/*.png"):
+              Image.open(p).convert("RGB").save(p[:-4] + ".jpg", quality=94)
+              os.remove(p)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: short3d-${{ matrix.camera }}-${{ matrix.shard }}
+          path: raw/
+          retention-days: 7
+
+  short:
+    needs: render
+    if: always() && (needs.render.result == 'success' || inputs.frames_run != '')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
+      - name: Cache Kokoro model files
+        uses: actions/cache@v4
+        with:
+          path: models
+          key: kokoro-v1.0-model-files
+      - name: Fetch Kokoro model files (cache miss only)
+        run: |
+          mkdir -p models
+          [ -f models/kokoro-v1.0.onnx ] || curl -sSL -o models/kokoro-v1.0.onnx "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
+          [ -f models/voices-v1.0.bin ] || curl -sSL -o models/voices-v1.0.bin "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: short3d-*
+          path: frames3d
+          merge-multiple: true
+          run-id: ${{ inputs.frames_run || github.run_id }}
+          github-token: ${{ github.token }}
+      - name: The episode, the script and the photo
+        run: |
+          git fetch -q origin preview-media
+          mkdir -p ep
+          for f in timed_sheet.json episode.json; do
+            git show "origin/preview-media:episodes/${{ inputs.episode }}/$f" > ep/$f
+          done
+          git show "origin/preview-media:shorts/${{ inputs.short }}/script.json" > script.json
+          git show "origin/preview-media:shorts/${{ inputs.short }}/photo.jpg" > photo.jpg
+          ls frames3d/*/ | head
+      - name: The score's tracks
+        run: python tools/fetch_music.py --score
+      - name: Make the Short
+        env:
+          KOKORO_VOICE: am_echo
+        run: python -u tools/story_short.py ep/timed_sheet.json frames3d script.json short --photo photo.jpg
+      - name: Description
+        if: inputs.title != '' && inputs.full != ''
+        env:
+          TITLE: ${{ inputs.title }}
+        run: python tools/publish_short.py short ep --title "$TITLE" --full "${{ inputs.full }}" --dry-run
+      - uses: actions/upload-artifact@v4
+        with:
+          name: short-${{ inputs.short }}
+          path: short/short.*
+          retention-days: 14
+      - name: Push to preview-media
+        continue-on-error: true            # the review copy never holds back publishing
+        run: |
+          mkdir -p pm && cd pm
+          git init -q -b preview-media
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch -q origin preview-media && git checkout -q -B preview-media origin/preview-media || true
+          mkdir -p shorts/${{ inputs.short }}
+          cp ../short/short.mp4 ../short/short.json shorts/${{ inputs.short }}/
+          git add -A
+          git diff --cached --quiet && { echo "same Short as before"; exit 0; }
+          git commit -q -m "Short: ${{ inputs.short }} (run ${{ github.run_number }})"
+          for i in 1 2 3; do git push -q origin preview-media && break; git pull -q --rebase origin preview-media; done
+      - name: 48-hour spacing
+        id: gate
+        if: inputs.publish
+        working-directory: src
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          PUBLISH_AT: ${{ inputs.publish_at }}
+          IGNORE_VIDEO: ${{ inputs.replace }}
+        run: python upload_gate.py
+      - name: Take the place of an earlier, unpublished cut
+        # only once the gate has said go: never a deleted Short with nothing in its place
+        if: inputs.publish && inputs.replace != '' && steps.gate.outputs.go == 'true'
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python tools/replace_video.py "${{ inputs.replace }}"
+      - name: Publish
+        if: inputs.publish && steps.gate.outputs.go == 'true'
+        env:
+          YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          TITLE: ${{ inputs.title }}
+        run: |
+          [ -n "$TITLE" ] && [ -n "${{ inputs.full }}" ] || { echo "title and full video id are needed"; exit 1; }
+          python tools/publish_short.py short ep --title "$TITLE" --full "${{ inputs.full }}" \
+            --publish-at "${{ inputs.publish_at }}"
+          cat short/published.json
+      - name: Hold the first comment until the Short is public
+        if: inputs.publish && steps.gate.outputs.go == 'true'
+        run: |
+          [ -f build/pending_comments.json ] || exit 0
+          git fetch -q origin thumb-rotation
+          git worktree add -q rot origin/thumb-rotation
+          ROT_DIR=rot python tools/thumb_rotation.py comments build/pending_comments.json
+          cd rot
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -qm "Hold the first comment of a Short"
+          git push -q origin HEAD:thumb-rotation

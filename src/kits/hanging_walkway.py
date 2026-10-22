@@ -310,6 +310,47 @@ class HangingWalkways(KitTiming):
             img = Image.blend(self._phys_last, img, h)
         return img
 
+    def side(self, built, walls=1.0, walks=1.0, rods=1.0, people=0.0, loads=0.0, double=0.0,
+             fall=0.0, verdict=0.0, stamp=0.0, stamp_text=""):
+        """One side of the comparison on its own, for a Short (owner,
+        2026-10-22: "what it needed" above "as built", both drawn from
+        nothing at the same time). Each argument is a 0..1 progress:
+        the walls and roof, the decks, the rods (one continuous rod on the
+        needed side, split in two as built), the crowd, the 1x loads, the
+        upper load doubling (as built), its fall, the verdict, a stamp."""
+        f = Frame(W / 2, (ROOF_Y - 34 + GROUND_Y) / 2 + 6, 0.95)
+        f.grid(1)
+        gap = LO_Y - UP_Y - BEAM_H - DECK_H
+        drop_lo = (GROUND_Y - LO_Y - BEAM_H) * prog(fall, 0.55, 1.0) if built else 0.0
+        drop_up = (gap * min(1, fall / 0.55) + drop_lo) if built else 0.0
+        self.structure(f, walls, walls, rods, walks, built=built, drop_up=drop_up, drop_lo=drop_lo,
+                       rod_color=LINE if built else CYAN, tilt=(1 - fall) * 0 if built else 0.0)
+        tumble = prog(fall, 0.3, 1.0)
+        self.people(f, GROUND_Y, 230, 1050, people)
+        self.people(f, LO_Y - DECK_H, 320, 960, people, n=14, seed=5, drop=drop_lo, tumble=tumble)
+        self.people(f, UP_Y - DECK_H, 320, 960, people, n=12, seed=7, drop=drop_up, tumble=tumble)
+        if built and fall > 0:
+            self.dust(f, fall * 1.6 - 0.9, WALK_X0, WALK_X1, GROUND_Y - 20, amount=0.8)
+        a = loads * (1 - min(1.0, fall * 3))
+        if a > 0:
+            col = CYAN if not built else AMBER
+            f.text("1×", self.fail_x + 40, LO_Y + 34, 44, col, "InterDisplay-Black.otf", alpha=a)
+            if built and double > 0:
+                pop = 1 + 0.5 * math.sin(math.pi * min(1.0, double))       # it lands bigger, then settles
+                f.text(self.mult, self.fail_x + 40, UP_Y + 34, int(44 * pop), RED, "InterDisplay-Black.otf",
+                       alpha=a)
+            else:
+                f.text("1×", self.fail_x + 40, UP_Y + 34, 44, col, "InterDisplay-Black.otf", alpha=a)
+        if stamp > 0 and stamp_text:
+            k = min(1.0, stamp)
+            size = int(58 * (1.6 - 0.6 * k))                          # it slams down into place
+            f.text(stamp_text, 880, 215, size, RED, "InterDisplay-Black.otf", anchor="mm", screen=True,
+                   alpha=k)
+        if verdict > 0:
+            word, col = ("FAILS", RED) if built else ("HOLDS", GREEN)
+            f.text(word, W / 2, 682, 56, col, "InterDisplay-Black.otf", anchor="mm", screen=True, alpha=verdict)
+        return f.done()
+
     def compare(self, t, T=None):
         b = self.COMP
         fall = b.p(t, "drop")

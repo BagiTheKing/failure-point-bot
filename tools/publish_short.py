@@ -38,6 +38,9 @@ def description(short, episode, full_id):
              f"The full story, step by step: https://www.youtube.com/watch?v={full_id}", "",
              "The 3D and 2D animations are reconstructions made from the investigation's "
              "findings; they show the mechanism, not footage of the event.", ""]
+    photo = (short.get("script") or {}).get("photo_credit")
+    if photo:
+        lines += ["PHOTO", photo, ""]
     credits = music_credits(short, episode)
     if credits:
         lines += ["MUSIC"] + credits + [""]
