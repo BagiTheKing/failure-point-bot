@@ -266,16 +266,18 @@ def _uncaption(img):
     Frame.caption: a dark box at rows H-78..H-34, as wide as its words):
     the rows above and below it blended across, so the 3D under it (the
     Hyatt walkways land there) can be shown. Found by being darker than the
-    rows around it, so a bar still fading in is found too."""
+    rows around it, or by its white words, so a bar fading in or out is
+    found too."""
     a = np.asarray(img).astype(np.float32)
     y0, y1 = EH - 80, EH - 32
     lum = a.mean(2)
     ref = (lum[y0 - 4] + lum[y1 + 4]) / 2
     box = np.median(lum[y0 + 2: y1 - 2], axis=0)
-    cols = np.where((box < 0.85 * ref) & (ref > 40))[0]
+    text = lum[y0 + 12: y1 - 12].max(0) > ref + 70           # its words outlast the box as it fades
+    cols = np.where(((box < 0.85 * ref) | text) & (ref > 40))[0]
     if len(cols) < 120:
         return img
-    x0, x1 = max(3, cols[0]), min(EW - 4, cols[-1])
+    x0, x1 = max(3, cols[0] - 24), min(EW - 4, cols[-1] + 24)      # the box runs past its words
     if x1 - x0 > EW * 0.9:
         return img
     k = np.linspace(0, 1, y1 - y0 + 1)[:, None, None]
