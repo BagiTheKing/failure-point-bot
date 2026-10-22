@@ -38,8 +38,6 @@ import os
 import re
 import subprocess
 import sys
-from importlib import import_module
-
 import numpy as np
 from PIL import Image, ImageDraw
 
@@ -62,8 +60,6 @@ CAP_Y = {"stack": 300 + PANEL_H + 46, "photo": 1360}
 CAP_DEFAULT = 1250          # the words: clear of YouTube's title and buttons below
 MUSIC = ("Volatile Reaction - Kevin MacLeod.mp3", "Man Down - Kevin MacLeod.mp3")
 MUSIC_LEVEL = 0.3
-MODELS_3D = {"hanging_walkways": "kits.hanging_walkway_3d", "truss_bridge": "kits.truss_bridge_3d",
-             "fuselage": "kits.fuselage_3d"}
 CYAN, NAVY = (90, 200, 255), (8, 18, 34)
 
 
@@ -208,8 +204,9 @@ def build(sheet, frames3d, script, out_dir, photo=None):
     kit = kit_class(sheet["kit"]["variant"])(sheet)
     toll = script.get("toll") or (sheet.get("numbers") or [{}])[0]
     renders = Renders(frames3d)
-    m3d = import_module(MODELS_3D[sheet["kit"]["variant"]])
-    t_fall = getattr(m3d, "T_FALL", 22.0)
+    from kits import timemap                             # pure Python: no Blender needed here
+    cams = timemap.SHORT[sheet["kit"]["variant"]]
+    t_fall = timemap.T_FALL
 
     # the clock: each scene as long as its words and what follows them
     takes = voice(scenes, os.path.join(out_dir, "voice"))
@@ -246,7 +243,7 @@ def build(sheet, frames3d, script, out_dir, photo=None):
             sfx.append((t0 + 0.85, score.boom(6) * 0.5))
             pictures.append(lambda t, a0=a0, t0=t0: (renders.frame("fall", a0 + (t - t0)), {}))
         elif sc["show"] == "close":
-            a, b = m3d.SHORT["close"]
+            a, b = cams["close"]
             hit = _word_at(words, sc.get("cue", "tore"), t0)
             knots = [(t0, a)]
             if hit:                                             # the pull-through on the word that says it

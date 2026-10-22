@@ -32,7 +32,7 @@ FPS = 30
 SHOTS = {"establish": (0, 7), "load_path": (7, 13), "connection": (13, 20), "fall": (20, 28)}
 SECONDS = 28
 T_FALL = 22.0
-SHORT = {"fall": (21.0, 26.0), "close": (11.5, 23.6)}      # canonical seconds each Short camera covers
+SHORT = __import__("kits.timemap", fromlist=["SHORT"]).SHORT["hanging_walkways"]   # the tall Short cameras
 DECK_T, BEAM_H, BEAM_D, ROD_R, NUT = 0.28, 0.36, 0.22, 0.016, 0.07
 
 
