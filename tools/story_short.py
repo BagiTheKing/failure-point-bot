@@ -20,9 +20,11 @@ short3d workflow), the 2D drawn by the kit (side()). The script:
      "scenes": [
        {"show": "fall", "say": "..."},
        {"show": "close", "say": "...", "cue": "tore", "label": {"text": "ONE NUT", "from": "one", "to": "tore"}},
-       {"show": "stack", "say": "...", "stamp": "APPROVED BY PHONE",
-        "cues": {"rods_needed": "rod", "rods_built": "split", "stamp": "approved",
-                 "people": "same", "double": "double"}},
+       {"show": "stack", "say": "...",
+        "sides": {"needed": {"walls": ["start", 0, 1.0], "rods": ["rod", 0, 0.8], "verdict": ["end", 1.3, 0.4]},
+                  "built": {"walls": ["start", 0, 1.0], "rods": ["split", 0, 0.8], "stamp": ["approved", 0, 0.35],
+                            "stamp_text": "APPROVED BY PHONE", "fall": ["end", 0.3, 0.9]}},
+        "sounds": [{"at": ["approved", 0], "sound": "lock"}, {"at": ["end", 0.3], "sound": "crash"}]},
        {"show": "photo", "photo": "photo.jpg", "say": "...", "toll": "fourteen"}]}
 
     python tools/story_short.py SHEET FRAMES3D SCRIPT OUT [--photo P]
@@ -208,7 +210,10 @@ def _overlay(img, hook, caption, cap_y, tags=(), toll=None, label=None):
 def counted(value, count):
     """The toll as shown while it counts up (0..1), fast then settling."""
     digits = re.sub(r"\D", "", value)
-    return str(int(round(int(digits) * (1 - (1 - min(1.0, count)) ** 3)))) if digits else value
+    if not digits:
+        return value
+    n = int(round(int(digits) * (1 - (1 - min(1.0, count)) ** 3)))
+    return f"{n:,}" if "," in value else str(n)
 
 
 def tick(k=0.0):
@@ -295,26 +300,61 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                 return renders.frame("close", sec), extras
             pictures.append(close)
         elif sc["show"] == "stack":
-            at = {k: (v[0] if v else None) for k, v in
-                  ((k, _word_at(words, w, t0)) for k, w in (sc.get("cues") or {}).items())}
             v_end = voice_end(i)
-            if at.get("stamp"):
-                sfx.append((at["stamp"], score.lock() * 0.35))
-            sfx.append((v_end + 0.3, score.crash() * 0.45))
+
+            def when(anchor, words=words, t0=t0, v_end=v_end):
+                """A moment named in the script: "start", "end" (the last word), or a word."""
+                if anchor == "start":
+                    return t0
+                if anchor == "end":
+                    return v_end
+                hit = _word_at(words, anchor, t0)
+                return hit[0] if hit else v_end
+
+            # each side's parts: [anchor, offset, length] builds 0 -> 1 from that moment;
+            # {"count": "89,680", "at": [...]} counts up to the number (a tick per step);
+            # anything else is passed to the kit as it is
+            plans = {}
+            for name in ("needed", "built"):
+                plan = {}
+                for key, v in (sc.get("sides", {}).get(name) or {}).items():
+                    if isinstance(v, list):
+                        plan[key] = ("ramp", when(v[0]) + v[1], v[2])
+                    elif isinstance(v, dict) and "count" in v:
+                        a_, off, ln = v["at"]
+                        start = when(a_) + off
+                        plan[key] = ("count", start, ln, v["count"])
+                        prev = ""
+                        for n_ in range(int(start * FPS), int((start + ln) * FPS) + 2):
+                            now_ = counted(v["count"], _ramp(n_ / FPS, start, ln))
+                            if now_ != prev and now_ != "0":
+                                sfx.append((n_ / FPS, tick(_ramp(n_ / FPS, start, ln)) * 0.12))
+                            prev = now_
+                    else:
+                        plan[key] = ("value", v)
+                plans[name] = plan
+            for moment in sc.get("sounds", []):           # e.g. {"at": ["approved", 0], "sound": "lock"}
+                kind = {"lock": score.lock, "crash": score.crash, "boom": score.boom, "ping": score.ping,
+                        "groan": score.groan}[moment["sound"]]
+                sfx.append((when(moment["at"][0]) + moment["at"][1], kind() * moment.get("level", 0.4)))
             dvb = sheet.get("design_vs_built", {})
             tags = [(dvb.get("designed", {}).get("title", "AS DESIGNED"), (36, STACK_Y[0] + 44), CYAN),
                     (dvb.get("built", {}).get("title", "AS BUILT"), (36, STACK_Y[1] + 44), RED)]
 
-            def stack(t, t0=t0, at=at, v_end=v_end, sc=sc, tags=tags):
-                def cue(k, length, default):
-                    return _ramp(t, at[k] if at.get(k) is not None else default, length)
-                common = dict(walls=_ramp(t, t0, 1.0), walks=_ramp(t, t0 + 0.5, 1.0),
-                              people=cue("people", 0.6, v_end), loads=cue("people", 0.4, v_end),
-                              verdict=_ramp(t, v_end + 1.3, 0.4))
-                top = kit.side(False, rods=cue("rods_needed", 0.8, t0 + 1.5), **common)
-                bot = kit.side(True, rods=cue("rods_built", 0.8, t0 + 3.0), double=cue("double", 0.5, v_end),
-                               fall=_ramp(t, v_end + 0.3, 0.9), stamp=cue("stamp", 0.35, v_end),
-                               stamp_text=sc.get("stamp", ""), **common)
+            def args(plan, t):
+                out = {}
+                for key, p in plan.items():
+                    if p[0] == "ramp":
+                        out[key] = _ramp(t, p[1], p[2])
+                    elif p[0] == "count":
+                        out[key] = counted(p[3], _ramp(t, p[1], p[2])) if t >= p[1] else ""
+                    else:
+                        out[key] = p[1]
+                return out
+
+            def stack(t, t0=t0, plans=plans, tags=tags):
+                top = kit.side(False, **args(plans["needed"], t))
+                bot = kit.side(True, **args(plans["built"], t))
                 img = _grid_canvas()
                 z = 1.0 + 0.06 * _ramp(t, t0, 12.0)                  # a slow push in: nothing stands still
                 img.paste(_cover(top, SW, PANEL_H, z), (0, STACK_Y[0]))

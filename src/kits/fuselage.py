@@ -398,6 +398,54 @@ class Fuselage(KitTiming):
             img = Image.blend(self._phys_last, img, h)
         return img
 
+    def side(self, built, outline=1.0, details=1.0, seam=1.0, crack=0.0, strap=0.0, open_=0.0,
+             verdict=0.0, stamp=0.0, stamp_text="", counter=""):
+        """One side of the comparison on its own, for a Short (owner,
+        2026-10-22: "what it needed" above "as built", both drawn from
+        nothing at the same time). Each argument is a 0..1 progress: the
+        outline and wing, the windows and frames, the lap joint, the crack
+        running along it, the tear straps (where it needed them), the
+        opening (a flap venting the cabin where it held, the roof tearing
+        off as built), the verdict, a stamp; `counter` (the flights flown)
+        sits over the built side."""
+        f = Frame(440, CY + 10, 1.9)                 # the front half, where it fails: big on a phone
+        f.grid(1)
+        self.outline(f, outline)
+        self.wing_tail(f, outline)
+        sx = 420
+        if not built:
+            # as it needed to be: the crack runs to the next tear strap and stops; a flap vents the cabin
+            self.details(f, details)
+            self.seam(f, seam, CYAN)
+            f.poly([(sx - 60, SEAM_Y), (sx - 60 + 60 * crack, SEAM_Y)], RED, 3.5)
+            if strap > 0:
+                for x in (sx - 66, sx + 4):
+                    f.poly([(x, TOP + 2), (x, FLOOR_Y)], CYAN, 3.5, strap)
+            if open_ > 0:
+                f.poly([(sx - 60, SEAM_Y), (sx - 30, SEAM_Y - 26 * open_), (sx, SEAM_Y)], LINE, 2.4)
+                for i in range(4):
+                    f.arrow(sx - 30 + i * 4, SEAM_Y - 30, sx - 10 + i * 10, SEAM_Y - 80 - i * 6, DIM, 2, 8, open_)
+        else:
+            # as it was: every rivet cracked, the cracks pass the straps, the section goes
+            self.details(f, details, (SEC_X0, SEC_X1) if open_ > 0.15 else None)
+            self.seam(f, seam, AMBER)
+            f.poly([(SEC_X0, SEAM_Y), (lerp(SEC_X0, SEC_X1, crack), SEAM_Y)], RED, 3.5)
+            if open_ > 0.15:
+                f.d.rectangle([f.P(SEC_X0, TOP - 3), f.P(SEC_X1, FLOOR_Y - 3)], fill=BG)
+                self.cabin(f, SEC_X0, SEC_X1)
+            self._torn(f, open_)
+            if counter:
+                f.text(counter, 1180, 150, 48, AMBER, "InterDisplay-Black.otf", anchor="rs", screen=True)
+                f.text("FLIGHTS", 1180, 178, 22, LINE, "Inter-Bold.otf", anchor="rs", screen=True)
+        if stamp > 0 and stamp_text and verdict < 1:
+            k = min(1.0, stamp)
+            f.text(stamp_text, W / 2 - 120, 120, int(56 * (1.6 - 0.6 * k)), RED, "InterDisplay-Black.otf",
+                   anchor="mm", screen=True, alpha=k * (1 - min(1.0, open_ * 4)))
+        if verdict > 0:
+            word, col = ("FAILS", RED) if built else ("HOLDS", GREEN)
+            f.text(word, W / 2 - 120, 120, 96, col, "InterDisplay-Black.otf", anchor="mm", screen=True, alpha=verdict)
+        return f.done()
+
     def compare(self, t, T=None):
         b = self.COMP
         crack = b.p(t, "crack")

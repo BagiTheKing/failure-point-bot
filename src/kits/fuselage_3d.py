@@ -33,6 +33,7 @@ from mathutils import Vector
 FPS = 30
 SECONDS = 28
 T_FALL = 22.0
+SHORT = __import__("kits.timemap", fromlist=["SHORT"]).SHORT["fuselage"]   # the tall Short cameras
 R = 1.88                              # fuselage radius (m)
 X_NOSE, X_TAIL = -15.8, 15.5          # nose forward (-x): seen from the left (-y) it faces left, like the 2D
 X_CAB0, X_CAB1 = -10.6, 9.0           # the constant-section cabin
@@ -357,6 +358,41 @@ class Model:
         prefs.keyframe_new_interpolation_type = was
         sc.frame_start, sc.frame_end = 1, s(SECONDS) - 1
 
+    # ----------------------------------------------------------------- Shorts
+    def short_camera(self, mode):
+        """A tall camera for a Short (owner, 2026-10-22: rendered for the
+        phone), on the canonical timeline: "fall", from above and behind,
+        the fuselage running up the frame to the nose, the roof tearing off
+        and its panels streaming back past the camera; "close", in on the
+        lap joint, the rivet row heating, the crack running along it, held
+        while the skin lets go and the sky shows through."""
+        cam, target = self.cam, bpy.data.objects["target"]
+        for o in (cam, cam.data, target):
+            o.animation_data_clear()
+        seam = self.seam
+        mid = (self.sec[0] + self.sec[1]) / 2
+        out = Vector((0, -1, 0.35)).normalized()
+
+        def cam_key(sec, loc, look, lens):
+            cam.location = loc
+            cam.keyframe_insert("location", frame=s(sec))
+            target.location = look
+            target.keyframe_insert("location", frame=s(sec))
+            cam.data.lens = lens
+            cam.data.keyframe_insert("lens", frame=s(sec))
+
+        a, b = SHORT[mode]
+        if mode == "fall":
+            cam_key(a, (mid + 13, -5.5, 7.5), (mid - 5, 0, 0.8), 26)
+            cam_key(T_FALL + 0.3, (mid + 11.5, -5.0, 7.0), (mid - 4, 0, 0.9), 26)
+            cam_key(b, (mid + 10.5, -4.6, 6.6), (mid - 4, 0, 0.6), 26)
+        else:
+            cam_key(a, seam + out * 6.0 + Vector((-2.5, 0, 0.8)), seam + Vector((0, 0, 0.3)), 40)
+            cam_key(15.0, seam + out * 2.4 + Vector((-0.8, 0, 0)), seam, 50)
+            cam_key(T_FALL - 0.2, seam + out * 2.0 + Vector((-0.5, 0, 0)), seam, 54)
+            cam_key(b, seam + out * 3.4 + Vector((-1.2, 0, 0.6)), seam + Vector((0.6, 0, 0.5)), 46)
+        self.sc.frame_start, self.sc.frame_end = s(a), s(b)
+
     # ---------------------------------------------------------------- anchors
     def anchors(self, first, last):
         sc, seam = self.sc, self.seam
@@ -380,8 +416,8 @@ class Model:
         return out
 
 
-def setup_render(sc, samples):
-    sc.render.resolution_x, sc.render.resolution_y = 1280, 720
+def setup_render(sc, samples, size=(1280, 720)):
+    sc.render.resolution_x, sc.render.resolution_y = size
     sc.render.fps = FPS
     sc.render.engine = "CYCLES"
     sc.cycles.device = "CPU"
@@ -395,13 +431,18 @@ def setup_render(sc, samples):
     sc.view_settings.view_transform = "AgX" if "AgX" in views else "Filmic"
 
 
-def render(sheet, out_dir, first=1, last=None, samples=16, still=0):
+def render(sheet, out_dir, first=1, last=None, samples=16, still=0, short=None, size=None):
+    """short: a Short's tall camera ("fall" or "close"), on the canonical
+    timeline (one second of model time is one second of video)."""
     from kits import timemap
-    timemap.use(sheet)
+    timemap.use({} if short else sheet)
     m = Model(sheet)
     m.build()
     m.animate()
-    setup_render(m.sc, samples)
+    if short:
+        m.short_camera(short)
+        first = max(first, m.sc.frame_start)
+    setup_render(m.sc, samples, size or ((1080, 1920) if short else (1280, 720)))
     last = last or m.sc.frame_end
     os.makedirs(out_dir, exist_ok=True)
     if still:
@@ -424,5 +465,6 @@ if __name__ == "__main__":
     ap.add_argument("--last", type=int, default=0)
     ap.add_argument("--samples", type=int, default=16)
     ap.add_argument("--still", type=int, default=0)
+    ap.add_argument("--short", choices=sorted(SHORT), default=None)
     a = ap.parse_args()
-    render(json.load(open(a.sheet)), a.out_dir, a.first, a.last or None, a.samples, a.still)
+    render(json.load(open(a.sheet)), a.out_dir, a.first, a.last or None, a.samples, a.still, a.short)
