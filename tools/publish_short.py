@@ -34,7 +34,7 @@ def description(short, episode, full_id):
     words = [w if any(ch.isdigit() for ch in w) else w.lower() for w in words]   # I-35W stays
     top = " ".join(words)
     top = top[:1].upper() + top[1:]
-    lines = [f"{top}.", "",
+    lines = [top.rstrip(".") + ".", "",
              f"The full story, step by step: https://www.youtube.com/watch?v={full_id}", "",
              "The 3D and 2D animations are reconstructions made from the investigation's "
              "findings; they show the mechanism, not footage of the event.", ""]
