@@ -262,22 +262,24 @@ def _kit_focus(kit, clip, a, b):
 
 
 def _uncaption(img):
-    """The episode's frame without its caption bar (the dark box low in the
-    frame): the rows above and below it blended across, so the 3D under it
-    (the Hyatt walkways land there) can be shown."""
+    """The episode's frame without its caption bar (kits/blueprint.py
+    Frame.caption: a dark box at rows H-78..H-34, as wide as its words):
+    the rows above and below it blended across, so the 3D under it (the
+    Hyatt walkways land there) can be shown. Found by being darker than the
+    rows around it, so a bar still fading in is found too."""
     a = np.asarray(img).astype(np.float32)
-    y0b, y1b = EH - 100, EH - 20
-    dark = a[y0b:y1b].mean(2) < 60
-    cols = np.where(dark.mean(0) > 0.35)[0]
-    if len(cols) < 150 or cols[-1] - cols[0] > EW * 0.9:
+    y0, y1 = EH - 80, EH - 32
+    lum = a.mean(2)
+    ref = (lum[y0 - 4] + lum[y1 + 4]) / 2
+    box = np.median(lum[y0 + 2: y1 - 2], axis=0)
+    cols = np.where((box < 0.85 * ref) & (ref > 40))[0]
+    if len(cols) < 120:
         return img
-    x0, x1 = cols[0], cols[-1]
-    rows = np.where(dark[:, x0:x1 + 1].mean(1) > 0.6)[0]
-    if len(rows) < 20:
+    x0, x1 = max(3, cols[0]), min(EW - 4, cols[-1])
+    if x1 - x0 > EW * 0.9:
         return img
-    y0, y1 = y0b + rows[0] - 3, min(EH - 1, y0b + rows[-1] + 3)
     k = np.linspace(0, 1, y1 - y0 + 1)[:, None, None]
-    a[y0:y1 + 1, x0 - 3:x1 + 4] = (1 - k) * a[y0 - 1, x0 - 3:x1 + 4] + k * a[min(EH - 1, y1 + 1), x0 - 3:x1 + 4]
+    a[y0:y1 + 1, x0 - 3:x1 + 4] = (1 - k) * a[y0 - 1, x0 - 3:x1 + 4] + k * a[y1 + 1, x0 - 3:x1 + 4]
     return Image.fromarray(a.astype(np.uint8))
 
 
