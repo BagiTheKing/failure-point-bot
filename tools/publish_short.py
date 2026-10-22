@@ -29,6 +29,14 @@ def music_credits(short, episode):
             if any(f'"{t}"' in c for t in titles)]
 
 
+def first_comment(short):
+    """The Short's first comment: the script's own (a question that starts
+    the conversation), else a pointer to the channel. Not a link: links in
+    a Short's comments do not get taps (owner, 2026-10-22)."""
+    own = (short.get("script") or {}).get("comment")
+    return own or "What would you have checked first? The full step-by-step breakdown is on the channel."
+
+
 def description(short, episode, full_id):
     words = " ".join(x.strip() for x in short["top"].split("|") if x.strip()).split()
     words = [w if any(ch.isdigit() for ch in w) else w.lower() for w in words]   # I-35W stays
@@ -71,8 +79,7 @@ def main():
         return
     from youtube_publisher import upload_video_to_youtube
     vid = upload_video_to_youtube(os.path.join(a.short_dir, "short.mp4"), a.title, text, tg,
-                                  first_comment=f"The full story, step by step: "
-                                                f"https://www.youtube.com/watch?v={a.full}",
+                                  first_comment=first_comment(short),
                                   publish_at=a.publish_at or None)
     json.dump({"video_id": vid, "title": a.title, "publish_at": a.publish_at},
               open(os.path.join(a.short_dir, "published.json"), "w"))
