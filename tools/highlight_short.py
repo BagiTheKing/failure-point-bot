@@ -13,12 +13,15 @@ sits in the episode is found in the episode's own sound (the take is
 correlated against it), so nothing about the cut needs to be stored.
 
 The picture (owner, 2026-10-22, after the I-35W Short lost 43% to the swipe
-in its first seconds): the full 9:16 screen, the 3D model on top and the 2D
-drawing of the same moment below it. The failure is on screen from the first
-frame; frames where nothing moves are dropped and camera moves run faster;
-the collapse plays again in slow motion; the hook changes with each span
-(stages split by ||); the words sit on the seam as they are said; and the
-last frames run back into the first, so the Short loops instead of ending.
+in its first seconds): the full 9:16 screen, the failure from the first
+frame. Both collapses at once, the 3D over the 2D; then one view at a time,
+a tall 4:5 picture: the 3D again at half speed, the 2D falling on the words
+that say it; for the cause the 3D says the first sentences and the 2D the
+rest (its end, where it fails). Frames where nothing moves are dropped and
+camera moves run faster. The hook changes with each span (stages split by
+||) and the words sit on one line as they are said. Last, the real photo
+with the toll counting up and where the full story is, kept short: YouTube
+replays a Short straight into its first frame.
 
 Writes OUT/short.mp4 and OUT/short.json (length, spans, music parts).
 """
@@ -44,8 +47,9 @@ EW, EH = 1280, 720                  # the episode's frame
 EP_ROWS = (44, EH)                  # its rows under the watermark
 DISSOLVE = 0.8                      # the episode's shots dissolve in over this
 LEAD, TAIL = 0.1, 0.5               # sound kept before and after the voice
+SOLO_H = 1350                       # one view alone: a tall 4:5 picture under the hook
 MAX_SPEED = 2.5                     # camera moves run up to this fast
-LOOP = 0.4                          # the last frames dissolve into the first
+END = 2.4                           # the photo and the toll, last
 # which 3D shots and which 2D clip show a span, by the span's first shot
 TOP_SHOTS = {"fall": ("fall", "dramatization"), "dramatization": ("fall", "dramatization"),
              "load_path": ("load_path", "connection"), "connection": ("load_path", "connection"),
@@ -257,81 +261,6 @@ def _kit_focus(kit, clip, a, b):
             float((d.sum(1) * np.arange(90)).sum() / d.sum() / 90))
 
 
-def schedule(span, n_out, episode_mp4, starts, sheet, kit):
-    """Per output frame: what the 3D panel shows (episode second, zoom,
-    focus) and what the 2D panel shows (kit clip, its second, zoom, focus)."""
-    from kits import timemap
-    order = [s["clip"] for s in sheet["shots"]]
-    first = span.split("-")[0]
-    clip = KIT_CLIP.get(first, "physics")
-    top, bot = [], []
-    if clip == "fall" and "fall" in starts and not sheet.get("timing", {}).get("ai"):
-        # the failure first: both panels a beat before the break, at full
-        # speed. The 3D fall is the canonical 20-28 s (kits/timemap.py), the
-        # episode's fall shot starting on its 20th second
-        tm = timemap.of(sheet)
-        fs = starts["fall"]
-        drop, settle = fs + tm.real(22.0) - tm.real(20.0), fs + tm.real(28.0) - tm.real(20.0)
-        _, diff, path = motion(episode_mp4, drop - 0.6, settle, track=True)
-        at = lambda t: path[min(len(path) - 1, max(0, int(round((t - drop + 0.6) * FPS))))]
-        # the fall is over once the picture has been still for half a second
-        quiet = diff < 0.1 * diff.max() if len(diff) else np.zeros(0, bool)
-        peak = int(np.argmax(diff)) if len(diff) else 0
-        for k in range(peak, len(quiet) - 15):
-            if quiet[k: k + 15].all():
-                settle = drop - 0.6 + (k + 15) / FPS
-                break
-        b = kit.FALL
-        kd = b.start(_beats_drop(b))
-        kfocus = (_kit_focus(kit, "fall", kd - 0.3, kd + 1.5)[0], 0.72)    # low, where it lands
-        run = int((settle - drop + 0.6) * FPS)
-        top = [(drop - 0.6 + i / FPS, 1.3, at(drop - 0.6 + i / FPS), "3D MODEL") for i in range(min(run, n_out))]
-        bot = [(min(b.total - 1 / FPS, kd - 0.6 + i / FPS), 1.5) for i in range(len(top))]
-        # then again, at half speed and closer
-        again = int(min(3.0 * 2 * FPS, max(0, n_out - len(top))))
-        for i in range(again):
-            k = i / max(1, again - 1)
-            t = drop - 0.3 + i / (2 * FPS)
-            top.append((t, 1.3 + 0.3 * k, at(t), "3D MODEL · SLOW MOTION"))
-            bot.append((kd - 0.3 + i / (2 * FPS), 1.5 + 0.2 * k))
-        hold_top, hold_bot = settle - 1 / FPS, b.total - 1 / FPS
-        # and the real wreckage: the episode's aftermath pictures, moving as they did there
-        nxt = order[order.index("aftermath") + 1] if "aftermath" in order[:-1] else None
-        if "aftermath" in starts and nxt in starts and len(top) < n_out:
-            a, e = starts["aftermath"] + DISSOLVE, starts[nxt]
-            frames = [a + i / FPS for i in range(int((e - a) * FPS))]
-            for t in _fit(frames, n_out - len(top), speed_max=1.5, keep="head"):
-                top.append((t, 1.0, (0.5, 0.45), "PHOTO"))
-                bot.append((hold_bot, bot[-1][1] if bot else 1.5))
-            hold_top = top[-1][0]
-    else:
-        times, diff, focus = [], np.zeros(0), (0.5, 0.5)
-        for a, b in _windows(span, starts, order):
-            t, d, focus = motion(episode_mp4, a, b)
-            times += list(t)
-            diff = np.concatenate([diff, d])
-        still = max(0.25, 0.03 * (diff.max() if len(diff) else 0))
-        moving = [t for t, d in zip(times, diff) if d > still]       # held frames are dropped
-        focus = tuple(min(0.7, max(0.3, v)) for v in focus)
-        top = [(t, 1.0, focus, "3D MODEL") for t in _fit(moving, n_out)]
-        clip_b = getattr(kit, kit.CLIPS[clip])
-        lead = clip_b.end("lead") if "lead" in clip_b.at else 0.0
-        length = clip_b.total - lead
-        first_t = lead + max(0.0, length - n_out / FPS)                   # the clip's end: where it fails
-        bot = [(min(clip_b.total - 1 / FPS, first_t + i / FPS), 0.99) for i in range(n_out)]
-        kfocus = _kit_focus(kit, clip, first_t, clip_b.total - 1 / FPS)
-        hold_top, hold_bot = (top[-1][0] if top else (times[-1] if times else 0.0)), clip_b.total - 1 / FPS
-    # what is left: hold the last picture, drifting slowly in
-    held, z0, kz0 = n_out - len(top), (top[-1][1] if top else 1.0), (bot[-1][1] if bot else 1.0)
-    f0, tag0 = (top[-1][2], top[-1][3]) if top else ((0.5, 0.5), "3D MODEL")
-    for i in range(max(0, held)):
-        top.append((hold_top, z0 + 0.15 * i / max(1, held), f0, tag0))
-    for i in range(max(0, n_out - len(bot))):
-        bot.append((hold_bot, kz0 + 0.1 * i / max(1, held) if kz0 >= 1 else kz0))
-    kfocus = (min(0.75, max(0.25, kfocus[0])), min(0.9, max(0.25, kfocus[1])))
-    return [((t, z, f, tag), (clip, kt, kz, kfocus)) for (t, z, f, tag), (kt, kz) in zip(top[:n_out], bot[:n_out])]
-
-
 def _uncaption(img):
     """The episode's frame without its caption bar (the dark box low in the
     frame): the rows above and below it blended across, so the 3D under it
@@ -352,15 +281,115 @@ def _uncaption(img):
     return Image.fromarray(a.astype(np.uint8))
 
 
-def _panel(img, zoom=1.0, cx=0.5, cy=0.5, rows=(0, EH), pad=0):
-    """A 16:9 frame cropped to fill one panel of the 9:16 screen, inside
-    `rows` (the episode's frame: clear of its watermark and caption bar).
-    A zoom under 1 shows the whole width instead, on the frame's own ground
-    (a 2D drawing, labels and all)."""
+def _sentence_split(words, a, b):
+    """The second (episode time) between a and b where a sentence ends
+    nearest the middle: the 3D says the first half, the 2D the second."""
+    mid = (a + b) / 2
+    ends = [w[2] for w in words if re.search(r"[.!?]$", w[0]) and a + 2 < w[2] < b - 2]
+    return min(ends, key=lambda t: abs(t - mid)) if ends else mid
+
+
+def storyboard(cuts, n_total, episode_mp4, starts, sheet, kit):
+    """Per output frame: (layout, picture(s), tag). The owner's order
+    (2026-10-22): both collapses at once, top and bottom; then one view at a
+    time, the 3D first, then the 2D, each moving the story on; the real
+    photo with the toll counting up last."""
+    from kits import timemap
+    order = [s["clip"] for s in sheet["shots"]]
+    frames = []
+    for ci, c in enumerate(cuts):
+        n = int(round((c["end"] - c["start"]) * FPS))
+        t_at = lambda k: c["start"] + k / FPS                       # episode time of output frame k
+        first = c["span"].split("-")[0]
+        clip = KIT_CLIP.get(first, "physics")
+        out = []
+        if clip == "fall" and "fall" in starts and not sheet.get("timing", {}).get("ai"):
+            tm = timemap.of(sheet)
+            fs = starts["fall"]
+            drop, settle = fs + tm.real(22.0) - tm.real(20.0), fs + tm.real(28.0) - tm.real(20.0)
+            _, diff, path = motion(episode_mp4, drop - 0.6, settle, track=True)
+            at = lambda t: path[min(len(path) - 1, max(0, int(round((t - drop + 0.6) * FPS))))]
+            quiet = diff < 0.1 * diff.max() if len(diff) else np.zeros(0, bool)
+            for k in range(int(np.argmax(diff)) if len(diff) else 0, len(quiet) - 15):
+                if quiet[k: k + 15].all():
+                    settle = drop - 0.6 + (k + 15) / FPS
+                    break
+            b = kit.FALL
+            kd = b.start(_beats_drop(b))
+            kx = _kit_focus(kit, "fall", kd - 0.3, kd + 1.5)[0]
+            # 1. both at once, a beat before the break
+            run = min(n, int((settle - drop + 0.6) * FPS))
+            for k in range(run):
+                t = drop - 0.6 + k / FPS
+                out.append(("split", ("ep", t, 1.3, at(t)),
+                            ("kit", "fall", min(b.total - 1 / FPS, kd - 0.6 + k / FPS), 1.5, (kx, 0.72)), "3D MODEL"))
+            # 2. the 3D alone, again at half speed, closing in
+            again = min(n - len(out), int(6.0 * FPS))
+            for k in range(again):
+                t = drop - 0.3 + k / (2 * FPS)
+                out.append(("solo", ("ep", t, 1.15 + 0.35 * k / max(1, again), at(t)), None,
+                            "3D MODEL · SLOW MOTION"))
+            # 3. the 2D alone, its fall from the start, the break on the words
+            #    that say it ("crack", "crashed", "collapsed"...)
+            k0 = len(out)
+            rest = n - k0
+            if rest > 0:
+                cue = next((w[1] for w in c["words"] if w[1] > t_at(k0) + 1.0
+                            and re.search(r"crack|crash|collaps|plung|fell|tore|snap|gave", w[0].lower())), None)
+                start = b.end("handover")
+                lead = (cue - t_at(k0)) if cue else (kd - start)
+                t0 = max(start, kd - lead)                          # the drop lands on the cue
+                for k in range(rest):
+                    kt = min(b.total - 1 / FPS, t0 + k / FPS)
+                    out.append(("solo", ("kit", "fall", kt, 0.99, (kx, 0.5)), None, "2D DRAWING"))
+        else:
+            # one view at a time: the 3D says the first sentences, the 2D the rest
+            split = _sentence_split(c["words"], c["start"], c["end"])
+            n3 = int(round((split - c["start"]) * FPS))
+            times, diff, focus = [], np.zeros(0), (0.5, 0.5)
+            for a, e in _windows(c["span"], starts, order):
+                t, d, focus = motion(episode_mp4, a, e)
+                times += list(t)
+                diff = np.concatenate([diff, d])
+            still = max(0.25, 0.03 * (diff.max() if len(diff) else 0))
+            moving = [t for t, d in zip(times, diff) if d > still]
+            focus = tuple(min(0.7, max(0.3, v)) for v in focus)
+            shown = _fit(moving, n3) or ([times[-1]] if times else [0.0])
+            for k in range(n3):
+                t = shown[min(k, len(shown) - 1)]
+                z = 1.0 if k < len(shown) else 1.0 + 0.15 * (k - len(shown)) / max(1, n3)
+                out.append(("solo", ("ep", t, z, focus), None, "3D MODEL"))
+            clip_b = getattr(kit, kit.CLIPS[clip])
+            n2 = n - n3
+            lead = clip_b.end("lead") if "lead" in clip_b.at else 0.0
+            t0 = max(lead, clip_b.total - n2 / FPS)                 # its end: where it fails
+            kf = _kit_focus(kit, clip, t0, clip_b.total - 1 / FPS)
+            kf = (min(0.7, max(0.3, kf[0])), min(0.7, max(0.35, kf[1])))
+            for k in range(n2):
+                out.append(("solo", ("kit", clip, min(clip_b.total - 1 / FPS, t0 + k / FPS), 0.99, kf), None,
+                            "2D DRAWING"))
+        frames += [(ci, k, f) for k, f in enumerate(out[:n])]
+    # last: the real photo, the toll counting up, where the full story is
+    photo = starts.get("aftermath")
+    for k in range(n_total - len(frames)):
+        frames.append((len(cuts), k, ("end", ("ep", (photo or 0.0) + DISSOLVE + 0.6, 1.05 + 0.08 * k / FPS / END,
+                                              (0.5, 0.45)), None, "PHOTO")))
+    return frames
+
+
+def _panel(img, zoom=1.0, cx=0.5, cy=0.5, rows=(0, EH), pad=0, size=(PW, PH)):
+    """A 16:9 frame cropped to fill a panel of the 9:16 screen (`size`),
+    inside `rows` (the episode's frame: clear of its watermark). A zoom
+    under 1 shows the whole width instead, on the frame's own ground."""
+    pw, ph = size
     if zoom < 1.0:
-        h = int(img.height * PW / img.width)
-        out = Image.new("RGB", (PW, PH), img.getpixel((4, 4)))
-        out.paste(img.resize((PW, h), Image.LANCZOS), (0, (PH - h) // 2))
+        # the whole drawing, near the top of a tall picture: the words go under it
+        cw = min(img.width, img.height * 1.4)        # a little of the sides goes: 7:5
+        x = min(img.width - cw, max(0.0, cx * img.width - cw / 2))
+        h = int(img.height * pw / cw)
+        out = Image.new("RGB", (pw, ph), img.getpixel((4, 4)))
+        out.paste(img.resize((pw, h), Image.LANCZOS, box=(x, 0, x + cw, img.height)),
+                  (0, 40 if ph > 1.6 * h else (ph - h) // 2))
         return out
     if pad:
         grown = Image.new("RGB", (img.width, img.height + pad), img.getpixel((4, img.height - 4)))
@@ -368,10 +397,10 @@ def _panel(img, zoom=1.0, cx=0.5, cy=0.5, rows=(0, EH), pad=0):
         img, rows = grown, (0, grown.height)
     top, bottom = rows
     ch = min(bottom - top, img.height / zoom)
-    cw = ch * PW / PH
+    cw = min(img.width, ch * pw / ph)
     x = min(img.width - cw, max(0.0, cx * img.width - cw / 2))
     y = min(bottom - ch, max(top, cy * (img.height - pad) - ch / 2))
-    return img.resize((PW, PH), Image.LANCZOS, box=(x, y, x + cw, y + ch))
+    return img.resize((pw, ph), Image.LANCZOS, box=(x, y, x + cw, y + ch))
 
 
 def _pill(d, text, x, y):
@@ -381,35 +410,59 @@ def _pill(d, text, x, y):
     d.text((x + 18, y), text, font=f, fill=(170, 206, 255), anchor="lm")
 
 
-def compose(top_img, bot_img, hook, caption, flash=0.0, tag="3D MODEL"):
-    """One 9:16 frame: the 3D panel over the 2D one, the hook over the top
-    of the screen, the words on the seam."""
-    im = Image.new("RGB", (SW, SH))
-    im.paste(top_img, (0, HOOK_H))
-    im.paste(bot_img, (0, SEAM))
+def _words(d, caption):
+    """The words as they are said, three at a time, on the seam's line."""
+    words, now = caption
+    size = 96
+    line = " ".join(w for w, _, _ in words).upper()
+    while _font("InterDisplay-Black.otf", size).getlength(line) > SW - 90 and size > 44:
+        size -= 4
+    fnt = _font("InterDisplay-Black.otf", size)
+    x = (SW - fnt.getlength(line)) / 2
+    lit = max((i for i, (_, a, _) in enumerate(words) if a <= now), default=None)
+    for i, (w, a, b) in enumerate(words):
+        col = (255, 214, 64) if i == lit else WHITE
+        d.text((x, SEAM + 44), w.upper(), font=fnt, fill=col, anchor="lm", stroke_width=8, stroke_fill=(0, 0, 0))
+        x += fnt.getlength(w.upper() + " ")
+
+
+def compose(layout, top_img, bot_img, hook, caption, flash=0.0, tag="3D MODEL", toll=None):
+    """One 9:16 frame. split: the 3D panel over the 2D one; solo and end: one
+    tall 4:5 picture. The hook on its band at the top, the words on the
+    seam's line; at the end the toll counting up and where the full story is."""
+    im = Image.new("RGB", (SW, SH), (4, 10, 20))
+    if layout == "split":
+        im.paste(top_img, (0, HOOK_H))
+        im.paste(bot_img, (0, SEAM))
+    else:
+        im.paste(top_img, (0, HOOK_H))
     d = ImageDraw.Draw(im, "RGBA")
     d.rectangle([0, 0, SW, HOOK_H], fill=(4, 10, 20, 255))
     d.rectangle([0, HOOK_H - 4, SW, HOOK_H], fill=RED + (255,))
-    d.rectangle([0, SEAM - 3, SW, SEAM + 3], fill=RED + (255,))
+    if layout == "split":
+        d.rectangle([0, SEAM - 3, SW, SEAM + 3], fill=RED + (255,))
+        _pill(d, tag, 36, SEAM - 64)
+        _pill(d, "2D DRAWING", 36, SEAM + 138)
+    else:
+        d.rectangle([0, HOOK_H + SOLO_H, SW, HOOK_H + SOLO_H + 4], fill=RED + (255,))
+        _pill(d, tag, 36, HOOK_H + 60)
     _brand(d)
     for i, line in enumerate([x.strip() for x in hook.split("|") if x.strip()][:2]):
         _text(d, line, SW / 2, 160 + i * 84, 76, WHITE if i == 0 else RED)
-    _pill(d, tag, 36, SEAM - 64)
-    _pill(d, "2D DRAWING", 36, SEAM + 138)
     if caption:
-        words, now = caption
-        size = 96
-        line = " ".join(w for w, _, _ in words).upper()
-        while _font("InterDisplay-Black.otf", size).getlength(line) > SW - 90 and size > 44:
-            size -= 4
-        fnt = _font("InterDisplay-Black.otf", size)
-        x = (SW - fnt.getlength(line)) / 2
-        lit = max((i for i, (_, a, _) in enumerate(words) if a <= now), default=None)
-        for i, (w, a, b) in enumerate(words):
-            col = (255, 214, 64) if i == lit else WHITE
-            d.text((x, SEAM + 44), w.upper(), font=fnt, fill=col, anchor="lm", stroke_width=8,
-                   stroke_fill=(0, 0, 0))
-            x += fnt.getlength(w.upper() + " ")
+        _words(d, caption)
+    if toll:
+        value, label, k = toll
+        shade = Image.new("RGBA", (SW, SOLO_H), (4, 10, 20, int(120 * min(1, k * 3))))
+        im.paste(shade, (0, HOOK_H), shade)
+        d = ImageDraw.Draw(im, "RGBA")
+        digits = re.sub(r"\D", "", value)
+        shown = str(int(round(int(digits) * (1 - (1 - min(1.0, k / 0.55)) ** 3)))) if digits else value
+        _text(d, shown, SW / 2, 860, 300, RED, stroke=6)
+        _text(d, label.upper(), SW / 2, 1060, 64, WHITE, "InterDisplay-Bold.otf", stroke=4)
+        a = int(255 * min(1.0, max(0.0, (k - 0.45) / 0.2)))
+        if a:
+            _text(d, "FULL STORY ON THE CHANNEL", SW / 2, 1240, 58, (255, 214, 64, a), stroke=4)
     if flash > 0:
         im = Image.blend(im, Image.new("RGB", im.size, WHITE), flash)
     return im
@@ -419,15 +472,16 @@ def render(episode_mp4, out_dir, cuts, starts, sheet, top):
     """The Short from its spans (plan) and the episode's shot starts."""
     import soundfile as sf
     from episode import kit_class
-    from score import even_loudness, whoosh
+    from score import boom, even_loudness, riser, whoosh
     os.makedirs(out_dir, exist_ok=True)
     kit = kit_class(sheet["kit"]["variant"])(sheet)
     kit.captions = {}                 # the Short has its own words on screen
-    kit.sheet = {**kit.sheet, "numbers": []}   # and the toll in its hook
+    kit.sheet = {**kit.sheet, "numbers": []}   # and the toll at its end
     hooks = [h for h in top.split("||") if h.strip()] or [""]
+    toll = (sheet.get("numbers") or [{}])[0]
 
-    # the sound: each span from the episode's own mix, a short crossfade and a
-    # whoosh between spans, faded at both ends so the loop joins softly
+    # the sound: each span from the episode's own mix, a short crossfade and
+    # a whoosh between spans; then a rising tone under the toll, landing on a hit
     xf = int(0.12 * SR)
     sound, joins = np.zeros(0, np.float32), []
     for c in cuts:
@@ -438,17 +492,25 @@ def render(episode_mp4, out_dir, cuts, starts, sheet, top):
             sound[-xf:] *= np.linspace(1, 0, xf, dtype=np.float32)
             joins.append(len(sound) / SR)
         sound = np.concatenate([sound, a])
+    end = np.zeros(int(END * SR), np.float32)
+    r = riser(0.55 * END, 7)[:, 0] * 0.3
+    end[: len(r)] += r[: len(end)]
+    hit = boom(6)[:, 0] * 0.55
+    i = int(0.55 * END * SR)
+    end[i: i + len(hit)] += hit[: len(end) - i]
+    end[-int(0.3 * SR):] *= np.linspace(1, 0, int(0.3 * SR), dtype=np.float32)
+    joins.append(len(sound) / SR)
+    sound = np.concatenate([sound, end])
     for j in joins:
         w = whoosh(31)[:, 0] * 0.35
         i = max(0, int((j - 0.25) * SR))
         sound[i: i + len(w)] += w[: len(sound) - i]
-    fade = int(0.25 * SR)
     sound[:int(0.03 * SR)] *= np.linspace(0, 1, int(0.03 * SR), dtype=np.float32)
-    sound[-fade:] *= np.linspace(1, 0, fade, dtype=np.float32)
     wav = os.path.join(out_dir, "short.wav")
     sf.write(wav, np.clip(sound, -1, 1), SR)
     wav = even_loudness(wav, os.path.join(out_dir, "short_even.wav"), target=-14.0)
     total = len(sound) / SR
+    n_total = int(round(total * FPS))
 
     enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24",
                             "-s", f"{SW}x{SH}", "-r", str(FPS), "-i", "-", "-i", wav,
@@ -458,36 +520,44 @@ def render(episode_mp4, out_dir, cuts, starts, sheet, top):
     ep = Episode(episode_mp4)
     cache = {}
 
-    def kit_frame(clip, t):
+    def picture(src, size, rows=EP_ROWS):
+        if src[0] == "ep":
+            _, t, z, (cx, cy) = src
+            return _panel(_uncaption(ep.at(t)), z, cx, cy, rows, size=size)
+        _, clip, t, z, (kx, ky) = src
         key = (clip, round(t * FPS))
         if key not in cache:
             fn = getattr(kit, clip)
             cache.clear() if len(cache) > 8 else None
             cache[key] = fn(t, None, lead=False) if clip == "physics" else fn(t)
-        return cache[key]
+        return _panel(cache[key], z, kx, ky, pad=160, size=size)
 
-    n_total = int(round(total * FPS))
-    out_n, first = 0, None
-    loop_n = int(LOOP * FPS)
-    for ci, c in enumerate(cuts):
-        n = int(round((c["end"] - c["start"]) * FPS)) if ci < len(cuts) - 1 else n_total - out_n
-        plan_ = schedule(c["span"], n, episode_mp4, starts, sheet, kit)
-        groups = chunks(c["words"])
+    groups = [chunks(c["words"]) for c in cuts]
+    prev, flash_from = None, -99
+    for n, (ci, k, (layout, top_src, bot_src, tag)) in enumerate(storyboard(cuts, n_total, episode_mp4,
+                                                                            starts, sheet, kit)):
         hook = hooks[min(ci, len(hooks) - 1)]
-        print(f"  {c['span']}: {n} frames", flush=True)
-        for k, ((t, z, (cx, cy), tag), (clip, kt, kz, (kx, ky))) in enumerate(plan_):
-            t_ep = c["start"] + k / FPS
-            cap = next((g for g in groups if g[0][1] - 0.05 <= t_ep < g[-1][2] + 0.15), None)
-            img = compose(_panel(_uncaption(ep.at(t)), z, cx, cy, EP_ROWS), _panel(kit_frame(clip, kt), kz, kx, ky, pad=160),
-                          hook, (cap, t_ep) if cap else None,
-                          flash=0.6 * max(0.0, 1 - k / 4) if ci > 0 else 0.0, tag=tag)
-            if first is None:
-                first = img
-            left = n_total - out_n
-            if left <= loop_n:
-                img = Image.blend(img, first, 1 - left / loop_n)
-            enc.stdin.write(img.tobytes())
-            out_n += 1
+        cap, tol = None, None
+        if ci < len(cuts):
+            t_ep = cuts[ci]["start"] + k / FPS
+            g = next((g for g in groups[ci] if g[0][1] - 0.05 <= t_ep < g[-1][2] + 0.15), None)
+            cap = (g, t_ep) if g else None
+        else:
+            tol = (toll.get("value", ""), toll.get("label", ""), k / FPS / END) if toll.get("value") else None
+        if layout == "split":
+            img = compose(layout, picture(top_src, (PW, PH)), picture(bot_src, (PW, PH)), hook, cap, tag=tag)
+        else:
+            img = compose(layout, picture(top_src, (SW, SOLO_H)), None, hook, cap, tag=tag, toll=tol)
+        # a cut to a new view: a quick flash
+        view = (layout, top_src[0], tag)
+        if prev is not None and view != prev:
+            flash_from = n
+        prev = view
+        if n - flash_from < 4:
+            img = Image.blend(img, Image.new("RGB", img.size, WHITE), 0.5 * (1 - (n - flash_from) / 4))
+        enc.stdin.write(img.tobytes())
+        if n % 150 == 0:
+            print(f"  {n}/{n_total} frames", flush=True)
     enc.stdin.close()
     enc.wait()
     return total
