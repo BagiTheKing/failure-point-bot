@@ -49,19 +49,35 @@ def next_free_slot(videos, hours=MIN_HOURS):
     return when + datetime.timedelta(hours=hours) if when else None
 
 
+def posts(videos):
+    """[(time, title)] of every post, at its publish time if it is scheduled."""
+    out = []
+    for v in videos or []:
+        times = [t for t in (_when(v.get("publishedAt")), _when(v.get("publishAt"))) if t]
+        if times:
+            out.append((max(times), v.get("title", "")))
+    return out
+
+
 def decide(videos, now=None, hours=MIN_HOURS):
-    """(go, reason)."""
+    """(go, reason). The time asked about (now, or PUBLISH_AT) must be the
+    spacing away from every post, before it and after it: a Short can take
+    the slot between a long video and the next one already scheduled 96 h
+    after it (the Hyatt Short, 2026-10-22, between Hyatt and Aloha)."""
     now = now or datetime.datetime.now(datetime.timezone.utc)
     if hours <= 0:
         return True, "spacing disabled"
-    when, title = latest_post(videos)
-    if not when:
+    all_posts = posts(videos)
+    if not all_posts:
         return True, "no earlier post on the channel"
-    slot = when + datetime.timedelta(hours=hours)
-    if now >= slot - GRACE:
-        return True, f"last post {(now - when).total_seconds() / 3600:.0f} h ago ({title[:60]!r})"
-    return False, (f"last post {title[:60]!r} at {when:%Y-%m-%d %H:%M} UTC; the channel waits "
-                   f"{hours:g} h, next slot {slot:%Y-%m-%d %H:%M} UTC")
+    when, title = min(all_posts, key=lambda p: abs(p[0] - now))
+    gap = abs(now - when)
+    side = "before" if when <= now else "after"
+    if gap >= datetime.timedelta(hours=hours) - GRACE:
+        return True, f"nearest post {gap.total_seconds() / 3600:.0f} h {side} ({title[:60]!r})"
+    slot = next_free_slot(videos, hours)
+    return False, (f"{title[:60]!r} at {when:%Y-%m-%d %H:%M} UTC is {gap.total_seconds() / 3600:.0f} h {side}; "
+                   f"the channel keeps {hours:g} h between posts, next slot {slot:%Y-%m-%d %H:%M} UTC")
 
 
 def main():

@@ -48,6 +48,17 @@ class UploadGateTest(unittest.TestCase):
         slot = upload_gate.next_free_slot(videos)
         self.assertEqual(slot, NOW + datetime.timedelta(hours=60))
 
+    def test_a_slot_between_two_posts_goes(self):
+        # 48 h after one post and 48 h before the next one already scheduled
+        videos = [{"title": "Hyatt", "publishedAt": at(48)}, {"title": "Aloha", "publishAt": at(-48)}]
+        self.assertTrue(upload_gate.decide(videos, now=NOW)[0])
+
+    def test_too_close_to_a_later_post_stands_down(self):
+        videos = [{"title": "Hyatt", "publishedAt": at(60)}, {"title": "Aloha", "publishAt": at(-30)}]
+        go, reason = upload_gate.decide(videos, now=NOW)
+        self.assertFalse(go)
+        self.assertIn("after", reason)
+
     def test_spacing_can_be_disabled(self):
         self.assertTrue(upload_gate.decide([{"publishedAt": at(1)}], now=NOW, hours=0)[0])
 
