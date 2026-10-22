@@ -52,7 +52,7 @@ HOOK_H = 290
 LEAD = 0.2                  # each scene's words start this far in
 GAP = 0.25                  # breath after a scene's words
 DISSOLVE = 0.3              # one scene into the next
-END_HOLD = 1.8              # after the last word: the toll and where the full story is
+END_HOLD = 2.6              # after the last word: the full story's card (owner, 2026-10-22: the old one, grey, on a hit)
 STACK_TAIL = 2.2            # after the stack's words: the fall and the verdict
 PANEL_H = SW * 9 // 16      # a 2D side, whole, full width
 STACK_Y = (300, 300 + PANEL_H + 92)          # the two sides; the words between them
@@ -182,17 +182,44 @@ def _overlay(img, hook, caption, cap_y, tags=(), toll=None, label=None):
     for i, line in enumerate([x.strip() for x in hook.split("|") if x.strip()][:2]):
         _text(d, line, SW / 2, 160 + i * 84, 76, WHITE if i == 0 else RED)
     if toll:
-        value, what, count, cta = toll
-        digits = re.sub(r"\D", "", value)
-        shown = str(int(round(int(digits) * (1 - (1 - min(1.0, count)) ** 3)))) if digits else value
-        _text(d, shown, SW / 2, 820, 300, RED, stroke=6)
-        _text(d, what.upper(), SW / 2, 1020, 64, WHITE, "InterDisplay-Bold.otf", stroke=4)
-        if cta > 0:
-            _text(d, "FULL STORY ON THE CHANNEL", SW / 2, 1200, 58, (255, 214, 64, int(255 * min(1, cta))),
-                  stroke=4)
+        value, what, count, card = toll
+        fade = int(255 * (1 - min(1.0, card * 3)))             # the count gives way to the card
+        if fade > 0:
+            outline = 6 if card == 0 else 0
+            _text(d, counted(value, count), SW / 2, 820, 300, RED + (fade,), stroke=outline)
+            _text(d, what.upper(), SW / 2, 1020, 64, WHITE + (fade,), "InterDisplay-Bold.otf",
+                  stroke=4 if outline else 0)
+        if card > 0:
+            # the full story's card, as the cut-down Shorts ended: the picture greys over, the words land
+            k = min(1.0, card)
+            shade = Image.new("RGBA", img.size, (4, 10, 20, int(200 * k)))
+            img.paste(shade, (0, 0), shade)
+            d = ImageDraw.Draw(img, "RGBA")
+            a = int(255 * max(0.0, (k - 0.33) / 0.67))           # its words once the count has gone
+            _text(d, "THE FULL STORY", SW / 2, 820, 96, (255, 255, 255, a))
+            _text(d, "HOW IT FAILED, STEP BY STEP", SW / 2, 930, 52, RED + (a,), "InterDisplay-Bold.otf")
+            _text(d, "full video on the channel", SW / 2, 1060, 44, (170, 190, 220, a), "Inter-Bold.otf")
+            _brand(d)
     if caption:
         _words(d, caption, cap_y)
     return img
+
+
+def counted(value, count):
+    """The toll as shown while it counts up (0..1), fast then settling."""
+    digits = re.sub(r"\D", "", value)
+    return str(int(round(int(digits) * (1 - (1 - min(1.0, count)) ** 3)))) if digits else value
+
+
+def tick(k=0.0):
+    """One number going up: a short bright click, higher as the count climbs (k 0..1)."""
+    n = int(0.035 * SR)
+    t = np.arange(n) / SR
+    f = 900 + 900 * k
+    x = np.sin(2 * np.pi * f * t) * np.exp(-t / 0.007)
+    x += np.random.default_rng(int(k * 1000)).normal(0, 0.4, n) * np.exp(-t / 0.0015)
+    x = (x / max(1e-6, np.abs(x).max())).astype(np.float32)
+    return np.stack([x, x], axis=1)
 
 
 def build(sheet, frames3d, script, out_dir, photo=None):
@@ -303,7 +330,17 @@ def build(sheet, frames3d, script, out_dir, photo=None):
             hit = _word_at(words, sc.get("toll", ""), t0) if sc.get("toll") else None
             count_to = hit[1] if hit else t0 + 2.5
             cta_at = voice_end(i) + 0.15
-            sfx.append((count_to - 0.05, score.boom(7) * 0.45))
+            # a tick for each number the count goes up by (one per frame at most), a stop when it lands,
+            # and the hit under the full story's card
+            prev = "0"
+            for n_ in range(int(t0 * FPS), int(count_to * FPS) + 2):
+                c = _ramp(n_ / FPS, t0, max(0.3, count_to - t0))
+                now_ = counted(str(toll.get("value", "")), c)
+                if now_ != prev:
+                    sfx.append((n_ / FPS, tick(c) * 0.16))
+                    prev = now_
+            sfx.append((count_to, score.lock() * 0.3))
+            sfx.append((cta_at, score.boom() * 0.6))
 
             def photo_(t, t0=t0, t1=t1, pic=pic, count_to=count_to, cta_at=cta_at):
                 k = (t - t0) / max(0.1, t1 - t0)
@@ -315,7 +352,7 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                 count = _ramp(t, t0, max(0.3, count_to - t0))         # counting from the first frame
                 return img, {"tags": [("PHOTO", (36, HOOK_H + 60), (170, 206, 255))],
                              "toll": (str(toll.get("value", "")), toll.get("label", ""), count,
-                                      _ramp(t, cta_at, 0.3))}
+                                      _ramp(t, cta_at, 0.35))}
             pictures.append(photo_)
 
     # the sound: the voice over the episode's own score (ducked), the sounds on their moments
