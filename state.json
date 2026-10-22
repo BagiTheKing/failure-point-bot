@@ -7,10 +7,17 @@
         "videos/5ex5EQ0CxGg/3_drawing.jpg"
       ],
       "status": "testing",
-      "current": 0,
-      "since": "2026-10-19T00:49:30.141270+00:00",
-      "views_at_start": 1,
-      "results": [],
+      "current": 1,
+      "since": "2026-10-22T17:11:10.046782+00:00",
+      "views_at_start": 33,
+      "results": [
+        {
+          "file": "videos/5ex5EQ0CxGg/1_xray.jpg",
+          "views": 32,
+          "days": 3.68,
+          "per_day": 8.69
+        }
+      ],
       "registered": "2026-10-18T23:39:25.333964+00:00"
     },
     "fWmMBV3dFCE": {
