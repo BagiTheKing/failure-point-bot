@@ -456,15 +456,15 @@ def compose(layout, top_img, bot_img, hook, caption, flash=0.0, tag="3D MODEL", 
     if caption:
         _words(d, caption)
     if toll:
-        value, label, k = toll
-        shade = Image.new("RGBA", (SW, SOLO_H), (4, 10, 20, int(120 * min(1, k * 3))))
+        value, label, count, cta = toll                     # how far it has counted, the full story's fade
+        shade = Image.new("RGBA", (SW, SOLO_H), (4, 10, 20, int(120 * min(1, count * 2))))
         im.paste(shade, (0, HOOK_H), shade)
         d = ImageDraw.Draw(im, "RGBA")
         digits = re.sub(r"\D", "", value)
-        shown = str(int(round(int(digits) * (1 - (1 - min(1.0, k / 0.55)) ** 3)))) if digits else value
+        shown = str(int(round(int(digits) * (1 - (1 - min(1.0, count)) ** 3)))) if digits else value
         _text(d, shown, SW / 2, 860, 300, RED, stroke=6)
         _text(d, label.upper(), SW / 2, 1060, 64, WHITE, "InterDisplay-Bold.otf", stroke=4)
-        a = int(255 * min(1.0, max(0.0, (k - 0.45) / 0.2)))
+        a = int(255 * min(1.0, max(0.0, cta)))
         if a:
             _text(d, "FULL STORY ON THE CHANNEL", SW / 2, 1240, 58, (255, 214, 64, a), stroke=4)
     if flash > 0:
@@ -547,7 +547,9 @@ def render(episode_mp4, out_dir, cuts, starts, sheet, top):
             g = next((g for g in groups[ci] if g[0][1] - 0.05 <= t_ep < g[-1][2] + 0.15), None)
             cap = (g, t_ep) if g else None
         else:
-            tol = (toll.get("value", ""), toll.get("label", ""), k / FPS / END) if toll.get("value") else None
+            k = k / FPS / END
+            tol = ((toll.get("value", ""), toll.get("label", ""), min(1.0, k / 0.55), (k - 0.45) / 0.2)
+                   if toll.get("value") else None)
         if layout == "split":
             img = compose(layout, picture(top_src, (PW, PH)), picture(bot_src, (PW, PH)), hook, cap, tag=tag)
         else:

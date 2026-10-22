@@ -19,7 +19,10 @@ CHANNEL = "The Point of Failure"
 
 
 def music_credits(short, episode):
-    """The credits of the tracks under the parts the Short was cut from."""
+    """The credits of the tracks under the Short: its own (a scripted Short
+    scores itself), or those of the parts it was cut from."""
+    if short.get("music_credits"):
+        return [c.strip() for c in short["music_credits"]]
     import score
     titles = [score.PARTS[p].split(" - ")[0] for p in short.get("parts", [])]
     return [c.strip() for c in episode.get("music_credits", [])
