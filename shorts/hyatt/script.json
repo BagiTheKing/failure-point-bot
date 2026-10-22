@@ -1,0 +1,19 @@
+{
+ "hook": "ONE ROD CHANGED.|114 PEOPLE DIED.",
+ "toll": {"value": "114", "label": "PEOPLE KILLED"},
+ "lines": [
+  {"say": "In nineteen eighty-one, two skywalks fell into a crowded hotel lobby in Kansas City.", "show": "collapse"},
+  {"say": "Each walkway hung from steel rods.", "show": "3d", "shot": "load_path"},
+  {"say": "Under the top walkway's beam, a single nut and washer held everything up.", "show": "3d", "shot": "connection"},
+  {"say": "The original design used one long rod through both walkways.", "show": "2d", "clip": "compare",
+   "from": "show", "to": "show", "hook": "THE CHANGE|THAT DOUBLED THE LOAD"},
+  {"say": "The steel fabricator split it in two, and the engineer approved the change over the phone, without checking the numbers.",
+   "show": "2d", "clip": "compare", "hold": "loads", "zoom": [1.0, 1.8], "focus": [0.75, 0.42]},
+  {"say": "That doubled the load on the nut.", "show": "2d", "clip": "compare", "from": "loads", "to": "mark",
+   "cue": {"doubled": "loads"}, "zoom": 1.8, "focus": [0.75, 0.42]},
+  {"say": "It held only thirty percent of what the code required, and it tore straight through the beam.",
+   "show": "2d", "clip": "physics", "from": "panel", "to": "slip", "cue": {"thirty": "panel", "tore": "slip"}, "hit": "tore"},
+  {"say": "Sixteen hundred people were at a tea dance that night. One hundred and fourteen never went home.",
+   "show": "photos", "toll": "fourteen"}
+ ]
+}
