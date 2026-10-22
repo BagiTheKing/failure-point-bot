@@ -551,7 +551,9 @@ def render(episode_mp4, out_dir, cuts, starts, sheet, top):
         if layout == "split":
             img = compose(layout, picture(top_src, (PW, PH)), picture(bot_src, (PW, PH)), hook, cap, tag=tag)
         else:
-            img = compose(layout, picture(top_src, (SW, SOLO_H)), None, hook, cap, tag=tag, toll=tol)
+            # the photo is cropped above the episode's own line about it
+            rows = (EP_ROWS[0], EH - 92) if layout == "end" else EP_ROWS
+            img = compose(layout, picture(top_src, (SW, SOLO_H), rows), None, hook, cap, tag=tag, toll=tol)
         # a cut to a new view: a quick flash
         view = (layout, top_src[0], tag)
         if prev is not None and view != prev:
