@@ -346,7 +346,7 @@ class HangingWalkways(KitTiming):
             k = min(1.0, stamp)
             size = int(64 * (1.6 - 0.6 * k))                          # it slams down into place
             f.text(stamp_text, W / 2, 168, size, RED, "InterDisplay-Black.otf", anchor="mm", screen=True,
-                   alpha=k * (1 - verdict))
+                   alpha=k * (1 - min(1.0, fall * 4)))                 # gone as it falls: the verdict's place
         if verdict > 0:
             word, col = ("FAILS", RED) if built else ("HOLDS", GREEN)
             f.text(word, W / 2, 168, 96, col, "InterDisplay-Black.otf", anchor="mm", screen=True, alpha=verdict)
