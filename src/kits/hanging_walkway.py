@@ -44,9 +44,9 @@ class HangingWalkways(KitTiming):
         self.captions = {s["clip"]: s.get("caption", "") for s in sheet.get("shots", [])}
 
     # ------------------------------------------------------------------ drawing
-    def people(self, f, y, x0, x1, alpha=1.0, n=26, seed=3, drop=0.0, tumble=0.0):
+    def people(self, f, y, x0, x1, alpha=1.0, n=26, seed=3, drop=0.0, tumble=0.0, color=DIM):
         rnd = random.Random(seed)
-        col = DIM + (int(255 * alpha),)
+        col = color + (int(255 * alpha),)
         for i in range(n):
             x = lerp(x0, x1, (i + rnd.random() * 0.6) / n)
             h = 16 + rnd.random() * 4
@@ -318,7 +318,7 @@ class HangingWalkways(KitTiming):
         the walls and roof, the decks, the rods (one continuous rod on the
         needed side, split in two as built), the crowd, the 1x loads, the
         upper load doubling (as built), its fall, the verdict, a stamp."""
-        f = Frame(W / 2, (ROOF_Y - 34 + GROUND_Y) / 2 + 6, 0.95)
+        f = Frame(W / 2, (ROOF_Y - 34 + GROUND_Y) / 2 + 4, 1.2)       # the whole structure, edge to edge
         f.grid(1)
         gap = LO_Y - UP_Y - BEAM_H - DECK_H
         drop_lo = (GROUND_Y - LO_Y - BEAM_H) * prog(fall, 0.55, 1.0) if built else 0.0
@@ -326,29 +326,30 @@ class HangingWalkways(KitTiming):
         self.structure(f, walls, walls, rods, walks, built=built, drop_up=drop_up, drop_lo=drop_lo,
                        rod_color=LINE if built else CYAN, tilt=(1 - fall) * 0 if built else 0.0)
         tumble = prog(fall, 0.3, 1.0)
-        self.people(f, GROUND_Y, 230, 1050, people)
-        self.people(f, LO_Y - DECK_H, 320, 960, people, n=14, seed=5, drop=drop_lo, tumble=tumble)
-        self.people(f, UP_Y - DECK_H, 320, 960, people, n=12, seed=7, drop=drop_up, tumble=tumble)
+        crowd = AMBER if built else CYAN                               # the load, in colour
+        self.people(f, GROUND_Y, 230, 1050, people, color=crowd)
+        self.people(f, LO_Y - DECK_H, 320, 960, people, n=14, seed=5, drop=drop_lo, tumble=tumble, color=crowd)
+        self.people(f, UP_Y - DECK_H, 320, 960, people, n=12, seed=7, drop=drop_up, tumble=tumble, color=crowd)
         if built and fall > 0:
             self.dust(f, fall * 1.6 - 0.9, WALK_X0, WALK_X1, GROUND_Y - 20, amount=0.8)
         a = loads * (1 - min(1.0, fall * 3))
         if a > 0:
             col = CYAN if not built else AMBER
-            f.text("1×", self.fail_x + 40, LO_Y + 34, 44, col, "InterDisplay-Black.otf", alpha=a)
+            f.text("1×", self.fail_x + 40, LO_Y + 40, 58, col, "InterDisplay-Black.otf", alpha=a)
             if built and double > 0:
                 pop = 1 + 0.5 * math.sin(math.pi * min(1.0, double))       # it lands bigger, then settles
-                f.text(self.mult, self.fail_x + 40, UP_Y + 34, int(44 * pop), RED, "InterDisplay-Black.otf",
+                f.text(self.mult, self.fail_x + 40, UP_Y + 40, int(58 * pop), RED, "InterDisplay-Black.otf",
                        alpha=a)
             else:
-                f.text("1×", self.fail_x + 40, UP_Y + 34, 44, col, "InterDisplay-Black.otf", alpha=a)
-        if stamp > 0 and stamp_text:
+                f.text("1×", self.fail_x + 40, UP_Y + 40, 58, col, "InterDisplay-Black.otf", alpha=a)
+        if stamp > 0 and stamp_text and verdict < 1:
             k = min(1.0, stamp)
-            size = int(58 * (1.6 - 0.6 * k))                          # it slams down into place
-            f.text(stamp_text, 880, 215, size, RED, "InterDisplay-Black.otf", anchor="mm", screen=True,
-                   alpha=k)
+            size = int(64 * (1.6 - 0.6 * k))                          # it slams down into place
+            f.text(stamp_text, W / 2, 168, size, RED, "InterDisplay-Black.otf", anchor="mm", screen=True,
+                   alpha=k * (1 - verdict))
         if verdict > 0:
             word, col = ("FAILS", RED) if built else ("HOLDS", GREEN)
-            f.text(word, W / 2, 682, 56, col, "InterDisplay-Black.otf", anchor="mm", screen=True, alpha=verdict)
+            f.text(word, W / 2, 168, 96, col, "InterDisplay-Black.otf", anchor="mm", screen=True, alpha=verdict)
         return f.done()
 
     def compare(self, t, T=None):

@@ -312,7 +312,7 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                 k = (t - t0) / max(0.1, t1 - t0)
                 img = Image.new("RGB", (SW, SH), (4, 10, 20))
                 shot = _cover(pic, SW, SH - HOOK_H, 1.0 + 0.1 * k)
-                shade = Image.new("RGBA", shot.size, (4, 10, 20, 110))
+                shade = Image.new("RGBA", shot.size, (4, 10, 20, 80))
                 shot.paste(shade, (0, 0), shade)
                 img.paste(shot, (0, HOOK_H))
                 count = _ramp(t, t0, max(0.3, count_to - t0))         # counting from the first frame
