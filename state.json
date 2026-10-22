@@ -1,77 +1,76 @@
 {
-  "videos": {
-    "5ex5EQ0CxGg": {
-      "files": [
-        "videos/5ex5EQ0CxGg/1_xray.jpg",
-        "videos/5ex5EQ0CxGg/2_model.jpg",
-        "videos/5ex5EQ0CxGg/3_drawing.jpg"
-      ],
-      "status": "testing",
-      "current": 1,
-      "since": "2026-10-22T17:11:10.046782+00:00",
-      "views_at_start": 33,
-      "results": [
-        {
-          "file": "videos/5ex5EQ0CxGg/1_xray.jpg",
-          "views": 32,
-          "days": 3.68,
-          "per_day": 8.69
-        }
-      ],
-      "registered": "2026-10-18T23:39:25.333964+00:00"
-    },
-    "fWmMBV3dFCE": {
-      "files": [
-        "videos/fWmMBV3dFCE/1_xray.jpg",
-        "videos/fWmMBV3dFCE/2_drawing.jpg"
-      ],
-      "status": "done",
-      "current": null,
-      "since": null,
-      "views_at_start": null,
-      "results": [],
-      "registered": "2026-10-20T21:41:43.723354+00:00"
-    },
-    "0LzIA3S95o0": {
-      "files": [
-        "videos/0LzIA3S95o0/1_xray.jpg",
-        "videos/0LzIA3S95o0/2_drawing.jpg"
-      ],
-      "status": "done",
-      "current": null,
-      "since": null,
-      "views_at_start": null,
-      "results": [],
-      "registered": "2026-10-20T23:58:53.192230+00:00"
-    },
-    "aeJcY4PWNDU": {
-      "files": [
-        "videos/aeJcY4PWNDU/1_xray.jpg",
-        "videos/aeJcY4PWNDU/2_drawing.jpg"
-      ],
-      "status": "waiting",
-      "current": null,
-      "since": null,
-      "views_at_start": null,
-      "results": [],
-      "registered": "2026-10-21T12:01:37.695513+00:00"
-    },
-    "xqFy2qABc3w": {
-      "files": [
-        "videos/xqFy2qABc3w/1_model.jpg",
-        "videos/xqFy2qABc3w/2_xray.jpg",
-        "videos/xqFy2qABc3w/3_drawing.jpg"
-      ],
-      "status": "waiting",
-      "current": null,
-      "since": null,
-      "views_at_start": null,
-      "results": [],
-      "registered": "2026-10-21T12:35:31.930035+00:00"
+ "videos": {
+  "5ex5EQ0CxGg": {
+   "files": [
+    "videos/5ex5EQ0CxGg/1_xray.jpg",
+    "videos/5ex5EQ0CxGg/2_model.jpg",
+    "videos/5ex5EQ0CxGg/3_drawing.jpg"
+   ],
+   "status": "testing",
+   "current": 1,
+   "since": "2026-10-22T17:11:10.046782+00:00",
+   "views_at_start": 33,
+   "results": [
+    {
+     "file": "videos/5ex5EQ0CxGg/1_xray.jpg",
+     "views": 32,
+     "days": 3.68,
+     "per_day": 8.69
     }
+   ],
+   "registered": "2026-10-18T23:39:25.333964+00:00"
   },
-  "comments": {
-    "1lIWQB8S9ss": "The full story, step by step: https://www.youtube.com/watch?v=aeJcY4PWNDU",
-    "SzebZnfOGho": "The full story, step by step: https://www.youtube.com/watch?v=aeJcY4PWNDU"
+  "fWmMBV3dFCE": {
+   "files": [
+    "videos/fWmMBV3dFCE/1_xray.jpg",
+    "videos/fWmMBV3dFCE/2_drawing.jpg"
+   ],
+   "status": "done",
+   "current": null,
+   "since": null,
+   "views_at_start": null,
+   "results": [],
+   "registered": "2026-10-20T21:41:43.723354+00:00"
+  },
+  "0LzIA3S95o0": {
+   "files": [
+    "videos/0LzIA3S95o0/1_xray.jpg",
+    "videos/0LzIA3S95o0/2_drawing.jpg"
+   ],
+   "status": "done",
+   "current": null,
+   "since": null,
+   "views_at_start": null,
+   "results": [],
+   "registered": "2026-10-20T23:58:53.192230+00:00"
+  },
+  "aeJcY4PWNDU": {
+   "files": [
+    "videos/aeJcY4PWNDU/1_xray.jpg",
+    "videos/aeJcY4PWNDU/2_drawing.jpg"
+   ],
+   "status": "waiting",
+   "current": null,
+   "since": null,
+   "views_at_start": null,
+   "results": [],
+   "registered": "2026-10-21T12:01:37.695513+00:00"
+  },
+  "xqFy2qABc3w": {
+   "files": [
+    "videos/xqFy2qABc3w/1_model.jpg",
+    "videos/xqFy2qABc3w/2_xray.jpg",
+    "videos/xqFy2qABc3w/3_drawing.jpg"
+   ],
+   "status": "waiting",
+   "current": null,
+   "since": null,
+   "views_at_start": null,
+   "results": [],
+   "registered": "2026-10-21T12:35:31.930035+00:00"
   }
+ },
+ "comments": {
+  "SzebZnfOGho": "One phone call. No calculations. 114 lives. Would you have caught this change on the drawings? The full step-by-step breakdown is on the channel."
+ }
 }
