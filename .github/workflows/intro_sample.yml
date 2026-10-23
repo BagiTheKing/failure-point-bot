@@ -40,7 +40,12 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
+      - name: System packages, retried (a runner's apt mirror sometimes hangs)
+        run: |
+          for i in 1 2 3; do
+            timeout 300 sudo apt-get update -q && timeout 300 sudo apt-get install -y -q ffmpeg espeak-ng && break
+            echo "apt try $i failed"; [ $i = 3 ] && exit 1; sleep 10
+          done
       - name: Cache Kokoro model files
         uses: actions/cache@v4
         with:

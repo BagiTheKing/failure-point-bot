@@ -25,7 +25,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: System packages, retried (a runner's apt mirror sometimes hangs)
+        run: |
+          for i in 1 2 3; do
+            timeout 300 sudo apt-get update -q && timeout 300 sudo apt-get install -y -q poppler-utils && break
+            echo "apt try $i failed"; [ $i = 3 ] && exit 1; sleep 10
+          done
       - name: Download, and its text
         env:
           URL: ${{ inputs.url }}
