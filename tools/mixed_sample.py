@@ -29,9 +29,10 @@ from kits.assemble import frames_of, render_3d_part, dramatization, join  # noqa
 
 from kits.fuselage import Fuselage  # noqa: E402
 from kits.orbiter import Orbiter  # noqa: E402
+from kits.earth_dam import EarthDam  # noqa: E402
 
 KITS = {"hanging_walkways": HangingWalkways, "truss_bridge": TrussBridge, "fuselage": Fuselage,
-        "orbiter": Orbiter}
+        "orbiter": Orbiter, "earth_dam": EarthDam}
 
 def main():
     ap = argparse.ArgumentParser()

@@ -150,9 +150,11 @@ def figures(sheet):
     # what failed, and the cause in two words: the hanger rods held at the
     # Hyatt; the nut pulled through the box beam after one design change
     part = {"truss_bridge": "STEEL PLATE", "hanging_walkways": "CONNECTION",
-            "fuselage": "LAP JOINT", "orbiter": "HEAT SHIELD"}.get(kit.get("variant"), "PART")
+            "fuselage": "LAP JOINT", "orbiter": "HEAT SHIELD",
+            "earth_dam": "KEY TRENCH"}.get(kit.get("variant"), "PART")
     cause = {"truss_bridge": "ONE STEEL PLATE", "hanging_walkways": "ONE DESIGN CHANGE",
-             "fuselage": "ONE CRACKED SEAM", "orbiter": "ONE HOLED PANEL"}.get(kit.get("variant"), f"ONE {part}")
+             "fuselage": "ONE CRACKED SEAM", "orbiter": "ONE HOLED PANEL",
+             "earth_dam": "ONE LEAK"}.get(kit.get("variant"), f"ONE {part}")
     name = (sheet["disaster"].get("photo_article") or "").replace("Mississippi River bridge", "").strip().upper()
     node = kit.get("failed_node_label", "")
     block = " · ".join(x for x in ("THE POINT OF FAILURE", name, node and f"JOINT {node}") if x)

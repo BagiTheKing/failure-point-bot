@@ -21,6 +21,7 @@ T_FALL = 22.0                  # the canonical second the fall begins
 # each model's tall Short cameras (kits/*_3d.py short_camera): canonical seconds they cover
 SHORT = {"hanging_walkways": {"fall": (21.0, 26.0), "close": (11.5, 23.6)},
          "orbiter": {"fall": (21.0, 26.5), "close": (11.5, 23.8)},
+         "earth_dam": {"fall": (21.0, 27.0), "close": (11.5, 23.5)},
          "fuselage": {"fall": (21.0, 26.0), "close": (11.5, 23.8)}}
 
 

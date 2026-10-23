@@ -98,6 +98,37 @@ KITS = {
         ],
         "model_3d": {},
     },
+    "earth_dam": {
+        "what": ("A zoned earthfill dam across a canyon of jointed rock: its core of fine soil "
+                 "carried down into deep key trenches cut in the abutments, a grout curtain below. "
+                 "Water under full head finds open rock joints at a trench, gets into the trench "
+                 "fill and carries it away (internal erosion, piping); a leak appears on the "
+                 "downstream face, grows into a hole, and the dam above it collapses."),
+        "params": {"dam": "the dam's name, e.g. Teton Dam",
+                   "height": "the dam's height as the facts give it, e.g. 305 ft"},
+        "labels": ["dam", "rock", "reservoir", "trench", "node", "core", "curtain", "upstream", "downstream",
+                   "seep", "crack", "pipe", "leak"],
+        "labels_3d": [("dam", [2.0, 6.0], [140, 140], "cyan"),
+                      ("reservoir", [2.6, 6.0], [760, 140], "cyan"),
+                      ("abutment", [9.0, 12.4], [820, 150], "amber"),
+                      ("hole", [15.4, 19.4], [760, 150], "cyan")],
+        "multiplier": "the one figure behind the failure, e.g. the dam's height or the hours from first leak to breach",
+        "big_3d_anchor": "hole",
+        "title_hint": "THE ... DAM FAILURE",
+        "model_3d": {},
+        # what the other kits' habits would get wrong here
+        "rules": [
+            "The investigation names two possible ways the leak began (water through unsealed joints under "
+            "the grout cap, or cracking of the trench fill); say both, and that the panel could not tell "
+            "which, because the failed section was washed away.",
+            "Count the dead as the sources do: say who counted what if they differ.",
+            "The panel found construction followed the design; the design is what failed. Name the design "
+            "decisions as the panel does; blame no single person.",
+            "dramatization: what witnesses saw that morning, in the panel's words and times (leaks, the "
+            "whirlpool, the bulldozers sent to fill the hole); nothing nobody recorded.",
+            "Keep the sources' qualifiers: 'about', 'approximately'.",
+        ],
+    },
     "truss_bridge": {
         "what": ("A steel truss bridge over one or more spans; one joint (a gusset "
                  "plate where beams meet) is weaker than the forces through it and "
@@ -422,6 +453,8 @@ def assemble(reply, variant, facts_source="", source_name="source"):
         kit["river"] = True
     elif variant == "hanging_walkways":
         kit["rod_lines"], kit["failed_line"] = int(kit["rod_lines"]), int(kit["failed_line"])
+    elif variant == "earth_dam":
+        kit["family"] = "water"
     elif variant == "orbiter":
         kit["family"] = "spaceflight"
         kit["panel"] = int(str(kit["panel"]).strip())
