@@ -110,14 +110,14 @@
     }
   },
   "hook": {
-    "title": "THE TETON DAM FAILURE",
     "lines": [
       "June 5, 1976. Idaho. Teton Dam, 305 feet high, is filling for the first time.",
-      "Just before noon, the dam gives way and its reservoir pours through the gap.",
+      "Just before noon, the dam gives way. The flood that follows kills at least 11 people.",
       "Water had found open joints in the rock and was washing out the soil of its core.",
       "The design counted on stopping the water. It had no way to make the leaks harmless."
     ],
-    "sub": "TETON RIVER, IDAHO · 5 JUNE 1976"
+    "title": "THE TETON DAM FAILURE",
+    "sub": "TETON RIVER, IDAHO · 5 JUNE 1976 · 11:55 AM"
   },
   "design_vs_built": {
     "designed": {
@@ -334,8 +334,8 @@
   ],
   "photo_pins": {
     "today_photos": [
-      "Teton Dam remains",
-      "Teton Dam breach remnant"
+      "TetonDamRemains01",
+      "Teton Dam remains"
     ]
   },
   "timing": {

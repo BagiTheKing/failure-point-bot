@@ -1,12 +1,12 @@
 {
- "seconds": 466.3,
+ "seconds": 466.93333333333334,
  "chapters": [
   "0:00 The disaster",
-  "1:10 The structure and its weak point",
-  "2:07 The physics",
-  "3:37 Second by second",
+  "1:11 The structure and its weak point",
+  "2:08 The physics",
+  "3:38 Second by second",
   "4:46 The warnings and the investigation",
-  "6:10 How it should have worked",
+  "6:11 How it should have worked",
   "6:51 Could it happen today?"
  ],
  "music_credits": [
@@ -47,24 +47,24 @@
  ],
  "ai_clip": false,
  "hook": {
-  "title": "THE TETON DAM FAILURE",
   "lines": [
    "June 5, 1976. Idaho. Teton Dam, 305 feet high, is filling for the first time.",
-   "Just before noon, the dam gives way and its reservoir pours through the gap.",
+   "Just before noon, the dam gives way. The flood that follows kills at least 11 people.",
    "Water had found open joints in the rock and was washing out the soil of its core.",
    "The design counted on stopping the water. It had no way to make the leaks harmless."
   ],
-  "sub": "TETON RIVER, IDAHO · 5 JUNE 1976"
+  "title": "THE TETON DAM FAILURE",
+  "sub": "TETON RIVER, IDAHO · 5 JUNE 1976 · 11:55 AM"
  },
  "preview": {
   "seconds": 11.0,
   "at": 0.0,
   "sources": {
-   "flaw": 149.12962499999998,
-   "forces": 202.543375,
-   "failure": 223.952375,
-   "fix": 396.881375,
-   "stay": 60.733375
+   "flaw": 149.76299999999998,
+   "forces": 203.176625,
+   "failure": 224.585625,
+   "fix": 397.514625,
+   "stay": 61.366625
   },
   "spans": [
    [
