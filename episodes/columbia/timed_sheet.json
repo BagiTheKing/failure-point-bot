@@ -367,5 +367,12 @@
       "physics": 59.86599999999999,
       "compare": 49.392999999999994
     }
-  }
+  },
+  "photo_pins": {
+    "today_photos": [
+      "STS-114 launch Discovery",
+      "STS-114 Discovery liftoff"
+    ]
+  },
+  "photo_exclude": "memorial|remembered|in cabin|final moments"
 }
