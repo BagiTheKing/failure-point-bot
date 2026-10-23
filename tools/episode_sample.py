@@ -86,6 +86,9 @@ def _drop_excluded(sheet, out):
     photos = json.load(open(path))
     kept = {k: [c for c in v if not episode._excluded(c, sheet)] for k, v in photos.items()}
     gone = sum(len(v) for v in photos.values()) - sum(len(v) for v in kept.values())
+    for k, v in kept.items():
+        for c in v:
+            print(f"  {k}: {c.get('title', '')[:90]}")
     if gone:
         print(f"  {gone} picture(s) ruled out since: taken away")
         json.dump(kept, open(path, "w"), indent=1, ensure_ascii=False)
