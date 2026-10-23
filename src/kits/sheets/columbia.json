@@ -1,0 +1,320 @@
+{
+  "story": "Space Shuttle Columbia disaster",
+  "sources": {
+    "source": "https://en.wikipedia.org/wiki/Space_Shuttle_Columbia_disaster",
+    "CAIB": "https://s3.amazonaws.com/akamai.netstorage/anon.nasa-global/CAIB/CAIB_lowres_full.pdf"
+  },
+  "kit": {
+    "family": "spaceflight",
+    "variant": "orbiter",
+    "vehicle": "Space Shuttle Columbia",
+    "panel": 8,
+    "days": "16",
+    "heat": "probably exceeding 5,000 °F",
+    "labels": {
+      "vehicle": "Space Shuttle Columbia",
+      "wing": "left wing",
+      "leading_edge": "leading edge: 22 carbon-carbon panels",
+      "panel": "panel 8",
+      "shield": "the heat shield: reinforced carbon-carbon",
+      "spar": "the wing's aluminum spar",
+      "foam": "foam from the tank's bipod ramp, at launch",
+      "hole": "a hole in the lower half of panel 8",
+      "heat": "re-entry: the air ahead of the wing glows",
+      "breach": "superheated air gets in through the hole",
+      "melt": "the aluminum spar melts"
+    }
+  },
+  "model_3d": {
+    "labels_3d": [
+      {
+        "anchor": "wing",
+        "text": "Left wing",
+        "color": "cyan",
+        "t": [
+          2.0,
+          6.0
+        ],
+        "at": [
+          140,
+          140
+        ]
+      },
+      {
+        "anchor": "nose",
+        "text": "Nose cap: carbon-carbon",
+        "color": "cyan",
+        "t": [
+          2.6,
+          6.0
+        ],
+        "at": [
+          760,
+          600
+        ]
+      },
+      {
+        "anchor": "edge",
+        "text": "Leading edge: 22 carbon-carbon panels",
+        "color": "amber",
+        "t": [
+          9.0,
+          12.4
+        ],
+        "at": [
+          820,
+          150
+        ]
+      },
+      {
+        "anchor": "panel",
+        "text": "Panel 8: holed at launch",
+        "color": "cyan",
+        "t": [
+          15.4,
+          19.4
+        ],
+        "at": [
+          760,
+          150
+        ]
+      }
+    ],
+    "big_3d": {
+      "anchor": "panel",
+      "text": "0.006 FT-LB",
+      "label": "IMPACT THE PANELS WERE BUILT FOR",
+      "t": [
+        16.8,
+        19.4
+      ]
+    },
+    "ai_prompt": "Space Shuttle Columbia descending through high atmosphere with hot plasma entering a breach in the left wing leading edge, structural breakup over cloud layers under aerodynamic forces, debris scattering into multiple glowing trails. Static camera."
+  },
+  "disaster": {
+    "place_date": "OVER TEXAS · 1 FEBRUARY 2003 · 9:00:18 AM EST",
+    "place": "Over Texas",
+    "caption": "Columbia breaks apart on re-entry at about 200,000 feet",
+    "photo_article": "Space Shuttle Columbia disaster",
+    "report": {
+      "credit": "Columbia Accident Investigation Board, Report Volume I (2003)",
+      "url": "https://s3.amazonaws.com/akamai.netstorage/anon.nasa-global/CAIB/CAIB_lowres_full.pdf"
+    }
+  },
+  "hook": {
+    "title": "THE COLUMBIA DISASTER",
+    "sub": "OVER TEXAS · 1 FEBRUARY 2003",
+    "lines": [
+      "February 1, 2003. Over Texas, Space Shuttle Columbia breaks apart at Mach 19.",
+      "All seven astronauts aboard are killed.",
+      "Sixteen days earlier, foam from its fuel tank had struck the left wing and holed it.",
+      "It was not a freak accident. Foam had come off before, and was treated as normal."
+    ]
+  },
+  "design_vs_built": {
+    "designed": {
+      "title": "WHAT IT NEEDED",
+      "detail": "A tank that shed no debris, as required",
+      "load": "the panel stays whole: the heat flows round it"
+    },
+    "built": {
+      "title": "WHAT IT HAD",
+      "detail": "Foam struck panel 8 at launch",
+      "load": "a 1.67-lb block at about 775 ft/s: the heat gets in"
+    },
+    "multiplier": "0.006 FT-LB",
+    "multiplier_label": "IMPACT THE PANELS WERE BUILT FOR",
+    "plate_built": "",
+    "plate_needed": "",
+    "source": "source"
+  },
+  "numbers": [
+    {
+      "value": "7",
+      "label": "CREW KILLED",
+      "source": "source"
+    },
+    {
+      "value": "16",
+      "label": "DAYS IN ORBIT WITH THE BREACH",
+      "source": "CAIB"
+    },
+    {
+      "value": "7 OF 72",
+      "label": "IMAGED FLIGHTS THAT LOST BIPOD FOAM",
+      "source": "CAIB"
+    }
+  ],
+  "clock": {
+    "from_seconds": 8,
+    "label_before": "9:00:{s:02d}",
+    "label_next": "9:00:{s:02d}",
+    "label_at": "9:00:18",
+    "day": "AM EST · SATURDAY 1 FEBRUARY 2003",
+    "event": "COLUMBIA BREAKS APART"
+  },
+  "timeline": [
+    {
+      "date": "OCTOBER 2002",
+      "title": "Foam off the same ramp",
+      "sub": "STS-112: it dents an attachment ring",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "16 JANUARY 2003",
+      "title": "Launch: foam hits the wing",
+      "sub": "Near panel 8, 81.9 seconds after launch",
+      "kind": "event",
+      "source": "source"
+    },
+    {
+      "date": "21 JANUARY 2003",
+      "title": "Engineers want images",
+      "sub": "Debris Assessment Team's first meeting",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "24 JANUARY 2003",
+      "title": "A turnaround issue",
+      "sub": "No images of the wing in orbit",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "1 FEBRUARY 2003",
+      "title": "Re-entry",
+      "sub": "Columbia breaks apart over Texas",
+      "kind": "failure",
+      "source": "source"
+    }
+  ],
+  "today": {
+    "title": "COULD IT HAPPEN TODAY?",
+    "lines": [
+      "After Columbia, every shuttle inspected its heat shield in orbit with a 50-foot boom.",
+      "A rescue plan stood ready for any crew whose orbiter could not safely come home.",
+      "The real risk was a known problem, seen flight after flight, and accepted as normal."
+    ],
+    "source": "source"
+  },
+  "thumbnail": {
+    "top": "WING BREACHED",
+    "sub": "BY FOAM AT LAUNCH"
+  },
+  "shots": [
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photo",
+      "caption": "Columbia on Launch Complex 39A before mission STS-107",
+      "narration": "This is Columbia on Launch Complex 39A before mission STS-107. It was the 113th flight of the Space Shuttle program, and Columbia's 28th. Seven astronauts flew it, commanded by Rick Husband, with William McCool as pilot. It was a 16-day science mission, and it met all its objectives. Neither the crew nor Mission Control had any sign that the mission was in trouble."
+    },
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photos_disaster",
+      "caption": "Columbia's debris trails over Texas, 1 February 2003",
+      "narration": "On the morning of February 1, 2003, people on the ground watched a bright point of light cross the sky, shedding pieces as it went. Over Texas, at about 200,000 feet and Mach 19, it broke apart into streaks. That light was Columbia, sixteen minutes from landing. The orbiter had fallen out of control at more than 10,000 miles per hour. There was no explosion: the air itself tore the damaged orbiter apart. All seven astronauts aboard were killed. Debris fell across Texas and Louisiana."
+    },
+    {
+      "part": 2,
+      "tool": "3d",
+      "clip": "establish",
+      "caption": "The orbiter's heat shield: tiles on the belly, carbon-carbon on the edges",
+      "narration": "An orbiter comes home nose up, belly first, at hypersonic speed. The air ahead of it cannot get out of the way: it is squeezed and heated until it glows. Black tiles protect the belly. The hottest edges, the nose cap and the front of each wing, are made of reinforced carbon-carbon. Each wing's leading edge is a row of 22 of these panels, rated to 3,000 degrees Fahrenheit."
+    },
+    {
+      "part": 2,
+      "tool": "2d",
+      "clip": "build",
+      "caption": "Foam from the tank's bipod ramp strikes the left wing, 81.9 seconds after launch",
+      "narration": "Columbia launched on January 16, 2003, at ten thirty-nine in the morning, on the side of the external tank. The tank was covered in insulating foam. Where the orbiter's forward strut met the tank, the foam was shaped by hand into a ramp: the bipod ramp. At 81.7 seconds after launch, at about 65,600 feet, a large piece of that ramp broke away. At 81.9 seconds, it struck the underside of the left wing's leading edge, in the vicinity of panel 8. The piece was 21 to 27 inches long and 12 to 18 inches wide. The board represented it with a 1.67-pound block of foam, hitting at approximately 775 feet per second. The panels had been designed to withstand a kinetic energy impact of 0.006 foot-pounds."
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "load_path",
+      "caption": "Behind the panels: the wing's aluminum structure",
+      "narration": "On re-entry the panels have one job: keep the heat out of the wing. Behind each panel is the wing's front spar, and behind that the aluminum structure that holds the wing together. The requirement was to keep that aluminum below 350 degrees Fahrenheit while the panels outside ran up to 3,000. Aluminum loses its strength long before it melts. Everything depended on the panels staying whole."
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "connection",
+      "caption": "Panel 8: a hole in its lower half",
+      "narration": "The foam opened a hole in the lower half of panel 8. Nobody on board felt it. It was not seen until the next day, in the launch film. For the 16 days of the mission, Columbia flew with that breach, and its wing was never imaged in orbit."
+    },
+    {
+      "part": 3,
+      "tool": "2d",
+      "clip": "physics",
+      "caption": "Superheated air gets into the left wing through the breach",
+      "narration": "On February 1, at eight forty-four and nine seconds in the morning, Columbia reached Entry Interface, 400,000 feet up, where the atmosphere begins. As it slowed, the air around the wing's leading edge heated far beyond anything the structure inside could take. With panel 8 holed, that air had a way in. The board found that superheated air, probably exceeding 5,000 degrees Fahrenheit, went through the breach into the cavity behind the panel. It destroyed the insulation protecting the leading edge structure, and the breach widened. At eight forty-eight and thirty-nine seconds, 270 seconds after Entry Interface, a strain sensor on the left wing's leading edge spar read higher than on any earlier Columbia re-entry. That reading was only recorded on board: neither the crew nor Mission Control ever saw it. The superheated air melted the thin aluminum spar and got into the wing itself. Sensors inside the left wing began to fail. The flight control system kept Columbia on its planned path while the damaged wing dragged at it, until the air grew dense enough to overcome it."
+    },
+    {
+      "part": 4,
+      "tool": "2d",
+      "clip": "clock",
+      "caption": "Last call from Columbia: 8:59:32 a.m.",
+      "narration": "At eight fifty-nine and thirty-two seconds, Mission Control heard Columbia for the last time. Forty-six seconds later, video from the ground shows the orbiter breaking apart."
+    },
+    {
+      "part": 4,
+      "tool": "3d",
+      "clip": "fall",
+      "caption": "Breakup at about 200,000 feet and Mach 19",
+      "narration": "At nine o'clock and eighteen seconds, over Texas, at about 200,000 feet and Mach 19, the aerodynamic forces overcame the damaged left wing. Columbia lost control and broke apart."
+    },
+    {
+      "part": 4,
+      "tool": "ai_video",
+      "clip": "dramatization",
+      "caption": "Mission Control: four left-wing hydraulic sensors off-scale low",
+      "narration": "At eight fifty-four and twenty-four seconds, the mechanical systems officer told the Flight Director that four hydraulic sensors in the left wing were reading off-scale low. At eight fifty-nine and thirty-two seconds came the last call from commander Rick Husband: Roger. Cut off in midword."
+    },
+    {
+      "part": 4,
+      "tool": "archive",
+      "clip": "aftermath",
+      "caption": "The search: about 84,000 pieces, some 38 percent of the orbiter",
+      "narration": "Debris fell across Texas and Louisiana. More than 25,000 searchers combed the ground and recovered about 84,000 pieces, some 38 percent of the orbiter. Two of them, with the U.S. Forest Service, died in a helicopter accident during the search. The pieces were mapped and laid out on a hangar floor, so the investigators could see where the heat had been. On March 19, 2003, the orbiter's data recorder was found intact near Hemphill, in San Augustine County, Texas. It held the readings from the left wing's sensors that had never been sent to the ground: the record of the heat moving through the wing, sensor by sensor, until the end."
+    },
+    {
+      "part": 5,
+      "tool": "2d",
+      "clip": "timeline",
+      "caption": "Foam came off before. It was treated as normal.",
+      "narration": "Foam had come off the tank before. On Columbia's very first flight, in 1981, debris strikes damaged it so badly that more than 300 tiles had to be replaced. Foam from the left bipod ramp had been seen coming off on 7 of the 72 missions with imagery to check. In October 2002, three months before this launch, foam from the same ramp broke away on STS-112 and dented an attachment ring. It was treated as in-family: a known problem, not a safety-of-flight issue. On January 16, 2003, it happened again, and this time the foam hit the wing. On January 21, 2003, the Debris Assessment Team held its first formal meeting, and the engineers asked for images of the wing in orbit. Managers declined. On January 24, 2003, the Mission Management Team declared the strike a turnaround issue, a maintenance item for after landing. On February 1, 2003, Columbia came home."
+    },
+    {
+      "part": 5,
+      "tool": "archive",
+      "clip": "investigation",
+      "caption": "The board: management practices were as much a cause as the foam",
+      "narration": "About ninety minutes after the breakup, NASA Administrator Sean O'Keefe convened the Columbia Accident Investigation Board, chaired by retired Navy Admiral Harold Gehman. It released its report on August 26, 2003. The physical cause was the foam strike on the lower half of panel 8. But the board put the same weight on NASA itself. In its own words, the management practices overseeing the Space Shuttle Program were as much a cause of the accident as the foam that struck the left wing. Foam loss had become normal. The requests to image the wing had gone nowhere."
+    },
+    {
+      "part": 6,
+      "tool": "2d",
+      "clip": "compare",
+      "caption": "Built for 0.006 foot-pounds of impact. Struck by foam at launch.",
+      "narration": "What it needed. The tank was required to shed no debris, and the orbiter was not supposed to take any significant debris hits. So the wing's leading edge was never designed for them: its requirements stated it would not need to withstand impact from debris or ice. The panels were built to withstand a kinetic energy impact of 0.006 foot-pounds. What it had. A tank that kept shedding foam, flight after flight, and a strike the board represented with a 1.67-pound block of foam at about 775 feet per second. In the board's own test, a block like that, fired at a real panel 8 at 777 feet per second, opened a hole roughly 16 inches by 17 inches. Nothing was built wrong. The requirement assumed the debris would never come. When it kept coming, it was accepted as normal."
+    },
+    {
+      "part": 7,
+      "tool": "archive",
+      "clip": "today_photos",
+      "caption": "Discovery launches on STS-114, the first flight after Columbia",
+      "narration": "This is Discovery lifting off on STS-114 on July 26, 2005, the first flight after Columbia. It carried a new 50-foot inspection boom on the robot arm, to examine the heat shield in orbit. Foam still came off the tank on this flight. After Discovery landed on August 9, 2005, NASA grounded the fleet again because of the foam loss."
+    },
+    {
+      "part": 7,
+      "tool": "2d",
+      "clip": "today",
+      "caption": "Every later flight inspected its heat shield in orbit",
+      "narration": "Could it happen again? After Columbia, every shuttle flight inspected its heat shield in orbit with that boom, and NASA kept a plan to rescue a crew whose orbiter was too damaged to come home. In January 2004 the shuttle fleet was ordered to retire. But the lesson is not about foam. A known problem that comes back flight after flight, without consequence, stops looking like a problem. That is how a strike nobody had designed for became a turnaround issue."
+    }
+  ]
+}

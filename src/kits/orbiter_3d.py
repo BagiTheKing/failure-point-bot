@@ -274,7 +274,7 @@ class Model:
         sc = bpy.context.scene
         white = mat("tiles_white", (0.88, 0.88, 0.86), 0.55)
         black = mat("tiles_black", (0.035, 0.035, 0.04), 0.7)
-        rcc = mat("rcc", (0.3, 0.31, 0.33), 0.5, 0.2)
+        rcc = mat("rcc", (0.11, 0.115, 0.12), 0.55, 0.15)          # carbon-carbon is dark grey
         dark = mat("glass", (0.02, 0.03, 0.05), 0.15)
         engine = mat("engine", (0.45, 0.46, 0.48), 0.35, 0.8)
         self.hole_m = mat("hole", (0.0, 0.0, 0.0), 0.9, 0.0, emit=HOT)
