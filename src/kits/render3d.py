@@ -10,7 +10,7 @@ import importlib
 import json
 
 MODELS = {"hanging_walkways": "kits.hanging_walkway_3d", "truss_bridge": "kits.truss_bridge_3d",
-          "fuselage": "kits.fuselage_3d"}
+          "fuselage": "kits.fuselage_3d", "orbiter": "kits.orbiter_3d"}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

@@ -59,6 +59,28 @@ KITS = {
         "title_hint": "THE ... FLIGHT 243 or THE ... DISASTER",
         "model_3d": {"section_x": [-8.6, -3.1], "seam_x": -6.0},
     },
+    "orbiter": {
+        "what": ("A winged spacecraft returning from orbit: the leading edge of each wing is "
+                 "a row of heat-shield panels (reinforced carbon-carbon); debris struck one "
+                 "panel at launch and holed it; on re-entry superheated air got in through "
+                 "the hole, melted the aluminium structure behind it, and the wing, then the "
+                 "whole vehicle, broke apart."),
+        "params": {"vehicle": "the vehicle's name, e.g. Space Shuttle Columbia",
+                   "panel": "the number of the heat-shield panel that was breached, a figure from the facts",
+                   "days": "how many days the mission flew with the damage, a figure from the facts",
+                   "heat": "how hot the air entering the breach was, as the facts write it"},
+        "labels": ["vehicle", "wing", "leading_edge", "panel", "shield", "spar", "foam", "hole",
+                   "heat", "breach", "melt"],
+        "labels_3d": [("wing", [2.0, 6.0], [140, 140], "cyan"),
+                      ("nose", [2.6, 6.0], [760, 600], "cyan"),
+                      ("edge", [9.0, 12.4], [820, 150], "amber"),
+                      ("panel", [15.4, 19.4], [760, 150], "cyan")],
+        "multiplier": ("the one figure behind the failure, e.g. the impact the panels were required "
+                       "to withstand (multiplier_label: what it measures)"),
+        "big_3d_anchor": "panel",
+        "title_hint": "THE ... DISASTER",
+        "model_3d": {},
+    },
     "truss_bridge": {
         "what": ("A steel truss bridge over one or more spans; one joint (a gusset "
                  "plate where beams meet) is weaker than the forces through it and "
@@ -286,6 +308,11 @@ def check(reply, variant, source_text):
     if variant == "fuselage":
         if not re.search(r"\d", str(k.get("cycles", ""))):
             problems.append("kit.cycles needs the number of flights the airframe had flown")
+    if variant == "orbiter":
+        if not re.fullmatch(r"\d{1,2}", str(k.get("panel", "")).strip()):
+            problems.append("kit.panel needs the breached panel's number")
+        if not re.search(r"\d", str(k.get("days", ""))):
+            problems.append("kit.days needs how many days the mission flew")
     if variant == "hanging_walkways":
         try:
             n, i = int(k.get("rod_lines", 0)), int(k.get("failed_line", -1))
@@ -374,6 +401,9 @@ def assemble(reply, variant, facts_source="", source_name="source"):
         kit["river"] = True
     elif variant == "hanging_walkways":
         kit["rod_lines"], kit["failed_line"] = int(kit["rod_lines"]), int(kit["failed_line"])
+    elif variant == "orbiter":
+        kit["family"] = "spaceflight"
+        kit["panel"] = int(str(kit["panel"]).strip())
     else:
         kit["family"] = "aircraft"
     m3 = dict(k["model_3d"])

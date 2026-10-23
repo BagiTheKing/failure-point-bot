@@ -3,7 +3,11 @@ Step 5a, end to end for one story: research -> verified fact sheet -> the
 writer's animation sheet -> the 2D kit reel rendered from it (no 3D, no
 voice), so the sheet can be judged on screen.
 
-    python tools/write_sheet.py "I-35W Mississippi River bridge collapse" truss_bridge out/
+    python tools/write_sheet.py "I-35W Mississippi River bridge collapse" truss_bridge out/ [EXTRA.txt]
+
+EXTRA: verbatim excerpts of a primary source (an investigation report),
+added to the Wikipedia articles: its figures can be used and are checked
+against it like the rest.
 """
 
 import json
@@ -15,7 +19,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "src"))
 sys.path.insert(0, HERE)
 
 
-def main(topic, variant, out_dir):
+def main(topic, variant, out_dir, extra=None):
     os.makedirs(out_dir, exist_ok=True)
     import story_mode as sm
     from llm_provider import get_pool
@@ -25,6 +29,12 @@ def main(topic, variant, out_dir):
     article = sm.gather(pool, topic, _call)
     if not article:
         sys.exit("no article")
+    if extra:
+        text = open(extra).read()
+        head = f"\n\n=== From the investigation report ({os.path.basename(extra)}) ===\n"
+        article["text"] += head + text
+        article["prompt_text"] = (article.get("prompt_text") or "") + head + text
+        print(f"📎 Primary source added: {extra} ({len(text):,} characters)")
     facts = sm.fact_sheet(pool, topic, article, _call)
     if not facts:
         sys.exit("no fact sheet")
@@ -56,4 +66,4 @@ def main(topic, variant, out_dir):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2], sys.argv[3])
+    main(*sys.argv[1:5])
