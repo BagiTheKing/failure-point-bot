@@ -117,12 +117,50 @@ def plan(prep, episode_mp4, spans):
     return out, sheet
 
 
+_UNITS = ("zero oh one two three four five six seven eight nine ten eleven twelve thirteen fourteen "
+          "fifteen sixteen seventeen eighteen nineteen").split()
+_DIGIT = {w: i for i, w in enumerate("zero one two three four five six seven eight nine".split())}
+_DIGIT["oh"] = 0
+_NUM = set(_UNITS) | set("twenty thirty forty fifty sixty seventy eighty ninety hundred thousand "
+                         "million billion point".split())
+
+
+def _is_num(w):
+    return all(p in _NUM for p in re.sub(r"[^a-z-]", "", w.lower()).split("-") if p)
+
+
+def _decimals(words):
+    """A spoken decimal shown as digits: "zero point zero zero six" reads 0.006
+    on screen, never a stray "SIX" (owner, 2026-10-23: a caption must not
+    change a number)."""
+    out, i = [], 0
+    while i < len(words):
+        j = i
+        while j < len(words) and re.sub(r"[^a-z]", "", words[j][0].lower()) in list(_DIGIT) + ["point"]:
+            j += 1
+        run = [re.sub(r"[^a-z]", "", w[0].lower()) for w in words[i:j]]
+        if run.count("point") == 1 and run[0] != "point" and run[-1] != "point" and j - i >= 3:
+            digits = "".join("." if r == "point" else str(_DIGIT[r]) for r in run)
+            tail = re.sub(r"^.*?([.,;:!?]*)$", r"\1", words[j - 1][0])
+            out.append((digits + tail, words[i][1], words[j - 1][2]))
+            i = j
+        else:
+            out.append(words[i])
+            i += 1
+    return out
+
+
 def chunks(words, most=3):
-    """Caption groups: up to `most` words, broken after punctuation."""
+    """Caption groups: up to `most` words, broken after punctuation, never
+    inside a spoken number nor between a number and the word it counts."""
+    words = _decimals(list(words))
     out, cur = [], []
-    for w in words:
+    for k, w in enumerate(words):
         cur.append(w)
-        if len(cur) >= most or re.search(r"[.,;:!?]$", w[0]):
+        nxt = words[k + 1][0] if k + 1 < len(words) else ""
+        num = _is_num(w[0]) or re.match(r"^[\d.,]+$", w[0])
+        hold = num and nxt and not re.search(r"[.,;:!?]$", w[0])
+        if (len(cur) >= most and not hold) or re.search(r"[.,;:!?]$", w[0]):
             out.append(cur)
             cur = []
     if cur:
