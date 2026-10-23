@@ -354,6 +354,13 @@ def owner_footage(folder, out_dir, longest=24.0):
     return out
 
 
+# footage of the people who died, in their last moments, is never cut into an
+# episode (owner, 2026-10-23: no over-dramatization; e.g. Columbia's recovered
+# flight-deck video): the event is told by what the investigation found
+VICTIMS = re.compile(r"final moments|last moments|last minutes|last footage|in cabin|cabin video|"
+                     r"cockpit video|crew video|victims?\b", re.I)
+
+
 def gather_footage(sheet, out_dir, limit=3, longest=24.0, owner_dir=None):
     """Real moving footage of the event for part 1, security-camera (CCTV)
     footage first (owner, 2026-10-18), from Wikimedia Commons only, so it is
@@ -374,6 +381,10 @@ def gather_footage(sheet, out_dir, limit=3, longest=24.0, owner_dir=None):
     for q in queries:
         for c in search_commons_video(q, era=year):
             if c["url"] in seen or not footage_matches(name, c["about"]):
+                continue
+            if re.search(VICTIMS, f"{c['title']} {c['about']}"):
+                print(f"  not used, the victims' last moments: {c['title']}")
+                seen.add(c["url"])
                 continue
             seen.add(c["url"])
             c["cctv"] = bool(re.search(CCTV, c["about"]))
