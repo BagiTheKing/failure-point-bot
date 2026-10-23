@@ -76,18 +76,27 @@ def _pictures(sheet, out, name):
         json.dump({}, open(os.path.join(out, "photos.json"), "w"))
 
 
+def _drop_excluded(sheet, out):
+    """Pictures of a kept cut that the sheet has since ruled out, taken away
+    (the rest of the cut stays as approved)."""
+    import episode
+    path = os.path.join(out, "photos.json")
+    if not os.path.exists(path):
+        return
+    photos = json.load(open(path))
+    kept = {k: [c for c in v if not episode._excluded(c, sheet)] for k, v in photos.items()}
+    gone = sum(len(v) for v in photos.values()) - sum(len(v) for v in kept.values())
+    if gone:
+        print(f"  {gone} picture(s) ruled out since: taken away")
+        json.dump(kept, open(path, "w"), indent=1, ensure_ascii=False)
+    json.dump(sheet, open(os.path.join(out, "timed_sheet.json"), "w"), indent=2, ensure_ascii=False)
+
+
 def recut(out, hook_text="", title="", name="", report="", report_credit="", keep=False):
     """A new cut of an episode already voiced and rendered: keeps the
     timed sheet, the voice takes and the 3D frames; adds or redoes the cold
     open, and fetches the pictures again."""
-    if keep:                               # an approved cut, assembled again as it is
-        print("keeping the cold open and the pictures")
-        return
     sheet = json.load(open(os.path.join(out, "timed_sheet.json")))
-    voiced = json.load(open(os.path.join(out, "voiced.json")))
-    voiced = {k: v for k, v in voiced.items() if not k.startswith("hook_")}
-    voiced.update(_hook(sheet, out, hook_text, title))
-    _report(sheet, report, report_credit)
     # the repo's sheet of the same name may since have pinned or ruled out pictures
     repo = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "kits", "sheets", f"{name}.json")
     if name and os.path.exists(repo):
@@ -95,6 +104,14 @@ def recut(out, hook_text="", title="", name="", report="", report_credit="", kee
         for k in ("photo_pins", "photo_exclude"):
             if later.get(k):
                 sheet[k] = later[k]
+    if keep:                               # an approved cut, assembled again as it is
+        print("keeping the cold open and the pictures")
+        _drop_excluded(sheet, out)
+        return
+    voiced = json.load(open(os.path.join(out, "voiced.json")))
+    voiced = {k: v for k, v in voiced.items() if not k.startswith("hook_")}
+    voiced.update(_hook(sheet, out, hook_text, title))
+    _report(sheet, report, report_credit)
     json.dump(voiced, open(os.path.join(out, "voiced.json"), "w"), indent=1)
     json.dump(sheet, open(os.path.join(out, "timed_sheet.json"), "w"), indent=2, ensure_ascii=False)
     _pictures(sheet, out, name)

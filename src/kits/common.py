@@ -319,6 +319,15 @@ def overlay_3d(sheet, frame_img, frame_no, anchors, t):
         b = prog(t, t0, t0 + 0.6) * (1 - prog(t, t1, t1 + 0.5))
         p = at(big["anchor"]) if b > 0 else None
         if p:
+            # a dark backing, so the figure reads on a bright frame (a glowing close-up)
+            fb = font("InterDisplay-Black.otf", 80)
+            x0, y0, x1, y1 = f.d.textbbox(((p[0] - 60) * SS, (p[1] + 10) * SS), big["text"], font=fb, anchor="rs")
+            fl = font("Inter-Bold.otf", 20)
+            lw = f.d.textlength(big.get("label", ""), font=fl)
+            pad = 18 * SS
+            f.d.rounded_rectangle([min(x0, (p[0] - 60) * SS - lw - 30 * SS) - pad, y0 - pad,
+                                   x1 + pad, (p[1] + 62) * SS + pad], radius=12 * SS,
+                                  fill=(6, 12, 24, int(185 * b)))
             f.text(big["text"], p[0] - 60, p[1] + 10, 80, RED, "InterDisplay-Black.otf",
                    screen=True, alpha=b, anchor="rs")
             pill(f, big.get("label", ""), p[0] - 60, p[1] + 26, RED, 20, "ra", b)
