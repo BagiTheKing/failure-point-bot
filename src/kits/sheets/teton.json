@@ -1,0 +1,317 @@
+{
+  "story": "Teton Dam failure",
+  "sources": {
+    "source": "https://damfailures.org/sites/default/files/wp-pdf/IR_Independent-Investigation_Teton.pdf",
+    "USBR": "https://www.usbr.gov/pn/snakeriver/dams/uppersnake/teton/Teton%20Dam%20Fact%20Sheet%20508C_approved.pdf"
+  },
+  "kit": {
+    "family": "water",
+    "variant": "earth_dam",
+    "dam": "Teton Dam",
+    "height": "305 ft",
+    "labels": {
+      "dam": "Teton Dam",
+      "rock": "jointed volcanic rock",
+      "reservoir": "the reservoir, filling",
+      "trench": "key trench, right abutment",
+      "node": "trench fill: windblown silt",
+      "core": "the core: windblown silt",
+      "curtain": "grout curtain",
+      "upstream": "upstream",
+      "downstream": "downstream",
+      "seep": "water under full head finds the open joints",
+      "crack": "or the fill cracks between steep trench walls",
+      "pipe": "the water carries the silt away: a pipe",
+      "leak": "muddy water at the downstream face"
+    }
+  },
+  "model_3d": {
+    "labels_3d": [
+      {
+        "anchor": "dam",
+        "text": "Teton Dam: 305 ft earthfill",
+        "color": "cyan",
+        "t": [
+          2.0,
+          6.0
+        ],
+        "at": [
+          140,
+          140
+        ]
+      },
+      {
+        "anchor": "reservoir",
+        "text": "Reservoir, nearly full",
+        "color": "cyan",
+        "t": [
+          2.6,
+          6.0
+        ],
+        "at": [
+          760,
+          140
+        ]
+      },
+      {
+        "anchor": "abutment",
+        "text": "Right abutment: jointed volcanic rock",
+        "color": "amber",
+        "t": [
+          9.0,
+          12.4
+        ],
+        "at": [
+          820,
+          150
+        ]
+      },
+      {
+        "anchor": "hole",
+        "text": "The leak grows into a hole",
+        "color": "cyan",
+        "t": [
+          15.4,
+          19.4
+        ],
+        "at": [
+          760,
+          150
+        ]
+      }
+    ],
+    "big_3d": {
+      "anchor": "hole",
+      "text": "UNDER 5 HOURS",
+      "label": "FROM FIRST ALARM TO BREACH",
+      "t": [
+        16.8,
+        19.4
+      ]
+    },
+    "ai_prompt": "A tall earthfill dam in a rocky canyon breaching at one abutment, muddy water pouring through the widening gap, embankment slumping into it. Static camera."
+  },
+  "disaster": {
+    "place_date": "TETON RIVER, IDAHO · 5 JUNE 1976 · 11:55 AM",
+    "place": "Teton River, Idaho",
+    "caption": "Teton Dam breaches during its first filling",
+    "photo_article": "Teton Dam",
+    "report": {
+      "credit": "Independent Panel to Review Cause of Teton Dam Failure, Report (1976)",
+      "url": "https://damfailures.org/sites/default/files/wp-pdf/IR_Independent-Investigation_Teton.pdf"
+    }
+  },
+  "hook": {
+    "title": "THE TETON DAM FAILURE",
+    "lines": [
+      "June 5, 1976. Idaho. Teton Dam, 305 feet high, is filling for the first time.",
+      "Just before noon, the dam gives way and its reservoir pours through the gap.",
+      "Water had found open joints in the rock and was washing out the soil of its core.",
+      "The design counted on stopping the water. It had no way to make the leaks harmless."
+    ],
+    "sub": "TETON RIVER, IDAHO · 5 JUNE 1976"
+  },
+  "design_vs_built": {
+    "designed": {
+      "title": "WHAT IT NEEDED",
+      "detail": "A way to make the leakage harmless",
+      "load": "filters and drains: the water passes, the soil stays"
+    },
+    "built": {
+      "title": "WHAT IT HAD",
+      "detail": "Key trench and grout curtain only",
+      "load": "erodible silt against open joints: it washes out"
+    },
+    "multiplier": "UNDER 5 HOURS",
+    "multiplier_label": "FROM FIRST ALARM TO BREACH",
+    "source": "source"
+  },
+  "numbers": [
+    {
+      "value": "11",
+      "label": "DEAD (RECLAMATION'S COUNT)",
+      "source": "source"
+    },
+    {
+      "value": "14",
+      "label": "DEATHS THE PANEL ATTRIBUTED",
+      "source": "source"
+    },
+    {
+      "value": "305 FT",
+      "label": "HIGH, BREACHED ON ITS FIRST FILLING",
+      "source": "source"
+    }
+  ],
+  "clock": {
+    "from_seconds": 50,
+    "label_before": "11:54:{s:02d}",
+    "label_next": "11:55:{s:02d}",
+    "label_at": "11:55:00",
+    "day": "AM · SATURDAY 5 JUNE 1976",
+    "event": "TETON DAM BREACHES"
+  },
+  "timeline": [
+    {
+      "date": "1969",
+      "title": "Pilot grouting warns",
+      "sub": "It forecast the curtain's difficulties",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "3 OCTOBER 1975",
+      "title": "The reservoir fills",
+      "sub": "Filling begins before topping out",
+      "kind": "event",
+      "source": "source"
+    },
+    {
+      "date": "3 JUNE 1976",
+      "title": "Seeps downstream",
+      "sub": "Small seeps 1,400 ft downstream",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "5 JUNE 1976",
+      "title": "The crest breaches",
+      "sub": "First leak about 7 a.m., breach 11:55",
+      "kind": "failure",
+      "source": "source"
+    }
+  ],
+  "today": {
+    "title": "COULD IT HAPPEN TODAY?",
+    "lines": [
+      "Reclamation set up its Dam Safety program; the Safety of Dams Act followed in 1978.",
+      "Measures to make leakage harmless, not only to stop it.",
+      "Design for the water that gets through."
+    ],
+    "source": "source"
+  },
+  "thumbnail": {
+    "top": "DAM BREACHED",
+    "sub": "UNDER 5 HOURS"
+  },
+  "shots": [
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photo",
+      "caption": "Teton Dam, Teton River, Idaho",
+      "narration": "This is Teton Dam, on the Teton River in southeastern Idaho. The Bureau of Reclamation designed it, and awarded the construction contract to Morrison-Knudsen. It was a central-core zoned earthfill dam, 305 feet above the riverbed and 405 feet above the lowest point in its foundation. Construction ran from February 1972. The embankment was topped out on November 26, 1975. The reservoir behind it had begun filling on October 3, 1975."
+    },
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photos_disaster",
+      "caption": "Teton Dam breaching, 5 June 1976",
+      "narration": "On Saturday, June 5, 1976, the first sign of grave trouble was seen at about seven in the morning. By nine thirty a wet spot had appeared on the face of the dam, near the right abutment. By about ten thirty it was a flowing leak, and the leak was eating its way up into the embankment. Bulldozers were sent to fill the hole. The hole took them. At about eleven fifty-five, the crest broke. Reclamation says more than a million cubic feet of water per second tore through the gap. Sugar City, Rexburg and Wilford were battered by the trees, houses, cattle and cars the flood carried."
+    },
+    {
+      "part": 2,
+      "tool": "3d",
+      "clip": "establish",
+      "caption": "A 305-foot earthfill dam across a canyon of jointed volcanic rock",
+      "narration": "Teton Dam stood across a steep canyon of volcanic rock. The panel that investigated the failure described that rock as highly permeable and moderately to intensely jointed: water could move through it with almost equal ease in most directions. Behind the dam, the reservoir would hold 288,000 acre-feet of water and reach 17 miles upstream."
+    },
+    {
+      "part": 2,
+      "tool": "2d",
+      "clip": "build",
+      "caption": "Seepage control: a core of silt in deep key trenches, a grout curtain below",
+      "narration": "The dam's seepage control rested on two things. First, a core of fine soil, carried down into deep trenches cut into the rock of the abutments: the key trenches. Second, a grout curtain: grout pumped into the rock below the trenches to seal its joints. The soil for the core and the trench fill was windblown silt; the panel noted the scarcity of anything more suitable. It found that silt highly erodible, and called its use against the heavily jointed rock of the abutment a major factor in the failure. The trenches also had steep sides. The panel found this shape let the fill arch between the walls, which lowered the stresses near the bottom of the trench and favored cracks."
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "load_path",
+      "caption": "Water reaches the foundation through the open joints",
+      "narration": "As the reservoir filled, water reached the foundation fast, through the open joints in the rock. On June 5 the reservoir stood at elevation 5,301.7, just 3.3 feet below the spillway sill. Against the upstream side of the key trench in the right abutment, the water now pushed with the head of a nearly full reservoir."
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "connection",
+      "caption": "The right abutment key trench, near station 14+00",
+      "narration": "The failure started deep in the right abutment's key trench, near the point the engineers called station 14 plus 00. That is where the panel found that the rock just under the grout cap had not been adequately sealed, and where water under full pressure could reach the silt fill."
+    },
+    {
+      "part": 3,
+      "tool": "2d",
+      "clip": "physics",
+      "caption": "Internal erosion: the water carries the trench fill away",
+      "narration": "The panel named two ways the leak could have started. In the first, water came through unsealed joints in the rock just beneath the grout cap, struck the erodible, unprotected silt at the base of the trench, and began carrying it away, cutting an erosion tunnel across the bottom of the fill. In the second, the fill had cracked. Arching between the steep trench walls had lowered the stresses near the base of the fill, which favored cracks: the soil could split under uneven strain, or water pressure could force it open, a process called hydraulic fracturing. Either could have worked alone, or both together. Because the failed section was carried away by the flood, the panel said it will probably never be possible to know which. Either way, the water then eroded along the downstream contact between the core and the rock. The silt was easy to erode, but strong enough to hold the shape of a tunnel, so the channels grew into large pipes before anything showed downstream. Once piping started, it moved fast through the main body of the dam."
+    },
+    {
+      "part": 4,
+      "tool": "2d",
+      "clip": "clock",
+      "caption": "The crest breaches: 11:55 a.m.",
+      "narration": "At about eleven fifty-five in the morning, the crest of Teton Dam broke, less than five hours after the first sign of grave trouble."
+    },
+    {
+      "part": 4,
+      "tool": "3d",
+      "clip": "fall",
+      "caption": "The breach opens along the right abutment",
+      "narration": "The breach opened at the right abutment and widened along it. The reservoir poured through, and the failed section of the dam was carried away by the water."
+    },
+    {
+      "part": 4,
+      "tool": "ai_video",
+      "clip": "dramatization",
+      "caption": "What the witnesses saw that morning",
+      "narration": "The witnesses timed it. A wet spot on the face at nine thirty. A flowing leak from the embankment by ten thirty. A whirlpool in the reservoir at ten fifty. Bulldozers sent to fill the hole, lost in it."
+    },
+    {
+      "part": 4,
+      "tool": "archive",
+      "clip": "aftermath",
+      "caption": "The flood: 70 miles down the valley",
+      "narration": "Reclamation says the dam released over 230,000 acre-feet of water, at more than a million cubic feet per second. The communities of Sugar City, Rexburg and Wilford were battered by the trees, houses, cattle and cars the floodwaters carried. The flood was finally contained 70 miles downstream, at American Falls Reservoir. Reclamation counts 11 deaths and about 400 million dollars in property damage. The independent panel attributed 14 deaths to the failure, and cited damage estimates from 400 million to one billion dollars. Both numbers are on the record, and we give both. The panel believed the warnings downstream had been timely."
+    },
+    {
+      "part": 5,
+      "tool": "2d",
+      "clip": "timeline",
+      "caption": "The warnings, and how fast it went",
+      "narration": "The difficulties were known early. In 1969, a pilot grouting program at the site forecast the problems the final grout curtain would meet. The construction contract was awarded in December 1971. On October 3, 1975, before the embankment was even topped out, the reservoir started to fill. The panel judged that a slower rate of filling would have delayed the failure, but that a similar failure would have come at some later date. On June 3, 1976, several small seeps appeared in the rock about 1,400 feet downstream of the dam. On June 5, the first serious sign was seen at about seven in the morning, and before noon the dam was breached. The panel also found the dam and its foundations were not instrumented well enough for the engineers on site to know what was changing inside."
+    },
+    {
+      "part": 5,
+      "tool": "archive",
+      "clip": "investigation",
+      "caption": "The Independent Panel's findings, December 1976",
+      "narration": "An Independent Panel to Review Cause of Teton Dam Failure reported to the Interior Department and the State of Idaho. It ran its own tests on the site, studied the records, and had the sworn testimony of 37 eyewitnesses: 14 from Reclamation, 13 from the contractor, 10 from the public. In December 1976 it gave its conclusion: the dam failed by internal erosion, piping, of the core deep in the right foundation key trench. The design did not adequately take into account the foundation conditions and the soil used to fill the key trench. Construction conformed to the design in all significant aspects, except scheduling."
+    },
+    {
+      "part": 6,
+      "tool": "2d",
+      "clip": "compare",
+      "caption": "Too much was expected of the grout curtain",
+      "narration": "What it needed. The panel put it plainly: too much was expected of the grout curtain, and the design should have provided measures to render the inevitable leakage harmless. On rock this open, some water was always going to get through. A sound design assumes it will, and is built to catch it: filters that let water pass but hold the soil back, and drains that carry it safely out. What it had. Complete dependence on the key trenches and the grout curtain, erodible silt placed against open joints, and inadequate provisions to collect and safely discharge the seepage. In the panel's words: an unfortunate choice of design measures, together with less than conventional precautions. The construction matched the design. The design was the weak point."
+    },
+    {
+      "part": 7,
+      "tool": "archive",
+      "clip": "today_photos",
+      "caption": "What is left of Teton Dam",
+      "narration": "What is left of Teton Dam still stands in the canyon, with the gap at the right abutment open. The section that failed is gone, carried away by the water it once held back. That is why the panel said it will probably never be possible to know for certain which of its two mechanisms started the leak. What it could still test was the rock that remained. Its on-site tests showed that the rock just under the grout cap, between stations 13 and 15, had not been adequately sealed."
+    },
+    {
+      "part": 7,
+      "tool": "2d",
+      "clip": "today",
+      "caption": "After Teton: the Dam Safety program",
+      "narration": "Could it happen again? After Teton failed, Reclamation established its Dam Safety program, which it says is now used as a model for dam safety all over the world. The Safety of Dams Act became public law on November 2, 1978. The lesson the panel left is wider than one dam. On difficult ground, design for the water that will get through, not only for stopping it. Too much was expected of the grout curtain. Measures should have been developed to render harmless whatever water did pass, irrespective of the reasons."
+    }
+  ],
+  "photo_pins": {
+    "today_photos": [
+      "Teton Dam remains",
+      "Teton Dam breach remnant"
+    ]
+  }
+}
