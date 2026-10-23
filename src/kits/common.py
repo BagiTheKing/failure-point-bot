@@ -166,7 +166,10 @@ def clock(sheet):
         f.grid(0.6)
         secs = min(10, int(t / (T - 0.8) * 10))
         s0 = int(c.get("from_seconds", 50))
-        label = c["label_before"].format(s=s0 + secs) if secs < 10 else c["label_at"]
+        s = s0 + secs
+        label = (c["label_at"] if secs >= 10
+                 else c["label_next"].format(s=s - 60) if s >= 60 and c.get("label_next")
+                 else c["label_before"].format(s=s))
         col = RED if secs >= 10 else LINE
         f.text(label, W / 2, H / 2 - 10, 120, col, "InterDisplay-Bold.otf", anchor="mm")
         f.text(c.get("day", ""), W / 2, H / 2 + 80, 22, DIM, "Inter-Bold.otf", anchor="mm")

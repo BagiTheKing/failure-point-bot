@@ -12,8 +12,8 @@ One continuous camera path, in shots (canonical seconds, kits/timemap.py):
                         the nose and the wings' leading edges, glowing
     connection  13-20   push-in on the holed panel: the glow gets inside,
                         the wing behind it turns red hot
-    fall        20-28   pull back; the left wing's outer part goes, then the
-                        whole orbiter breaks apart into burning streaks
+    fall        20-28   pull back; the orbiter comes apart into streaks (no
+                        explosion: the air tore it apart)
 
 For every frame it also records where the labelled parts are on screen
 (anchors JSON), so the 2D labels drawn later follow the model.
@@ -283,7 +283,6 @@ class Model:
         self.jet_m, self.jet = glow("jet", (1.0, 0.62, 0.3))
         self.wake_m, self.wake = streak("wake", (1.0, 0.55, 0.38))
         self.trail_m, self.trail = streak("trail", (1.0, 0.8, 0.6))
-        self.flash_m, self.flash = glow("flash", (1.0, 0.9, 0.75))
         self.bit_m = mat("bits", (1.0, 0.9, 0.8), 0.5, 0.0, emit=(1.0, 0.85, 0.65))
         self.bit_m.node_tree.nodes["Principled BSDF"].inputs["Emission Strength"].default_value = 12.0
 
@@ -393,7 +392,6 @@ class Model:
             b = ball((0, 0, 0), (0.1, 0.1, 0.1), self.bit_m, subdiv=2)
             t = trail_mesh(f"bit_streak_{i}", self.trail_m)
             self.bits.append((b, t))
-        self.flash_o = ball((0.0, -1.0, -0.5), (0.1, 0.1, 0.1), self.flash_m)
 
         # the world: the Earth's curve far below, a black sky, the sun
         earth = mat("earth", (0.05, 0.16, 0.38), 0.6)
@@ -489,9 +487,10 @@ class Model:
             ho.scale = (base_h[0] * k, base_h[1] * k, base_h[2])
             ho.keyframe_insert("scale", frame=s(sec))
 
-        # the breakup: the left wing's outer part first, then everything, each piece its own way
+        # the breakup: no explosion (the report: aerodynamic forces overcame the damaged left
+        # wing); the pieces part within a fraction of a second, each its own way
         rnd = random.Random(7)
-        go = {"lwing_out": T_FALL - 1.0}
+        go = {}
         for name, r in self.roots.items():
             t0 = go.get(name, T_FALL + rnd.uniform(0.0, 0.35))
             loc0, rot0 = Vector(r.location), Vector(r.rotation_euler)
@@ -537,15 +536,7 @@ class Model:
                 t.scale = (max(0.001, k * rnd.uniform(15, 40)), w, w)
                 t.keyframe_insert("location", frame=s(sec))
                 t.keyframe_insert("scale", frame=s(sec))
-        key(self.trail, ((T_FALL - 1.0, 0), (T_FALL - 0.7, 4.0), (T_FALL + 2.0, 3.0), (SECONDS, 2.0)))
-        fo = self.flash_o
-        for sec, sc_ in ((T_FALL - 0.05, 0.1), (T_FALL + 0.25, 6.0), (T_FALL + 1.0, 7.5)):
-            fo.scale = (sc_, sc_, sc_)
-            fo.keyframe_insert("scale", frame=s(sec))
-        key(self.flash, ((T_FALL - 0.05, 0), (T_FALL + 0.15, 0.3), (T_FALL + 1.0, 0)))
-        for sec, hide in ((0, True), (T_FALL - 0.1, False), (T_FALL + 1.05, True)):    # costs nothing when out
-            fo.hide_render = hide
-            fo.keyframe_insert("hide_render", frame=s(sec))
+        key(self.trail, ((T_FALL - 0.05, 0), (T_FALL + 0.3, 4.0), (T_FALL + 2.0, 3.0), (SECONDS, 2.0)))
         sc.frame_start, sc.frame_end = 1, s(SECONDS) - 1
 
     # ----------------------------------------------------------------- Shorts

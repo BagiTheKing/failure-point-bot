@@ -79,6 +79,23 @@ KITS = {
                        "to withstand (multiplier_label: what it measures)"),
         "big_3d_anchor": "panel",
         "title_hint": "THE ... DISASTER",
+        # what the other kits' habits would get wrong here (owner, 2026-10-23: no
+        # over-dramatization, nothing the sources do not say)
+        "rules": [
+            "dramatization: nobody knows what the crew lived and the sources do not say; narrate "
+            "only what Mission Control saw and heard, in order, from the facts (the failing sensors, "
+            "the last call). Never describe the crew's thoughts, feelings or last moments.",
+            "aftermath: there was no rescue; it is the search for the debris and what was recovered.",
+            "hook: it was not a freak accident: foam had come off the tank on earlier flights and "
+            "came to be treated as normal. Say that, not 'one piece of foam'.",
+            "design_vs_built: nothing was built wrong; titles WHAT IT NEEDED / WHAT IT HAD (the "
+            "requirement the panels were held to, against the strike they took).",
+            "Blame no single person: the decisions (declining to image the wing, calling the strike "
+            "a turnaround issue) are stated as dated facts, as the report states them.",
+            "Keep the sources' qualifiers: 'about', 'approximately', 'probably exceeding'. The "
+            "16-by-17-inch hole is from the later impact test, not a measurement of Columbia.",
+            "The breakup was no explosion: aerodynamic forces overcame the damaged wing.",
+        ],
         "model_3d": {},
     },
     "truss_bridge": {
@@ -144,7 +161,7 @@ def _template(variant):
             "plate_needed": "<only for gusset failures: thickness it needed>"},
         "numbers": [{"value": "<deaths>", "label": "PEOPLE KILLED"},
                     {"value": "", "label": "INJURED"}, {"value": "", "label": ""}],
-        "clock": {"at": "<the moment of failure as H:MM, e.g. 7:05>",
+        "clock": {"at": "<the moment of failure as H:MM, e.g. 7:05, or H:MM:SS when the facts give the second>",
                   "day": "<AM or PM · WEEKDAY DAY MONTH YEAR>",
                   "event": "<WHAT FAILS, in capitals>"},
         "timeline": [{"date": "", "title": "", "sub": "", "kind": "warning|event|failure"}],
@@ -214,7 +231,8 @@ def prompt(topic, facts_text, variant):
         "- thumbnail.top under 18 characters and thumbnail.sub under 22: the words "
         "on the episode's picture, true to the facts.\n"
         "- The archive shots (photo, photos_disaster, aftermath, investigation, "
-        "today_photos) are narrated over real photographs: say what they show.\n\n"
+        "today_photos) are narrated over real photographs: say what they show.\n"
+        + "".join(f"- {r}\n" for r in k.get("rules", [])) + "\n"
         "Output ONLY JSON in exactly this shape (replace every <...>):\n"
         + json.dumps(_template(variant), ensure_ascii=False, indent=1))
 
@@ -356,8 +374,8 @@ def check(reply, variant, source_text):
     # span lengths are drawing proportions, not claims: not checked against the source
     claims = {**reply, "kit": {**k, "spans": []}}
     at = (reply.get("clock") or {}).get("at", "")
-    if not re.fullmatch(r"\d{1,2}:\d{2}", at.strip()):
-        problems.append("clock.at must be the moment as H:MM, e.g. 7:05")
+    if not re.fullmatch(r"\d{1,2}:\d{2}(:\d{2})?", at.strip()):
+        problems.append("clock.at must be the moment as H:MM, e.g. 7:05 (or H:MM:SS)")
     missing = sorted({f for t in _strings(claims)
                       for f in _figures(t) if f.rstrip(".,").replace(",", "") not in src
                       and len(f.rstrip(".,")) > 1})
@@ -380,12 +398,15 @@ def check(reply, variant, source_text):
 
 
 def clock_of(c):
-    """The kit's clock from the writer's moment: counts the last 10 seconds."""
-    h, m = (c.get("at") or "0:00").strip().split(":")[:2]
-    h, m = int(h), int(m)
-    before = f"{h}:{m - 1:02d}" if m else f"{(h - 1) or 12}:59"
-    return {"from_seconds": 50, "label_before": before + ":{s:02d}",
-            "label_at": f"{h}:{m:02d}:00", "day": c.get("day", ""), "event": c.get("event", "")}
+    """The kit's clock from the writer's moment: counts the last 10 seconds
+    (to the second when the moment has one: 9:00:18 counts from 9:00:08)."""
+    parts = [int(x) for x in (c.get("at") or "0:00").strip().split(":")[:3]]
+    h, m, sec = (parts + [0])[:3]
+    t = (h * 60 + m) * 60 + sec - 10
+    bh, bm, bs = t // 3600, t // 60 % 60, t % 60
+    return {"from_seconds": bs, "label_before": f"{(bh % 12) or 12}:{bm:02d}" + ":{s:02d}",
+            "label_next": f"{h}:{m:02d}" + ":{s:02d}",       # once the count crosses into the moment's minute
+            "label_at": f"{h}:{m:02d}:{sec:02d}", "day": c.get("day", ""), "event": c.get("event", "")}
 
 
 def assemble(reply, variant, facts_source="", source_name="source"):
@@ -461,7 +482,7 @@ ROLES = {"photo": "the structure (or aircraft) before the disaster, over a photo
          "today": "what changed since, and whether it could happen again"}
 
 
-def expand_short(pool, call, data, facts_text, topic):
+def expand_short(pool, call, data, facts_text, topic, rules=()):
     """Writes again, one by one, the shots whose narration came back short
     (the free writers often cut a long sheet short); a small reply per shot
     fits where the whole sheet did not. Returns how many grew."""
@@ -475,7 +496,8 @@ def expand_short(pool, call, data, facts_text, topic):
         reply = call(pool, "You write documentary narration from a verified fact sheet. Never add a fact. "
                      "Output only JSON.",
                      f"Story: {topic}\n\nVERIFIED FACT SHEET (the only facts you may use):\n{facts_text}\n\n"
-                     f"Shot \"{clip}\": {ROLES.get(clip, '')}.\nIts narration now ({len(have.split())} words): "
+                     f"Shot \"{clip}\": {ROLES.get(clip, '')}.\n"
+                     + "".join(f"Rule: {r}\n" for r in rules) + f"Its narration now ({len(have.split())} words): "
                      f"{have or '(none)'}\n\nWrite this shot's narration at about {words} words: plain, short "
                      "sentences, every figure exactly as the fact sheet writes it, clock times as a narrator says "
                      "them. Output {\"narration\": \"...\"}", max_tokens=1500, expect={"narration": str})
@@ -500,7 +522,7 @@ def write_sheet(pool, topic, article, facts, variant, call, attempts=4):
                     expect={"shots": dict, "kit": dict})
         problems = check(data, variant, source)
         if isinstance(data, dict) and any("is too short" in p for p in problems):
-            grown = expand_short(pool, call, data, facts_text, topic)
+            grown = expand_short(pool, call, data, facts_text, topic, KITS[variant].get("rules", ()))
             if grown:
                 print(f"   ✍️  {grown} short shot(s) written again at length")
                 problems = check(data, variant, source)

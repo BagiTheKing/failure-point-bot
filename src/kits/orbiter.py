@@ -369,10 +369,7 @@ class Orbiter(KitTiming):
                 f.d.ellipse([cx - r, cy - r * 0.8, cx + r, cy + r * 0.8], fill=HOT + (int(10 * heat * a * (7 - k2) / 2),))
             self.body(f, 1, LINE + (int(255 * a),))
             f.poly(self._wing_pts(-1), LINE + (int(255 * a),), 2.2)
-            if wing < 1:
-                f.poly(self._wing_pts(1), mix(LINE, RED, wing) + (int(255 * a),), 2.2)
-            else:                                        # the left wing's leading edge has gone
-                f.poly(self._wing_pts(1)[2:], RED + (int(255 * a),), 2.2)
+            f.poly(self._wing_pts(1), mix(LINE, RED, wing) + (int(255 * a),), 2.2)   # the damaged wing
             self.panels(f, 1, breach=1)
         self._pieces(f, brk + max(0.0, t - b.end("breakup")) * 0.2, 620, CY)
         nums = self.sheet.get("numbers", [])
