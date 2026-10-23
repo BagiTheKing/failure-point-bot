@@ -316,5 +316,12 @@
       "caption": "Every later flight inspected its heat shield in orbit",
       "narration": "Could it happen again? After Columbia, every shuttle flight inspected its heat shield in orbit with that boom, and NASA kept a plan to rescue a crew whose orbiter was too damaged to come home. In January 2004 the shuttle fleet was ordered to retire. But the lesson is not about foam. A known problem that comes back flight after flight, without consequence, stops looking like a problem. That is how a strike nobody had designed for became a turnaround issue."
     }
-  ]
+  ],
+  "photo_pins": {
+    "today_photos": [
+      "STS-114 launch Discovery",
+      "STS-114 Discovery liftoff"
+    ]
+  },
+  "photo_exclude": "memorial|remembered|in cabin|final moments"
 }

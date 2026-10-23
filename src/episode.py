@@ -180,6 +180,37 @@ def assign(sheet, cands):
     return shots
 
 
+# photos of the dead or their remains are never used (owner, 2026-10-23: no
+# over-dramatization; the Columbia picker took a crewmember's coffin)
+REMAINS = re.compile(r"coffins?|caskets?|remains of|funeral|burial|flag-draped|bod(y|ies) of|corpses?", re.I)
+
+
+def _excluded(c, sheet):
+    text = f"{c.get('title', '')} {c.get('about', '')}"
+    extra = sheet.get("photo_exclude")
+    return bool(REMAINS.search(text) or (extra and re.search(extra, text, re.I)))
+
+
+def pinned_photos(sheet, out_dir):
+    """The sheet's own choice for a shot, when the article has no fitting
+    picture (Columbia: Discovery's return-to-flight launch under "this is
+    Discovery lifting off"): {"photo_pins": {shot: [Commons search]}}, the
+    first usable result of each search, put first in that shot."""
+    from archive_engine import download_archival_image, format_credit, search_commons
+    out = {}
+    for shot, queries in (sheet.get("photo_pins") or {}).items():
+        for q in queries:
+            for c in search_commons(q, limit=6):
+                if _excluded(c, sheet) or (c.get("height") or 0) > (c.get("width") or 1):
+                    continue
+                path = os.path.join(out_dir, "photos", f"pin_{shot}_{len(out.get(shot, []))}.jpg")
+                if download_archival_image(c, path, 2560, 1440):
+                    out.setdefault(shot, []).append({**c, "path": path, "credit": format_credit(c)})
+                    print(f"  pinned to {shot}: {c['title']}")
+                    break
+    return out
+
+
 def gather_photos(sheet, out_dir, limit=16, pool=None, call=None):
     """Downloads free photos from the event's Wikipedia article (Commons),
     falling back to a Commons / Library of Congress search. Writes
@@ -214,7 +245,7 @@ def gather_photos(sheet, out_dir, limit=16, pool=None, call=None):
         except Exception as e:
             print(f"  no report pictures ({type(e).__name__}: {e})")
             figs = []
-        got += figs[:24]
+        got += [f for f in figs if not _excluded(f, sheet)][:24]
         limit += len(got)
     for c in cands:
         if len(got) >= limit or c.get("url") in seen:
@@ -222,6 +253,9 @@ def gather_photos(sheet, out_dir, limit=16, pool=None, call=None):
         seen.add(c.get("url"))
         if other_structure(c.get("title", ""), title) or other_city(c, sheet):
             print(f"  another structure, dropped: {c.get('title')}")
+            continue
+        if _excluded(c, sheet):
+            print(f"  not used: {c.get('title')}")
             continue
         path = os.path.join(out_dir, "photos", f"{len(got):02d}.jpg")
         if download_archival_image(c, path, 2560, 1440):
@@ -234,6 +268,8 @@ def gather_photos(sheet, out_dir, limit=16, pool=None, call=None):
         except Exception as e:
             print(f"  photo picking by the writer failed ({type(e).__name__}: {e}): by title")
     picked = picked or assign(sheet, got)
+    for shot, pins in pinned_photos(sheet, out_dir).items():
+        picked[shot] = pins + [c for c in picked.get(shot, []) if c.get("url") not in {p.get("url") for p in pins}]
     shots = {k: [{"path": c["path"], "credit": c["credit"], "title": c.get("title", ""),
                   "about": (c.get("about") or "")[:300]} for c in v]
              for k, v in picked.items()}

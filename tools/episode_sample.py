@@ -88,6 +88,13 @@ def recut(out, hook_text="", title="", name="", report="", report_credit="", kee
     voiced = {k: v for k, v in voiced.items() if not k.startswith("hook_")}
     voiced.update(_hook(sheet, out, hook_text, title))
     _report(sheet, report, report_credit)
+    # the repo's sheet of the same name may since have pinned or ruled out pictures
+    repo = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "kits", "sheets", f"{name}.json")
+    if name and os.path.exists(repo):
+        later = json.load(open(repo))
+        for k in ("photo_pins", "photo_exclude"):
+            if later.get(k):
+                sheet[k] = later[k]
     json.dump(voiced, open(os.path.join(out, "voiced.json"), "w"), indent=1)
     json.dump(sheet, open(os.path.join(out, "timed_sheet.json"), "w"), indent=2, ensure_ascii=False)
     _pictures(sheet, out, name)
