@@ -1,0 +1,56 @@
+name: Fetch source
+
+# Manual. Downloads one public source document (an investigation report, a
+# fact sheet) on the runner, which can reach sites a review session cannot,
+# and adds it and its text to preview-media under sources/<name>/. It only
+# adds files: preview-media keeps everything else.
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "The document's URL (PDF or web page)"
+        required: true
+      name:
+        description: "Folder under sources/ on preview-media, e.g. teton"
+        required: true
+      file:
+        description: "File name to save it as, e.g. panel_report.pdf"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: Download, and its text
+        env:
+          URL: ${{ inputs.url }}
+          FILE: ${{ inputs.file }}
+        run: |
+          mkdir -p out
+          curl -sSL --fail --retry 3 -A "Mozilla/5.0 (research; failure-point-bot)" -o "out/$FILE" "$URL"
+          ls -la out
+          case "$FILE" in
+            *.pdf) pdftotext -layout "out/$FILE" "out/${FILE%.pdf}.txt"; pdftotext "out/$FILE" "out/${FILE%.pdf}.flow.txt"
+                   wc -w "out/${FILE%.pdf}.txt" ;;
+          esac
+      - name: Add to preview-media
+        env:
+          NAME: ${{ inputs.name }}
+        run: |
+          mkdir -p pm && cd pm
+          git init -q -b preview-media
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch -q origin preview-media && git checkout -q -B preview-media origin/preview-media
+          mkdir -p "sources/$NAME"
+          cp ../out/* "sources/$NAME/"
+          git add -A
+          git diff --cached --quiet && { echo "already there"; exit 0; }
+          git commit -q -m "Source: $NAME/${{ inputs.file }}"
+          for i in 1 2 3; do git push -q origin preview-media && break; git pull -q --rebase origin preview-media; done
