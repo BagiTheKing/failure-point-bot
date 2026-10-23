@@ -1,0 +1,98 @@
+{
+ "seconds": 466.3,
+ "chapters": [
+  "0:00 The disaster",
+  "1:10 The structure and its weak point",
+  "2:07 The physics",
+  "3:37 Second by second",
+  "4:46 The warnings and the investigation",
+  "6:10 How it should have worked",
+  "6:51 Could it happen today?"
+ ],
+ "music_credits": [
+  "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Lightless Dawn\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Hidden Wonders\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Stay the Course\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Man Down\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Tyrant\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Leaving Home\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
+ ],
+ "credits": [
+  "(IDAHO-L-0010) Teton Dam Flood - Newdale — WaterArchives.org from Sacramento, California, USA — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-81 RC Gym burn (7004236633) — Uppper Snake River Valley Historical Society — CC BY 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0001- Teton Dam Flood - Newdale (5812284122) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0002- Teton Dam Flood - Newdale (5811747045) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0003- Teton Dam Flood - Newdale (5811730567) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0004- Teton Dam Flood - Newdale (5812293222) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0006- Teton Dam Flood - Newdale (5811743627) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0007- Teton Dam Flood - Newdale (5811733741) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0008- Teton Dam Flood - Newdale (5811740255) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0009- Teton Dam Flood - Newdale (5811723977) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0011- Teton Dam Flood - Newdale (5811753523) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0012- Teton Dam Flood - Newdale (5812316462) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0013- Teton Dam Flood - Wilford (5811893505) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0014- Teton Dam Flood - Wilford (5812450404) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0015- Teton Dam Flood (5811899677) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "-IDAHO-L-0043- Teton Dam Flood - Rexburg (5874587893) — WaterArchives.org from Las Cruces, New Mexico, United States — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "Fig 2 — Independent Panel to Review Cause of Teton Dam Failure, Report to the U.S. Department of the Interior and State of Idaho (1976) — Public domain",
+  "Fig 23 — Independent Panel to Review Cause of Teton Dam Failure, Report to the U.S. Department of the Interior and State of Idaho (1976) — Public domain",
+  "Fig 2I — Independent Panel to Review Cause of Teton Dam Failure, Report to the U.S. Department of the Interior and State of Idaho (1976) — Public domain",
+  "Fig 3 — Independent Panel to Review Cause of Teton Dam Failure, Report to the U.S. Department of the Interior and State of Idaho (1976) — Public domain",
+  "Fig 3I — Independent Panel to Review Cause of Teton Dam Failure, Report to the U.S. Department of the Interior and State of Idaho (1976) — Public domain",
+  "Fig 5 — Independent Panel to Review Cause of Teton Dam Failure, Report to the U.S. Department of the Interior and State of Idaho (1976) — Public domain",
+  "Fig. 2 — Independent Panel to Review Cause of Teton Dam Failure, Report to the U.S. Department of the Interior and State of Idaho (1976) — Public domain",
+  "Fig. 3 — Independent Panel to Review Cause of Teton Dam Failure, Report to the U.S. Department of the Interior and State of Idaho (1976) — Public domain"
+ ],
+ "ai_clip": false,
+ "hook": {
+  "title": "THE TETON DAM FAILURE",
+  "lines": [
+   "June 5, 1976. Idaho. Teton Dam, 305 feet high, is filling for the first time.",
+   "Just before noon, the dam gives way and its reservoir pours through the gap.",
+   "Water had found open joints in the rock and was washing out the soil of its core.",
+   "The design counted on stopping the water. It had no way to make the leaks harmless."
+  ],
+  "sub": "TETON RIVER, IDAHO · 5 JUNE 1976"
+ },
+ "preview": {
+  "seconds": 11.0,
+  "at": 0.0,
+  "sources": {
+   "flaw": 149.12962499999998,
+   "forces": 202.543375,
+   "failure": 223.952375,
+   "fix": 396.881375,
+   "stay": 60.733375
+  },
+  "spans": [
+   [
+    "flaw",
+    0.0,
+    1.3199999999999998
+   ],
+   [
+    "forces",
+    1.3199999999999998,
+    2.558333333333333
+   ],
+   [
+    "failure",
+    2.558333333333333,
+    3.708333333333333
+   ],
+   [
+    "fix",
+    3.708333333333333,
+    4.880583333333333
+   ],
+   [
+    "stay",
+    4.880583333333333,
+    10.19975
+   ]
+  ],
+  "music_credits": []
+ }
+}
