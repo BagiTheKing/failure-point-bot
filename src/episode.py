@@ -192,6 +192,18 @@ def _excluded(c, sheet):
     return bool(REMAINS.search(text) or (extra and re.search(extra, text, re.I)))
 
 
+def _names_match(query, c):
+    """Every name in a pin's search (a word with a capital or a digit:
+    "Teton", "STS-114") is in the picture's own title or description. A loose
+    search otherwise pins whatever Commons ranks first (Teton: "Teton Dam
+    remains" brought up an unrelated gym fire)."""
+    import re
+    flat = lambda t: re.sub(r"[^a-z0-9]", "", t.lower())
+    hay = flat(f"{c.get('title', '')} {c.get('about', '')}")
+    names = [flat(w) for w in query.split() if re.search(r"[A-Z0-9]", w)]
+    return all(n in hay for n in names if n)
+
+
 def pinned_photos(sheet, out_dir):
     """The sheet's own choice for a shot, when the article has no fitting
     picture (Columbia: Discovery's return-to-flight launch under "this is
@@ -202,7 +214,8 @@ def pinned_photos(sheet, out_dir):
     for shot, queries in (sheet.get("photo_pins") or {}).items():
         for q in queries:
             for c in search_commons(q, limit=6):
-                if _excluded(c, sheet) or (c.get("height") or 0) > (c.get("width") or 1):
+                if (_excluded(c, sheet) or (c.get("height") or 0) > (c.get("width") or 1)
+                        or not _names_match(q, c)):
                     continue
                 path = os.path.join(out_dir, "photos", f"pin_{shot}_{len(out.get(shot, []))}.jpg")
                 if download_archival_image(c, path, 2560, 1440):
