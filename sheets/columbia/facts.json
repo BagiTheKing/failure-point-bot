@@ -1,0 +1,477 @@
+{
+ "quotes": [
+  {
+   "text": "off-scale low",
+   "speaker": "Maintenance, Mechanical, and Crew Systems (MMACS) officer"
+  },
+  {
+   "text": "Roger, [cut off in midword] ...",
+   "speaker": "Mission commander (Rick Husband)"
+  },
+  {
+   "text": "turnaround",
+   "speaker": "Mission Management Team"
+  },
+  {
+   "text": "in-family",
+   "speaker": "NASA"
+  },
+  {
+   "text": "acceptable",
+   "speaker": "Management"
+  }
+ ],
+ "numbers": [
+  {
+   "value": "7",
+   "what": "Astronauts killed aboard Columbia"
+  },
+  {
+   "value": "28th",
+   "what": "Flight of the orbiter Columbia"
+  },
+  {
+   "value": "113th",
+   "what": "Flight of the Space Shuttle fleet"
+  },
+  {
+   "value": "up to 3,000 °F (1,600 °C)",
+   "what": "Temperatures experienced by the thermal protection system during re-entry"
+  },
+  {
+   "value": "below 350 °F (180 °C)",
+   "what": "Temperature the TPS had to maintain for the orbiter vehicle's aluminum skin"
+  },
+  {
+   "value": "625 to 840 feet per second (426 to 573 mph; 686 to 922 km/h)",
+   "what": "Relative velocity at which the foam struck Columbia's left wing"
+  },
+  {
+   "value": "about 200,000 feet",
+   "what": "Altitude of Columbia when main body breakup occurred"
+  },
+  {
+   "value": "in excess of 10,000 mph",
+   "what": "Speed at which Columbia fell out of control over Texas"
+  },
+  {
+   "value": "0.006 foot-pounds",
+   "what": "Kinetic energy impact limit key design requirement for the Thermal Protection System"
+  },
+  {
+   "value": "21%",
+   "what": "Reduction in Space Shuttle program operating costs from 1991 to 1994"
+  },
+  {
+   "value": "50-foot",
+   "what": "Length of the inspection boom attached to the robot arm mandated after the disaster"
+  },
+  {
+   "value": "US$23.40",
+   "what": "Cost of shipping per donated TPS tile to schools, universities, and museums as of 2010"
+  }
+ ],
+ "people": [
+  {
+   "name": "Rick Husband",
+   "role": "Mission commander of STS-107, colonel in the US Air Force and test pilot"
+  },
+  {
+   "name": "William McCool",
+   "role": "Pilot of STS-107 and US Navy commander"
+  },
+  {
+   "name": "Michael Anderson",
+   "role": "Payload commander of STS-107 and US Air Force lieutenant colonel"
+  },
+  {
+   "name": "Kalpana Chawla",
+   "role": "Flight engineer of STS-107"
+  },
+  {
+   "name": "David Brown",
+   "role": "Mission specialist on STS-107 and Navy captain"
+  },
+  {
+   "name": "Laurel Clark",
+   "role": "Mission specialist on STS-107 and Navy captain"
+  },
+  {
+   "name": "Ilan Ramon",
+   "role": "Payload specialist on STS-107, colonel in the Israeli Air Force, and first Israeli astronaut"
+  },
+  {
+   "name": "Sean O'Keefe",
+   "role": "NASA Administrator who convened the CAIB and canceled the Hubble servicing mission"
+  },
+  {
+   "name": "Harold W. Gehman, Jr.",
+   "role": "Retired US Navy Admiral and chair of the Columbia Accident Investigation Board"
+  },
+  {
+   "name": "George W. Bush",
+   "role": "President of the United States who announced the Vision for Space Exploration and conferred Medals of Honor"
+  },
+  {
+   "name": "Robert Crippen",
+   "role": "First pilot of Columbia who delivered a eulogy and tribute at KSC"
+  },
+  {
+   "name": "Michael Griffin",
+   "role": "NASA Administrator who succeeded Sean O'Keefe and approved mission STS-125 to Hubble"
+  }
+ ],
+ "places": [
+  "Kennedy Space Center Launch Complex 39A (LC-39A)",
+  "Hemphill, Texas",
+  "Lake Nacogdoches",
+  "Barksdale AFB",
+  "Johnson Space Center",
+  "Edwards AFB",
+  "Arlington National Cemetery",
+  "Columbia Hills, Mars",
+  "Columbia Point, Colorado",
+  "Columbia Memorial Space Center, Downey, California"
+ ],
+ "timeline": [
+  {
+   "date": "April 1981",
+   "event": "The Space Shuttle flew in space for the first time.",
+   "place": "Space",
+   "people": []
+  },
+  {
+   "date": "1983",
+   "event": "Enterprise's wing markings were modified to match Challenger.",
+   "place": "Enterprise",
+   "people": []
+  },
+  {
+   "date": "1986",
+   "event": "The Challenger and its crew were lost in a disaster.",
+   "place": "Space Shuttle fleet",
+   "people": []
+  },
+  {
+   "date": "December 2, 1988",
+   "event": "A debris strike from ablative material on the right SRB caused significant damage to Atlantis during launch.",
+   "place": "Atlantis",
+   "people": []
+  },
+  {
+   "date": "1991 to 1994",
+   "event": "Space Shuttle program operating costs were lowered by 21% despite a planned increase in the yearly flight rate for assembly of the ISS.",
+   "place": "NASA",
+   "people": []
+  },
+  {
+   "date": "1992",
+   "event": "NASA modified Columbia to fly long missions using the Extended Duration Orbiter pallet.",
+   "place": "Columbia",
+   "people": []
+  },
+  {
+   "date": "1996",
+   "event": "Columbia flew STS-80, the longest duration flight of the Shuttle Program, lasting over 17 days in orbit.",
+   "place": "In orbit",
+   "people": []
+  },
+  {
+   "date": "1998",
+   "event": "Thicker reinforced carbon–carbon was installed on the orbiter to prevent damage from micrometeoroid and orbital debris.",
+   "place": "Orbiter",
+   "people": []
+  },
+  {
+   "date": "July 23, 1999",
+   "event": "STS-93 launched, becoming the first U.S. space mission commanded by a woman, and deployed the Chandra X-ray Observatory.",
+   "place": "Columbia",
+   "people": [
+    "Eileen Collins"
+   ]
+  },
+  {
+   "date": "July 2000",
+   "event": "The seven-member crew of STS-107 was selected.",
+   "place": "NASA",
+   "people": [
+    "Rick Husband",
+    "William McCool",
+    "Michael Anderson",
+    "Kalpana Chawla",
+    "David Brown",
+    "Laurel Clark",
+    "Ilan Ramon"
+   ]
+  },
+  {
+   "date": "July 2001",
+   "event": "Seven asteroids were discovered that were later named after the STS-107 astronauts.",
+   "place": "Space",
+   "people": []
+  },
+  {
+   "date": "October 2002",
+   "event": "A chunk of bipod ramp foam broke away from the ET and hit the SRB-ET attachment ring on STS-112, causing a dent.",
+   "place": "Left SRB",
+   "people": []
+  },
+  {
+   "date": "January 16, 2003 at 10:39:00 am",
+   "event": "Space Shuttle Columbia launched on mission STS-107 from Launch Complex 39A.",
+   "place": "Kennedy Space Center Launch Complex 39A",
+   "people": [
+    "Rick Husband",
+    "William McCool",
+    "Michael Anderson",
+    "Kalpana Chawla",
+    "David Brown",
+    "Laurel Clark",
+    "Ilan Ramon"
+   ]
+  },
+  {
+   "date": "January 16, 2003 (81.7 to 81.9 seconds after launch)",
+   "event": "Insulating foam separated from the ET left bipod ramp and struck the reinforced carbon–carbon panels on Columbia's left wing.",
+   "place": "Atmosphere (65,600 to 65,860 feet)",
+   "people": []
+  },
+  {
+   "date": "January 21, 2003",
+   "event": "The Debris Assessment Team held its first formal meeting to examine the launch debris strike.",
+   "place": "NASA",
+   "people": []
+  },
+  {
+   "date": "January 24, 2003",
+   "event": "The Mission Management Team declared the debris strike a turnaround issue and declined to request on-orbit imagery.",
+   "place": "NASA",
+   "people": []
+  },
+  {
+   "date": "February 1, 2003 at 8:44:09 am",
+   "event": "Columbia reached Entry Interface at 400,000 feet to begin its re-entry into the atmosphere.",
+   "place": "Discernible atmosphere",
+   "people": []
+  },
+  {
+   "date": "February 1, 2003 at 8:48:39 am",
+   "event": "A sensor on the left wing leading edge spar recorded abnormally high strains on the Modular Auxiliary Data System.",
+   "place": "Columbia left wing",
+   "people": []
+  },
+  {
+   "date": "February 1, 2003 at 8:54:24 am",
+   "event": "The MMACS officer informed the Flight Director that four hydraulic sensors in the left wing were off-scale low.",
+   "place": "Mission Control Center",
+   "people": []
+  },
+  {
+   "date": "February 1, 2003 at 8:59:32 am",
+   "event": "Mission Control received its last telemetry signal and a broken final communication from the mission commander.",
+   "place": "Mission Control Center",
+   "people": [
+    "Rick Husband"
+   ]
+  },
+  {
+   "date": "February 1, 2003 at 9:00:18 am",
+   "event": "Columbia disintegrated during atmospheric re-entry, killing all seven astronauts aboard.",
+   "place": "Over Texas and Louisiana",
+   "people": [
+    "Rick Husband",
+    "William McCool",
+    "Michael Anderson",
+    "Kalpana Chawla",
+    "David Brown",
+    "Laurel Clark",
+    "Ilan Ramon"
+   ]
+  },
+  {
+   "date": "February 1, 2003 (about ninety minutes after disaster)",
+   "event": "NASA Administrator Sean O'Keefe convened the Columbia Accident Investigation Board.",
+   "place": "NASA",
+   "people": [
+    "Sean O'Keefe",
+    "Harold W. Gehman, Jr."
+   ]
+  },
+  {
+   "date": "February 4, 2003",
+   "event": "President Bush and Laura Bush led a memorial service for the astronauts' families.",
+   "place": "Johnson Space Center",
+   "people": [
+    "George W. Bush",
+    "Laura Bush"
+   ]
+  },
+  {
+   "date": "February 5, 2003",
+   "event": "ISRO renamed the Metsat-1 satellite to Kalpana-1 in honor of Kalpana Chawla.",
+   "place": "ISRO",
+   "people": [
+    "Kalpana Chawla"
+   ]
+  },
+  {
+   "date": "February 6, 2003",
+   "event": "Vice President Dick Cheney and Lynne Cheney led a memorial service at Washington National Cathedral.",
+   "place": "Washington National Cathedral",
+   "people": [
+    "Dick Cheney",
+    "Lynne Cheney",
+    "Patti LaBelle"
+   ]
+  },
+  {
+   "date": "February 7, 2003",
+   "event": "A memorial service was held at Kennedy Space Center where Robert Crippen delivered a eulogy.",
+   "place": "Kennedy Space Center",
+   "people": [
+    "Robert Crippen"
+   ]
+  },
+  {
+   "date": "March 19, 2003",
+   "event": "Columbia's flight data recorder was found intact near Hemphill in San Augustine County, Texas.",
+   "place": "San Augustine County, Texas",
+   "people": []
+  },
+  {
+   "date": "March 25, 2003",
+   "event": "The OEX recorder tape was delivered to Kennedy Space Center for copying and analysis after inspection and cleaning.",
+   "place": "Kennedy Space Center",
+   "people": []
+  },
+  {
+   "date": "April 1, 2003",
+   "event": "The Houston Astros honored the Columbia crew on Opening Day with seven simultaneous first pitches.",
+   "place": "Houston",
+   "people": []
+  },
+  {
+   "date": "April 28, 2003",
+   "event": "A culture of Caenorhabditis elegans worms that survived the disaster was found alive.",
+   "place": "Ground recovery area",
+   "people": []
+  },
+  {
+   "date": "August 26, 2003",
+   "event": "The Columbia Accident Investigation Board released its final report.",
+   "place": "NASA",
+   "people": [
+    "Harold W. Gehman, Jr."
+   ]
+  },
+  {
+   "date": "October 28, 2003",
+   "event": "The names of the STS-107 crew were added to the Space Mirror Memorial.",
+   "place": "KSC Visitor Complex, Merritt Island, Florida",
+   "people": []
+  },
+  {
+   "date": "January 2004",
+   "event": "President Bush announced the Vision for Space Exploration, directing the Space Shuttle fleet to retire by 2010.",
+   "place": "United States",
+   "people": [
+    "George W. Bush"
+   ]
+  },
+  {
+   "date": "February 1, 2004",
+   "event": "Super Bowl XXXVIII opened with a pregame tribute to the Columbia crew featuring Josh Groban.",
+   "place": "Reliant Stadium, Houston",
+   "people": [
+    "Josh Groban"
+   ]
+  },
+  {
+   "date": "February 2, 2004",
+   "event": "NASA Administrator Sean O'Keefe unveiled a memorial for the STS-107 crew at Arlington National Cemetery.",
+   "place": "Arlington National Cemetery",
+   "people": [
+    "Sean O'Keefe"
+   ]
+  },
+  {
+   "date": "October 2004",
+   "event": "Congress passed a resolution renaming the Space Science Learning Center to the Columbia Memorial Space Center.",
+   "place": "Downey, California",
+   "people": []
+  },
+  {
+   "date": "July 26, 2005 at 10:39 am (EDT)",
+   "event": "Discovery launched on STS-114, the first Return to Flight mission after the Columbia disaster.",
+   "place": "Kennedy Space Center",
+   "people": []
+  },
+  {
+   "date": "August 9, 2005 at 8:11 am (EDT)",
+   "event": "Discovery safely landed at Edwards AFB, after which NASA grounded the fleet again due to foam loss.",
+   "place": "Edwards AFB",
+   "people": [
+    "Stephen Robinson",
+    "Soichi Noguchi"
+   ]
+  },
+  {
+   "date": "February 2006",
+   "event": "NASA's National Scientific Balloon Facility was renamed the Columbia Scientific Balloon Facility.",
+   "place": "National Scientific Balloon Facility",
+   "people": []
+  },
+  {
+   "date": "July 4, 2006 at 2:38 pm (EDT)",
+   "event": "Discovery launched on STS-121, the second Return to Flight mission.",
+   "place": "Kennedy Space Center",
+   "people": [
+    "Piers Sellers",
+    "Michael Fossum"
+   ]
+  },
+  {
+   "date": "May 2009",
+   "event": "STS-125 flew the final Space Shuttle servicing mission to the Hubble Space Telescope using Atlantis.",
+   "place": "Hubble Space Telescope",
+   "people": [
+    "Michael Griffin"
+   ]
+  },
+  {
+   "date": "October 11, 2010",
+   "event": "President Barack Obama signed the NASA Authorization Act of 2010, canceling the Constellation program.",
+   "place": "Washington, D.C.",
+   "people": [
+    "Barack Obama"
+   ]
+  }
+ ],
+ "legacy": [
+  {
+   "year": "2003",
+   "what": "The Columbia Accident Investigation Board released its report mandating technical and organizational changes, including on-orbit inspections, recertifying components by 2010, and safe haven/rescue mission procedures."
+  },
+  {
+   "year": "2003",
+   "what": "The United States Board on Geographic Names named Columbia Point, a 13,980-foot peak in Colorado, and the names of the crew were added to the Space Mirror Memorial."
+  },
+  {
+   "year": "2004",
+   "what": "President George W. Bush announced the Vision for Space Exploration, initiating the retirement of the Space Shuttle fleet by 2010 and the development of the Constellation program."
+  },
+  {
+   "year": "2004",
+   "what": "A memorial for the STS-107 crew was unveiled at Arlington National Cemetery, and Congress passed a resolution establishing the Columbia Memorial Space Center in Downey, California."
+  },
+  {
+   "year": "2005",
+   "what": "NASA implemented on-orbit inspections using the 50-foot Orbiter Boom Sensor System and the Rendezvous Pitch Maneuver, and initiated the STS-3xx rescue orbiter contingency program on STS-114."
+  },
+  {
+   "year": "2010",
+   "what": "President Barack Obama signed the NASA Authorization Act of 2010 on October 11, canceling the Constellation program in favor of SLS and MPCV, while NASA made surplus TPS tiles available to educational institutions."
+  }
+ ],
+ "source": "https://en.wikipedia.org/wiki/Space_Shuttle_Columbia_disaster"
+}

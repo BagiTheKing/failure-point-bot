@@ -1,0 +1,315 @@
+{
+  "story": "Space Shuttle Columbia disaster",
+  "sources": {
+    "source": "https://en.wikipedia.org/wiki/Space_Shuttle_Columbia_disaster"
+  },
+  "kit": {
+    "family": "spaceflight",
+    "variant": "orbiter",
+    "vehicle": "Space Shuttle Columbia",
+    "panel": 8,
+    "days": "16",
+    "heat": "up to 3,000 °F (1,600 °C)",
+    "labels": {
+      "vehicle": "Space Shuttle Columbia",
+      "wing": "Left wing",
+      "leading_edge": "Wing leading edge",
+      "panel": "Reinforced carbon–carbon panel",
+      "shield": "Thermal Protection System",
+      "spar": "Left wing leading edge spar",
+      "foam": "External tank bipod ramp foam",
+      "hole": "Breached wing leading edge",
+      "heat": "Superheated atmospheric air",
+      "breach": "Leading edge breach",
+      "melt": "Internal wing structural damage"
+    }
+  },
+  "model_3d": {
+    "labels_3d": [
+      {
+        "anchor": "wing",
+        "text": "Left wing structure",
+        "color": "cyan",
+        "t": [
+          2.0,
+          6.0
+        ],
+        "at": [
+          140,
+          140
+        ]
+      },
+      {
+        "anchor": "nose",
+        "text": "Orbiter nose cap",
+        "color": "cyan",
+        "t": [
+          2.6,
+          6.0
+        ],
+        "at": [
+          760,
+          600
+        ]
+      },
+      {
+        "anchor": "edge",
+        "text": "Leading edge spar",
+        "color": "amber",
+        "t": [
+          9.0,
+          12.4
+        ],
+        "at": [
+          820,
+          150
+        ]
+      },
+      {
+        "anchor": "panel",
+        "text": "RCC panel 8",
+        "color": "cyan",
+        "t": [
+          15.4,
+          19.4
+        ],
+        "at": [
+          760,
+          150
+        ]
+      }
+    ],
+    "big_3d": {
+      "anchor": "panel",
+      "text": "0.006 ft-lb",
+      "label": "TPS IMPACT LIMIT REQUIREMENT",
+      "t": [
+        16.8,
+        19.4
+      ]
+    },
+    "ai_prompt": "Space Shuttle Columbia descending through high atmosphere with hot plasma entering a breach in the left wing leading edge, structural breakup over cloud layers under aerodynamic forces, debris scattering into multiple glowing trails. Static camera."
+  },
+  "disaster": {
+    "place_date": "OVER TEXAS AND LOUISIANA · 1 FEBRUARY 2003 · 9:00:18 AM",
+    "place": "Over Texas and Louisiana",
+    "caption": "Columbia disintegrates during atmospheric re-entry at about 200,000 feet",
+    "photo_article": "Space Shuttle Columbia disaster"
+  },
+  "hook": {
+    "title": "THE COLUMBIA DISASTER",
+    "lines": [
+      "February 1, 2003. Over Texas and Louisiana, Space Shuttle Columbia breaks apart.",
+      "Seven astronauts die at over ten thousand miles per hour.",
+      "It was not a freak accident. Foam had shed on earlier flights and was treated as normal.",
+      "At launch, foam hit the left wing and punched through the heat shield."
+    ],
+    "sub": "OVER TEXAS AND LOUISIANA · 1 FEBRUARY 2003"
+  },
+  "design_vs_built": {
+    "designed": {
+      "title": "WHAT IT NEEDED",
+      "detail": "TPS key impact resistance requirement",
+      "load": "0.006 foot-pounds limit"
+    },
+    "built": {
+      "title": "WHAT IT HAD",
+      "detail": "Debris strike from ET left bipod ramp foam",
+      "load": "625 to 840 feet per second relative velocity"
+    },
+    "multiplier": "0.006 ft-lb",
+    "multiplier_label": "TPS IMPACT DESIGN LIMIT",
+    "plate_built": "",
+    "plate_needed": "",
+    "source": "source"
+  },
+  "numbers": [
+    {
+      "value": "7",
+      "label": "PEOPLE KILLED",
+      "source": "source"
+    },
+    {
+      "value": "0",
+      "label": "INJURED",
+      "source": "source"
+    },
+    {
+      "value": "28th",
+      "label": "FLIGHT OF COLUMBIA",
+      "source": "source"
+    }
+  ],
+  "clock": {
+    "from_seconds": 8,
+    "label_before": "9:00:{s:02d}",
+    "label_next": "9:00:{s:02d}",
+    "label_at": "9:00:18",
+    "day": "AM · SATURDAY 1 FEBRUARY 2003",
+    "event": "COLUMBIA DISINTEGRATES DURING RE-ENTRY"
+  },
+  "timeline": [
+    {
+      "date": "OCTOBER 2002",
+      "title": "Bipod ramp foam loss",
+      "sub": "Debris dents STS-112 attachment ring",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "16 JANUARY 2003",
+      "title": "Columbia launch strike",
+      "sub": "Foam strikes left wing RCC panels",
+      "kind": "event",
+      "source": "source"
+    },
+    {
+      "date": "21 JANUARY 2003",
+      "title": "Debris Assessment Team",
+      "sub": "First meeting on launch debris strike",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "24 JANUARY 2003",
+      "title": "Management decision",
+      "sub": "Strike declared a turnaround issue",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "1 FEBRUARY 2003",
+      "title": "Atmospheric re-entry",
+      "sub": "Disintegration over Texas and Louisiana",
+      "kind": "failure",
+      "source": "source"
+    }
+  ],
+  "today": {
+    "title": "COULD IT HAPPEN TODAY?",
+    "lines": [
+      "Mandated 50-foot boom sensor systems provided routine on-orbit wing inspections.",
+      "Contingency procedures allowed safe haven and rescue missions for compromised orbiters.",
+      "The Space Shuttle fleet completed its final servicing flights and retired."
+    ],
+    "source": "source"
+  },
+  "thumbnail": {
+    "top": "WING BREACHED",
+    "sub": "AT 10,000 MPH"
+  },
+  "shots": [
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photo",
+      "caption": "Space Shuttle Columbia on launch pad 39A before mission STS-107",
+      "narration": "This photograph shows Space Shuttle Columbia on Launch Complex 39A before its twenty-eighth flight. It was the one hundred and thirteenth flight of the Space Shuttle fleet. Seven crew members boarded for mission STS-107, commanded by Rick Husband with pilot William McCool. Columbia was modified in 1992 to carry the Extended Duration Orbiter pallet, allowing long science missions in orbit."
+    },
+    {
+      "part": 1,
+      "tool": "archive",
+      "clip": "photos_disaster",
+      "caption": "Multiple debris trails visible in the sky over Texas during atmospheric re-entry",
+      "narration": "These photographs document the breakup of Columbia over Texas and Louisiana on the morning of February 1, 2003. Traveling in excess of ten thousand miles per hour at an altitude of about two hundred thousand feet, the orbiter lost control. Observers on the ground captured bright streaks across the morning sky as the airframe came apart under intense aerodynamic forces. All seven astronauts aboard were killed."
+    },
+    {
+      "part": 2,
+      "tool": "3d",
+      "clip": "establish",
+      "caption": "Orbiter thermal protection system layout showing reinforced carbon–carbon panels",
+      "narration": "During re-entry into the atmosphere, the shuttle thermal protection system encountered extreme friction. The leading edges of both wings were shielded with reinforced carbon–carbon panels. In 1998, thicker reinforced carbon–carbon was installed to prevent damage from micrometeoroid and orbital debris. This protective layer had to prevent extreme atmospheric heating from reaching the primary aluminum load-bearing structures inside the wings."
+    },
+    {
+      "part": 2,
+      "tool": "2d",
+      "clip": "build",
+      "caption": "External tank bipod ramp foam insulation adjacent to the orbiter attachment points",
+      "narration": "Columbia launched on January 16, 2003 at ten thirty-nine in the morning. Attached to the orbiter was the large external tank, covered in insulating foam. Between eighty-one point seven and eighty-one point nine seconds after launch, at an altitude between sixty-five thousand six hundred and sixty-five thousand eight hundred and sixty feet, a chunk of insulating foam broke away from the external tank left bipod ramp. The foam struck the reinforced carbon–carbon panels on Columbia's left wing at a relative velocity of six hundred twenty-five to eight hundred forty feet per second. The Thermal Protection System had a key design requirement limiting kinetic energy impact resistance to just zero point zero zero six foot-pounds."
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "load_path",
+      "caption": "Aerodynamic heat shield barrier on the wing leading edge spar",
+      "narration": "The thermal protection system was designed to endure external temperatures up to three thousand degrees Fahrenheit during re-entry. It was required to keep the orbiter vehicle's aluminum skin below three hundred fifty degrees Fahrenheit. The reinforced carbon–carbon panels formed the first line of defense, shielding the aluminum spar running along the front of the wing."
+    },
+    {
+      "part": 3,
+      "tool": "3d",
+      "clip": "connection",
+      "caption": "Impact zone on the left wing leading edge carbon-carbon panel",
+      "narration": "The high-velocity foam impact breached the reinforced carbon–carbon on the left wing. This created a hole in the heat shield. For sixteen days in orbit, the opening remained uninspected as the crew carried out their science mission."
+    },
+    {
+      "part": 3,
+      "tool": "2d",
+      "clip": "physics",
+      "caption": "Penetration of superheated atmospheric gas into the internal wing cavity",
+      "narration": "Columbia reached Entry Interface at four hundred thousand feet at eight forty-four and nine seconds in the morning on February 1, 2003. As the orbiter descended into the atmosphere, superheated air reaching up to three thousand degrees Fahrenheit entered through the breached carbon-carbon panel. The hot gas bypassed the thermal shield and flowed directly into the interior of the left wing. At eight forty-eight and thirty-nine seconds, a sensor on the left wing leading edge spar recorded abnormally high strains. The superheated air melted the aluminum structure behind the panels. The internal wing support weakened rapidly under high heat. Aerodynamic forces on the deteriorating wing caused increasing drag. Control systems attempted to compensate, but structural integrity decayed as the internal framing collapsed. Aerodynamic loads tore into the compromised wing assembly, precipitating the total structural failure of the vehicle."
+    },
+    {
+      "part": 4,
+      "tool": "2d",
+      "clip": "clock",
+      "caption": "Re-entry timeline leading to the loss of telemetry at 8:59:32 am",
+      "narration": "At eight forty-four in the morning, Columbia entered the atmosphere. Fifteen minutes later, all communication was lost."
+    },
+    {
+      "part": 4,
+      "tool": "3d",
+      "clip": "fall",
+      "caption": "Vehicle breakup at an altitude of about 200,000 feet",
+      "narration": "At nine o'clock and eighteen seconds in the morning, Columbia disintegrated at about two hundred thousand feet over Texas."
+    },
+    {
+      "part": 4,
+      "tool": "ai_video",
+      "clip": "dramatization",
+      "caption": "Mission Control Center displays indicating sensor loss from the left wing",
+      "narration": "At eight fifty-four and twenty-four seconds, the MMACS officer informed the Flight Director that four hydraulic sensors in the left wing were off-scale low. At eight fifty-nine and thirty-two seconds, Mission Control received its last telemetry signal and a broken final transmission from Rick Husband: Roger, cut off in midword."
+    },
+    {
+      "part": 4,
+      "tool": "archive",
+      "clip": "aftermath",
+      "caption": "Debris recovery operations across Texas search areas",
+      "narration": "Debris rained across Texas and Louisiana. Search teams recovered wreckage across the ground recovery area. On March 19, 2003, Columbia's flight data recorder was found intact near Hemphill in San Augustine County, Texas. Six days later, on March 25, the OEX recorder tape was delivered to Kennedy Space Center for copying and analysis after inspection and cleaning. On April 28, a culture of Caenorhabditis elegans worms that survived the disaster was found alive."
+    },
+    {
+      "part": 5,
+      "tool": "2d",
+      "clip": "timeline",
+      "caption": "Chronology of foam shedding events and mission management decisions",
+      "narration": "Foam shedding had occurred previously. In October 2002, a chunk of bipod ramp foam broke away from the external tank and hit the SRB attachment ring on STS-112, causing a dent. On January 16, 2003, foam separated from Columbia's tank eighty-one seconds after launch. On January 21, 2003, the Debris Assessment Team held its first formal meeting to examine the strike. On January 24, 2003, the Mission Management Team declared the debris strike a turnaround issue and declined to request on-orbit imagery. Management treated such occurrences as in-family and acceptable. On February 1, 2003, Columbia was lost during re-entry."
+    },
+    {
+      "part": 5,
+      "tool": "archive",
+      "clip": "investigation",
+      "caption": "Columbia Accident Investigation Board examining recovered orbiter components",
+      "narration": "About ninety minutes after the disaster on February 1, 2003, NASA Administrator Sean O'Keefe convened the Columbia Accident Investigation Board, chaired by retired Navy Admiral Harold W. Gehman, Jr. The board released its final report on August 26, 2003. The report detailed the physical breach from the foam strike and cited organizational practices that reduced operating costs by twenty-one percent between 1991 and 1994 while ignoring recurring foam shed warnings."
+    },
+    {
+      "part": 6,
+      "tool": "2d",
+      "clip": "compare",
+      "caption": "Debris impact limit requirement contrasted with flight shedding loads",
+      "narration": "It was not a freak accident: foam had come off the tank on earlier flights and came to be treated as normal. In October 2002, a chunk of bipod ramp foam broke away on STS-112 and hit an attachment ring. The thermal protection system was not built wrong. WHAT IT NEEDED: the system had to maintain vehicle skin temperatures below 350 °F (180 °C) while facing up to 3,000 °F (1,600 °C) during re-entry. WHAT IT HAD: a key design requirement limiting kinetic energy impacts to 0.006 foot-pounds. Yet 81.7 to 81.9 seconds after launch, foam struck Columbia at a relative velocity of 625 to 840 feet per second. The Debris Assessment Team met on January 21, 2003. On January 24, 2003, the Mission Management Team declared the debris strike a turnaround issue and declined to request on-orbit imagery."
+    },
+    {
+      "part": 7,
+      "tool": "archive",
+      "clip": "today_photos",
+      "caption": "Discovery launches on mission STS-114 with revised safety procedures",
+      "narration": "This photograph shows Space Shuttle Discovery launching on STS-114 on July 26, 2005, the first Return to Flight mission. NASA added a fifty-foot inspection boom to the robot arm to examine the thermal protection system in orbit. Even on this flight, foam loss occurred, leading NASA to ground the fleet again after Discovery landed at Edwards Air Force Base on August 9, 2005."
+    },
+    {
+      "part": 7,
+      "tool": "2d",
+      "clip": "today",
+      "caption": "Orbiter Boom Sensor System inspecting thermal protection tiles in orbit",
+      "narration": "Following the disaster, technical and organizational changes reshaped spaceflight. The Columbia Accident Investigation Board mandated on-orbit inspections and safe haven rescue mission procedures. NASA adopted a 50-foot inspection boom attached to the robot arm. In January 2004, President Bush announced the Vision for Space Exploration, directing the Space Shuttle fleet to retire by 2010. Atlantis flew the final Hubble Space Telescope servicing mission, STS-125, in May 2009. On October 11, 2010, President Barack Obama signed the NASA Authorization Act of 2010, canceling the Constellation program. Surplus thermal protection system tiles were offered to schools and museums for US$23.40 shipping."
+    }
+  ]
+}
