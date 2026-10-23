@@ -50,8 +50,9 @@ jobs:
       - name: System packages, retried (a runner's apt mirror sometimes hangs)
         run: |
           for i in 1 2 3; do
-            timeout 300 sudo apt-get update -q && timeout 300 sudo apt-get install -y -q ffmpeg && break
-            echo "apt try $i failed"; [ $i = 3 ] && exit 1; sleep 10
+            timeout 600 sudo apt-get -o Acquire::http::Timeout=20 update -q && timeout 600 sudo apt-get -o Acquire::http::Timeout=20 install -y -q ffmpeg && break
+            echo "apt try $i failed: next on the main Ubuntu mirror"; [ $i = 3 ] && exit 1
+            echo 'http://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt; sleep 5
           done
       - run: pip install Pillow numpy
       - uses: actions/download-artifact@v4
