@@ -321,16 +321,20 @@ def overlay_3d(sheet, frame_img, frame_no, anchors, t):
         if p:
             # a dark backing, so the figure reads on a bright frame (a glowing close-up)
             fb = font("InterDisplay-Black.otf", 80)
-            x0, y0, x1, y1 = f.d.textbbox(((p[0] - 60) * SS, (p[1] + 10) * SS), big["text"], font=fb, anchor="rs")
             fl = font("Inter-Bold.otf", 20)
             lw = f.d.textlength(big.get("label", ""), font=fl)
+            # right-aligned beside its part, but never off the frame: an anchor
+            # near the left edge pushes the figure right (Teton: "NDER 5 HOURS")
+            tw = max(f.d.textlength(big["text"], font=fb), lw + 20 * SS) / SS
+            rx = min(max(p[0] - 60, tw + 50), W - 40)
+            x0, y0, x1, y1 = f.d.textbbox((rx * SS, (p[1] + 10) * SS), big["text"], font=fb, anchor="rs")
             pad = 18 * SS
-            f.d.rounded_rectangle([min(x0, (p[0] - 60) * SS - lw - 30 * SS) - pad, y0 - pad,
+            f.d.rounded_rectangle([min(x0, rx * SS - lw - 30 * SS) - pad, y0 - pad,
                                    x1 + pad, (p[1] + 62) * SS + pad], radius=12 * SS,
                                   fill=(6, 12, 24, int(185 * b)))
-            f.text(big["text"], p[0] - 60, p[1] + 10, 80, RED, "InterDisplay-Black.otf",
+            f.text(big["text"], rx, p[1] + 10, 80, RED, "InterDisplay-Black.otf",
                    screen=True, alpha=b, anchor="rs")
-            pill(f, big.get("label", ""), p[0] - 60, p[1] + 26, RED, 20, "ra", b)
+            pill(f, big.get("label", ""), rx, p[1] + 26, RED, 20, "ra", b)
     for clip, (c0, c1) in CAPTION_WINDOWS.items():
         if caps.get(clip):
             f.caption(caps[clip], prog(t, c0, c0 + 0.5) * (1 - prog(t, c1 - 0.4, c1)))
