@@ -152,15 +152,30 @@ def _decimals(words):
 
 def chunks(words, most=3):
     """Caption groups: up to `most` words, broken after punctuation, never
-    inside a spoken number nor between a number and the word it counts."""
+    inside a spoken number nor between a number and the word it counts. A
+    number and what it counts start a group of their own when they would
+    push the group past `most` ("investigators recovered" | "eighty-four
+    thousand pieces"), so a caption never runs off the screen."""
     words = _decimals(list(words))
+    num = lambda w: _is_num(w[0]) or bool(re.match(r"^[\d.,]+$", w[0]))
+    ends = lambda w: bool(re.search(r"[.,;:!?]$", w[0]))
+    atoms, i = [], 0
+    while i < len(words):
+        j = i + 1
+        if num(words[i]):
+            while j < len(words) and num(words[j]) and not ends(words[j - 1]):
+                j += 1
+            if j < len(words) and not ends(words[j - 1]):
+                j += 1                      # the word it counts
+        atoms.append(words[i:j])
+        i = j
     out, cur = [], []
-    for k, w in enumerate(words):
-        cur.append(w)
-        nxt = words[k + 1][0] if k + 1 < len(words) else ""
-        num = _is_num(w[0]) or re.match(r"^[\d.,]+$", w[0])
-        hold = num and nxt and not re.search(r"[.,;:!?]$", w[0])
-        if (len(cur) >= most and not hold) or re.search(r"[.,;:!?]$", w[0]):
+    for at in atoms:
+        if cur and len(cur) + len(at) > most:
+            out.append(cur)
+            cur = []
+        cur += at
+        if len(cur) >= most or ends(cur[-1]):
             out.append(cur)
             cur = []
     if cur:

@@ -14,13 +14,13 @@ def _groups(text):
 
 def test_a_spoken_decimal_shows_as_digits_never_a_stray_digit():
     g = _groups("built for an impact of zero point zero zero six foot-pounds. But foam")
-    assert "impact of 0.006 foot-pounds." in g
+    assert "0.006 foot-pounds." in g
     assert not any(x.lower().startswith("six") for x in g)
 
 
 def test_a_spoken_number_stays_with_what_it_counts():
     g = _groups("Investigators recovered eighty-four thousand pieces of Columbia.")
-    assert any("eighty-four thousand pieces" in x for x in g)
+    assert g == ["Investigators recovered", "eighty-four thousand pieces", "of Columbia."]
 
 
 def test_plain_words_still_group_by_three():
