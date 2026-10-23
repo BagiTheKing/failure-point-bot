@@ -137,10 +137,10 @@ def _grid_canvas():
 
 
 def _cover(img, w, h, zoom=1.0, cx=0.5, cy=0.5):
-    ch = min(img.height, img.width * h / w) / zoom
+    ch = min(img.height, img.width * h / w) / max(1.0, zoom)    # never wider than the picture
     cw = ch * w / h
-    x = min(img.width - cw, max(0.0, cx * img.width - cw / 2))
-    y = min(img.height - ch, max(0.0, cy * img.height - ch / 2))
+    x = max(0.0, min(img.width - cw, cx * img.width - cw / 2))
+    y = max(0.0, min(img.height - ch, cy * img.height - ch / 2))
     return img.resize((w, h), Image.LANCZOS, box=(x, y, x + cw, y + ch))
 
 

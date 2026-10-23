@@ -395,7 +395,7 @@ class Orbiter(KitTiming):
         heat flows round it) or struck and breached (it gets in, the spar
         melts). Each argument a 0..1 progress; `counter` (days in orbit)
         sits top right."""
-        f = Frame(W / 2 + 40, LY, 1.0)
+        f = Frame(LX + 240, LY, 1.25)                   # zoomed in: read on a phone
         f.grid(1)
         if not built:
             foam = hole = breach = melt = 0.0
