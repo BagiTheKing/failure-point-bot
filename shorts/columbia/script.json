@@ -1,0 +1,145 @@
+{
+ "hook": "FOAM HOLED THE WING.|7 DIED 16 DAYS LATER.",
+ "toll": {
+  "value": "7",
+  "label": "CREW KILLED"
+ },
+ "photo_search": "Grid with Columbia's Debris GPN-2003-00081",
+ "photo_credit": "Photo: NASA, Columbia's debris on the hangar grid (GPN-2003-00081) — Public domain",
+ "scenes": [
+  {
+   "show": "fall",
+   "say": "February 2003. Space Shuttle Columbia breaks apart over Texas, sixteen minutes from landing."
+  },
+  {
+   "show": "close",
+   "say": "At launch, foam from the fuel tank hit the left wing and holed panel 8 of its heat shield. Sixteen days later, on the way home, superheated air got in through that hole and melted the wing from the inside.",
+   "cue": "inside",
+   "label": {
+    "text": "PANEL 8",
+    "at": "panel",
+    "from": "panel",
+    "to": "inside"
+   }
+  },
+  {
+   "show": "stack",
+   "say": "The tank was required to shed no debris. The panels were built for an impact of zero point zero zero six foot-pounds. But foam had come off on earlier flights, and it was treated as normal. Same wing. One hole.",
+   "sides": {
+    "needed": {
+     "shell": [
+      "start",
+      0,
+      1.0
+     ],
+     "wing": [
+      "start",
+      0.4,
+      1.0
+     ],
+     "flow": [
+      "start",
+      1.0,
+      0.8
+     ],
+     "heat": [
+      "normal",
+      0,
+      0.8
+     ],
+     "verdict": [
+      "end",
+      1.3,
+      0.4
+     ]
+    },
+    "built": {
+     "shell": [
+      "start",
+      0,
+      1.0
+     ],
+     "wing": [
+      "start",
+      0.4,
+      1.0
+     ],
+     "flow": [
+      "start",
+      1.0,
+      0.8
+     ],
+     "foam": [
+      "foam",
+      0,
+      0.8
+     ],
+     "hole": [
+      "foam",
+      0.75,
+      0.3
+     ],
+     "heat": [
+      "normal",
+      0,
+      0.8
+     ],
+     "breach": [
+      "same",
+      0,
+      0.8
+     ],
+     "melt": [
+      "hole",
+      0,
+      0.9
+     ],
+     "verdict": [
+      "end",
+      1.3,
+      0.4
+     ],
+     "stamp": [
+      "normal",
+      0,
+      0.35
+     ],
+     "stamp_text": "ACCEPTED AS NORMAL"
+    }
+   },
+   "sounds": [
+    {
+     "at": [
+      "foam",
+      0.8
+     ],
+     "sound": "ping",
+     "level": 0.4
+    },
+    {
+     "at": [
+      "normal",
+      0
+     ],
+     "sound": "lock",
+     "level": 0.35
+    },
+    {
+     "at": [
+      "end",
+      0.3
+     ],
+     "sound": "crash",
+     "level": 0.45
+    }
+   ]
+  },
+  {
+   "show": "photo",
+   "photo": "photo.jpg",
+   "say": "Investigators recovered eighty-four thousand pieces of Columbia. All seven astronauts aboard were killed.",
+   "toll": "seven"
+  }
+ ],
+ "comment": "Foam had hit the shuttle on earlier flights and was accepted as normal. Would you have grounded the fleet? The full step-by-step breakdown is on the channel."
+}
