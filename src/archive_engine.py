@@ -246,9 +246,13 @@ def commons_file(name: str):
     """One Commons file by its exact name ("Teton Dam failure.jpg", with or
     without "File:"), as a candidate, or None."""
     name = name if name.startswith("File:") else f"File:{name}"
+    if not re.search(r"\.[A-Za-z]{3,4}$", name):          # no extension given: the usual ones
+        names = "|".join(name + e for e in (".jpg", ".png", ".jpeg", ".tif", ".JPG"))
+    else:
+        names = name
     try:
         r = _polite_get(COMMONS_API, params={
-            "action": "query", "format": "json", "titles": name,
+            "action": "query", "format": "json", "titles": names,
             "prop": "imageinfo", "iiprop": "url|size|mime|extmetadata",
             "iiurlwidth": 1600}, timeout=25)
         r.raise_for_status()
