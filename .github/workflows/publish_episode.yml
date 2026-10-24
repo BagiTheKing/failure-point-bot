@@ -19,7 +19,7 @@ on:
       title:
         required: true
       thumb:
-        description: "model (3D), drawing (2D) or xray (3D + 2D)"
+        description: "photo (the investigation's photo), model (3D), drawing (2D) or xray (3D + 2D)"
         default: "xray"
       publish_at:
         description: "RFC 3339 UTC time to go public (blank = public now)"
