@@ -1,0 +1,157 @@
+{
+ "seconds": 48.87,
+ "top": "THE ROOF TORE OFF|AT 24,000 FEET.",
+ "script": {
+  "hook": "THE ROOF TORE OFF|AT 24,000 FEET.",
+  "toll": {
+   "value": "65",
+   "label": "INJURED · 1 KILLED"
+  },
+  "photo_search": "Aloha Airlines Flight 243 fuselage",
+  "photo_credit": "Photo: N73711 on Maui after the decompression, 28 April 1988 (Wikimedia Commons)",
+  "scenes": [
+   {
+    "show": "fall",
+    "say": "April 28, 1988. At 24,000 feet over Hawaii, the roof of Aloha Airlines Flight 243 tears away."
+   },
+   {
+    "show": "close",
+    "say": "The skin overlapped at a lap joint, bonded and riveted. The bond let go, and the rivets carried the cabin pressure alone. Fatigue cracks grew at the rivet holes until they linked up, and the seam unzipped.",
+    "cue": "unzipped",
+    "label": {
+     "text": "LAP JOINT",
+     "at": "joint",
+     "from": "joint",
+     "to": "unzipped"
+    }
+   },
+   {
+    "show": "stack",
+    "say": "This airframe had flown 89,680 flights, and every one stretched that seam again. From line number 292, later 737s got an extra layer at this joint. This one, line 152, did not. Instead of stopping at a tear strap, the cracks joined up.",
+    "sides": {
+     "needed": {
+      "outline": [
+       "start",
+       0,
+       1.0
+      ],
+      "details": [
+       "start",
+       0.5,
+       1.0
+      ],
+      "seam": [
+       "seam",
+       0,
+       0.8
+      ],
+      "strap": [
+       "layer",
+       0,
+       0.8
+      ],
+      "crack": [
+       "stopping",
+       0,
+       0.8
+      ],
+      "open_": [
+       "end",
+       0.2,
+       0.8
+      ],
+      "verdict": [
+       "end",
+       1.3,
+       0.4
+      ]
+     },
+     "built": {
+      "outline": [
+       "start",
+       0,
+       1.0
+      ],
+      "details": [
+       "start",
+       0.5,
+       1.0
+      ],
+      "seam": [
+       "seam",
+       0,
+       0.8
+      ],
+      "counter": {
+       "count": "89,680",
+       "at": [
+        "flown",
+        0,
+        2.6
+       ]
+      },
+      "stamp": [
+       "152,",
+       0,
+       0.35
+      ],
+      "stamp_text": "NO EXTRA LAYER",
+      "crack": [
+       "stopping",
+       0,
+       1.6
+      ],
+      "open_": [
+       "end",
+       0.2,
+       1.0
+      ],
+      "verdict": [
+       "end",
+       1.3,
+       0.4
+      ]
+     }
+    },
+    "sounds": [
+     {
+      "at": [
+       "152,",
+       0
+      ],
+      "sound": "lock",
+      "level": 0.35
+     },
+     {
+      "at": [
+       "joined",
+       0
+      ],
+      "sound": "groan",
+      "level": 0.4
+     },
+     {
+      "at": [
+       "end",
+       0.3
+      ],
+      "sound": "crash",
+      "level": 0.45
+     }
+    ]
+   },
+   {
+    "show": "photo",
+    "photo": "photo.jpg",
+    "say": "Thirteen minutes later, the crew landed on Maui. Sixty-five people were injured. Chief flight attendant Clarabelle Lansing was killed.",
+    "toll": "sixty-five"
+   }
+  ],
+  "comment": "Later 737s got an extra layer at this joint. Should the older airframes have flown without it?"
+ },
+ "music_credits": [
+  "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Man Down\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
+ ],
+ "parts": []
+}
