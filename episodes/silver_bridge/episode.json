@@ -1,0 +1,77 @@
+{
+ "seconds": 479.93333333333334,
+ "chapters": [
+  "0:00 The disaster",
+  "1:08 The structure and its weak point",
+  "2:09 The physics",
+  "3:36 Second by second",
+  "4:40 The warnings and the investigation",
+  "6:12 How it should have worked",
+  "6:53 Could it happen today?"
+ ],
+ "music_credits": [
+  "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Lightless Dawn\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Hidden Wonders\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Stay the Course\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Man Down\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Tyrant\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Leaving Home\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
+ ],
+ "credits": [
+  "Day 10- The Silver Memorial Bridge — Scott Stewart — CC BY 2.0 (via Wikimedia Commons)",
+  "Silver Bridge Collapse Signage (5070040586) — Richie Diesterheft from Santa Barbara, CA, USA — CC BY 2.0 (via Wikimedia Commons)",
+  "Silver and Point Pleasant Bridges aerial 2019 — Antony-22 — CC BY-SA 4.0 (via Wikimedia Commons)"
+ ],
+ "ai_clip": false,
+ "hook": {
+  "title": "THE SILVER BRIDGE COLLAPSE",
+  "lines": [
+   "December 15, 1967. Traffic stands still on the Silver Bridge, West Virginia.",
+   "At about 5 p.m. the bridge collapses into the Ohio River. 46 people die.",
+   "It began with a crack about an eighth of an inch deep, in one joint of its chain.",
+   "No inspection could have found it. And the chain had only two bars to a link."
+  ],
+  "sub": "POINT PLEASANT, WEST VIRGINIA · 15 DECEMBER 1967"
+ },
+ "preview": {
+  "seconds": 11.0,
+  "at": 0.0,
+  "sources": {
+   "flaw": 149.116625,
+   "forces": 201.114,
+   "failure": 225.64137499999998,
+   "fix": 399.077,
+   "stay": 58.1
+  },
+  "spans": [
+   [
+    "flaw",
+    0.0,
+    1.3199999999999998
+   ],
+   [
+    "forces",
+    1.3199999999999998,
+    2.558333333333333
+   ],
+   [
+    "failure",
+    2.558333333333333,
+    3.708333333333333
+   ],
+   [
+    "fix",
+    3.708333333333333,
+    4.880583333333333
+   ],
+   [
+    "stay",
+    4.880583333333333,
+    10.19975
+   ]
+  ],
+  "music_credits": []
+ }
+}
