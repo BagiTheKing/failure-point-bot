@@ -379,9 +379,10 @@ class Model:
 
         a, b = SHORT[mode]
         if mode == "fall":
-            cam_key(a, (-560, 640, 150), (-420, 0, 110), 26)
-            cam_key(T_FALL + 1.0, (-540, 660, 140), (-380, 0, 80), 26)
-            cam_key(b, (-420, 820, 160), (-150, 0, 50), 24)
+            # close in on the Ohio side: the span, the joint and the tower fill a phone screen as they go
+            cam_key(a, (-470, 150, 105), (-390, 0, 115), 22)
+            cam_key(T_FALL + 1.2, (-480, 165, 100), (-370, 0, 80), 22)
+            cam_key(b, (-470, 230, 110), (-250, 0, 40), 20)
         else:
             cam_key(a, j + Vector((14, 24, 9)), j, 38)
             cam_key(17.0, j + Vector((8, 14, 5)), j + Vector((0, 0, -0.5)), 44)
