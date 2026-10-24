@@ -1,8 +1,10 @@
 {
  "hook": "FIRST LEAK AROUND 7 AM.|BY NOON, THE DAM HAD BREACHED.",
- "toll": {"value": "11", "label": "DEAD (RECLAMATION'S COUNT)"},
- "photo_search": "Teton Dam failure",
- "photo_credit": "Photo: U.S. Bureau of Reclamation, Teton Dam failing, 5 June 1976 (Wikimedia Commons) — Public domain",
+ "toll": {
+  "value": "11",
+  "label": "DEAD (RECLAMATION'S COUNT)"
+ },
+ "photo_credit": "",
  "scenes": [
   {
    "show": "fall",
@@ -12,36 +14,118 @@
    "show": "close",
    "say": "That morning, water broke out of the dam's face near the right abutment. The leak grew into a hole. Bulldozers sent to fill it were lost in it. At eleven fifty-five, the crest broke.",
    "cue": "crest",
-   "label": {"text": "THE LEAK", "at": "hole", "from": "leak", "to": "crest"}
+   "label": {
+    "text": "THE LEAK",
+    "at": "hole",
+    "from": "leak",
+    "to": "crest"
+   }
   },
   {
    "show": "stack",
    "say": "Water reached the rock under the dam through open joints. The trench was filled with windblown silt that erodes easily, and its only protection was how hard it was packed. The water carried the silt away and cut a pipe through. Too much was expected of the grout curtain.",
    "sides": {
     "needed": {
-     "rock": ["start", 0, 1.0],
-     "dam": ["start", 0.4, 1.0],
-     "water": ["joints", 0, 0.8],
-     "seep": ["joints", 0.3, 1.0],
-     "verdict": ["end", 1.3, 0.4]
+     "rock": [
+      "start",
+      0,
+      1.0
+     ],
+     "dam": [
+      "start",
+      0.4,
+      1.0
+     ],
+     "water": [
+      "joints",
+      0,
+      0.8
+     ],
+     "seep": [
+      "joints",
+      0.3,
+      1.0
+     ],
+     "verdict": [
+      "end",
+      1.3,
+      0.4
+     ]
     },
     "built": {
-     "rock": ["start", 0, 1.0],
-     "dam": ["start", 0.4, 1.0],
-     "water": ["joints", 0, 0.8],
-     "seep": ["joints", 0.3, 1.0],
-     "stamp": ["packed", 0, 0.35],
+     "rock": [
+      "start",
+      0,
+      1.0
+     ],
+     "dam": [
+      "start",
+      0.4,
+      1.0
+     ],
+     "water": [
+      "joints",
+      0,
+      0.8
+     ],
+     "seep": [
+      "joints",
+      0.3,
+      1.0
+     ],
+     "stamp": [
+      "packed",
+      0,
+      0.35
+     ],
      "stamp_text": "COMPACTION ONLY",
-     "pipe": ["pipe", -0.6, 1.4],
-     "leak": ["pipe", 0.6, 0.8],
-     "collapse": ["end", 0.2, 1.0],
-     "verdict": ["end", 1.3, 0.4]
+     "pipe": [
+      "pipe",
+      -0.6,
+      1.4
+     ],
+     "leak": [
+      "pipe",
+      0.6,
+      0.8
+     ],
+     "collapse": [
+      "end",
+      0.2,
+      1.0
+     ],
+     "verdict": [
+      "end",
+      1.3,
+      0.4
+     ]
     }
    },
    "sounds": [
-    {"at": ["packed", 0], "sound": "lock", "level": 0.35},
-    {"at": ["pipe", 0], "sound": "groan", "level": 0.4},
-    {"at": ["end", 0.3], "sound": "crash", "level": 0.45}
+    {
+     "at": [
+      "packed",
+      0
+     ],
+     "sound": "lock",
+     "level": 0.35
+    },
+    {
+     "at": [
+      "pipe",
+      0
+     ],
+     "sound": "groan",
+     "level": 0.4
+    },
+    {
+     "at": [
+      "end",
+      0.3
+     ],
+     "sound": "crash",
+     "level": 0.45
+    }
    ]
   },
   {
@@ -51,5 +135,6 @@
    "toll": "eleven"
   }
  ],
- "comment": "The panel said too much was expected of the grout curtain. On rock this open, would you have trusted it to hold?"
+ "comment": "The panel said too much was expected of the grout curtain. On rock this open, would you have trusted it to hold?",
+ "photo_article": "Teton Dam"
 }
