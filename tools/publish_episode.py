@@ -90,7 +90,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("episode_dir")
     ap.add_argument("--title", required=True)
-    ap.add_argument("--thumb", default="xray", help="model, drawing or xray")
+    ap.add_argument("--thumb", default="xray", help="photo, model, drawing or xray")
     ap.add_argument("--publish-at", default="", help="RFC 3339 UTC; blank = public now")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()

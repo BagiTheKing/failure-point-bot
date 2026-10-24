@@ -52,7 +52,7 @@ jobs:
       - name: Thumbnails
         run: |
           git fetch -q origin preview-media
-          for t in model drawing xray; do
+          for t in photo model drawing xray; do
             git show "origin/preview-media:thumbs/${{ inputs.thumbs }}/thumb_$t.jpg" > ep/thumb_$t.jpg 2>/dev/null || rm -f ep/thumb_$t.jpg
           done
           ls -la ep
@@ -88,7 +88,7 @@ jobs:
           VID=$(python -c "import json;print(json.load(open('ep/published.json'))['video_id'])")
           mkdir -p rotate
           n=1
-          for t in "${{ inputs.thumb }}" model xray drawing; do
+          for t in "${{ inputs.thumb }}" photo model xray drawing; do
             [ -f "ep/thumb_$t.jpg" ] || continue
             ls rotate | grep -q "_$t.jpg" && continue
             cp "ep/thumb_$t.jpg" "rotate/${n}_$t.jpg"; n=$((n+1))
