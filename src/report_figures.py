@@ -66,6 +66,45 @@ def captions(text):
     return found
 
 
+def _picture_pages(pdf, out_dir, dpi=40):
+    """Pages of a scanned report that hold a picture block, from a quick low-resolution pass."""
+    stem = os.path.join(out_dir, "scan")
+    subprocess.run(["pdftoppm", "-r", str(dpi), "-gray", "-png", pdf, stem], check=True)
+    out = []
+    for path in sorted(glob.glob(stem + "*.png")):
+        if blocks(Image.open(path)):
+            out.append(int(re.search(r"(\d+)\.png$", path).group(1)))
+        os.remove(path)
+    return out
+
+
+def _ocr(img):
+    try:
+        r = subprocess.run(["tesseract", "stdin", "stdout", "-l", "eng", "--psm", "3"], input=_png(img),
+                           capture_output=True, timeout=120)
+        return r.stdout.decode("utf-8", "ignore")
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+
+
+def _png(img):
+    import io
+    b = io.BytesIO()
+    img.save(b, "PNG")
+    return b.getvalue()
+
+
+def _ocr_captions(page):
+    """(the page turned upright, its figure captions): a scanned report
+    prints some figures sideways, captions and all."""
+    for rot in (0, 90, 270):
+        img = page.rotate(rot, expand=True) if rot else page
+        caps = captions(_ocr(img))
+        if caps:
+            return img, caps
+    return page, []
+
+
 def figures(url_or_path, out_dir, credit, year=None, limit=40):
     os.makedirs(out_dir, exist_ok=True)
     pdf = url_or_path
@@ -75,9 +114,11 @@ def figures(url_or_path, out_dir, credit, year=None, limit=40):
             subprocess.run(["curl", "-sSL", "-m", "600", "-o", pdf, url_or_path], check=True)
     text = subprocess.run(["pdftotext", "-layout", pdf, "-"], capture_output=True, text=True).stdout
     pages = text.split("\f")
+    scanned = len(text.split()) < 20 * max(1, len(pages))       # a scan with no text layer (NTSB, 1970)
     # only the pages that carry a figure caption are rendered
-    want = [i + 1 for i, t in enumerate(pages) if captions(t)]
-    print(f"  report: {len(pages)} pages, {len(want)} with figures")
+    want = _picture_pages(pdf, out_dir) if scanned else [i + 1 for i, t in enumerate(pages) if captions(t)]
+    print(f"  report: {len(pages)} pages{' (a scan: captions read by OCR)' if scanned else ''}, "
+          f"{len(want)} with figures")
     out = []
     for p in want:
         if len(out) >= limit:
@@ -89,7 +130,13 @@ def figures(url_or_path, out_dir, credit, year=None, limit=40):
         if not made:
             continue
         page = Image.open(made[0])
-        caps = captions(pages[p - 1])
+        if scanned:
+            page, caps = _ocr_captions(page)
+            if not caps:                      # no caption read: a text page with a dark block, not a figure
+                os.remove(made[0])
+                continue
+        else:
+            caps = captions(pages[p - 1])
         found = blocks(page)
         for k, (x0, y0, x1, y1) in enumerate(found):
             # pictures and captions both run top to bottom; one caption for
@@ -98,6 +145,11 @@ def figures(url_or_path, out_dir, credit, year=None, limit=40):
             # third-party material in a government report keeps its owner's
             # rights (the Hyatt report's TV frames are "courtesy of KMBC TV")
             if re.search(r"courtesy|videotape|copyright|©", cap, re.I):
+                continue
+            # a photo credited to a company, not the government ("(U. S. Steel Photo)"): its owner's too
+            who = re.search(r"\(([^()]*?)\s*photo\)", cap, re.I)
+            if who and not re.search(r"NBS|NTSB|Bureau|Board|Federal|Administration|Government|Survey|Navy|"
+                                     r"Army|Corps|NASA|Department|Commission", who.group(1), re.I):
                 continue
             crop = page.crop((x0, y0, x1, y1)).convert("RGB")
             path = os.path.join(out_dir, f"fig_{p:04d}_{k}.jpg")

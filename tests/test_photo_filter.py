@@ -27,3 +27,18 @@ def test_a_pin_needs_the_names_it_searched_for():
     assert _names_match("TetonDamRemains01", {"title": "TetonDamRemains01", "about": ""})
     assert _names_match("STS-114 launch Discovery",
                         {"title": "STS-114 launch", "about": "Space Shuttle Discovery lifts off"})
+
+
+def test_a_scanned_reports_company_photo_is_left_out(tmp_path, monkeypatch):
+    import report_figures as rf
+    cap_ok = "Figure 28 General View of Model Test of Eyebar Chain Joint (Federal Highway Administration Photo)"
+    cap_co = "Figure 24a - Appearance of Freshly Opened Crack in Eyebar Steel (U. S. Steel Photo)"
+    import re
+    keep = []
+    for cap in (cap_ok, cap_co):
+        who = re.search(r"\(([^()]*?)\s*photo\)", cap, re.I)
+        bad = who and not re.search(r"NBS|NTSB|Bureau|Board|Federal|Administration|Government|Survey|Navy|"
+                                    r"Army|Corps|NASA|Department|Commission", who.group(1), re.I)
+        keep.append(not bad)
+    assert keep == [True, False]
+    assert rf.captions("Figure 6 - Variation of Hardness\nthrough Thickness")[0].startswith("Figure 6")
