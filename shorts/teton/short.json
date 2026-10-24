@@ -7,8 +7,7 @@
    "value": "11",
    "label": "DEAD (RECLAMATION'S COUNT)"
   },
-  "photo_search": "Teton Dam failure",
-  "photo_credit": "Photo: U.S. Bureau of Reclamation, Teton Dam failing, 5 June 1976 (Wikimedia Commons) — Public domain",
+  "photo_credit": "",
   "scenes": [
    {
     "show": "fall",
@@ -139,7 +138,8 @@
     "toll": "eleven"
    }
   ],
-  "comment": "The panel said too much was expected of the grout curtain. On rock this open, would you have trusted it to hold?"
+  "comment": "The panel said too much was expected of the grout curtain. On rock this open, would you have trusted it to hold?",
+  "photo_article": "Teton Dam"
  },
  "music_credits": [
   "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
