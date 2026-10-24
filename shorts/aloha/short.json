@@ -7,8 +7,7 @@
    "value": "65",
    "label": "INJURED · 1 KILLED"
   },
-  "photo_search": "Aloha Airlines Flight 243 fuselage",
-  "photo_credit": "Photo: N73711 on Maui after the decompression, 28 April 1988 (Wikimedia Commons)",
+  "photo_credit": "",
   "scenes": [
    {
     "show": "fall",
@@ -147,7 +146,9 @@
     "toll": "sixty-five"
    }
   ],
-  "comment": "Later 737s got an extra layer at this joint. Should the older airframes have flown without it?"
+  "comment": "Later 737s got an extra layer at this joint. Should the older airframes have flown without it?",
+  "photo_file": "Aloha Airlines Flight 243 fuselage left side",
+  "photo_search": "Aloha Airlines Flight 243 fuselage left side"
  },
  "music_credits": [
   "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
