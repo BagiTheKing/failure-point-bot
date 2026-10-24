@@ -1,9 +1,12 @@
 {
  "hook": "ONE HIDDEN CRACK.|THE WHOLE BRIDGE FELL.",
- "toll": {"value": "46", "label": "PEOPLE KILLED"},
+ "toll": {
+  "value": "46",
+  "label": "PEOPLE KILLED"
+ },
  "photo_article": "Silver Bridge",
  "photo_search": "Silver Bridge collapse Point Pleasant",
- "photo_credit": "",
+ "photo_credit": "Photo: the Silver Bridge, Point Pleasant, W.Va. (Digital Public Library of America, via Wikimedia Commons) — no known restrictions",
  "scenes": [
   {
    "show": "fall",
@@ -13,36 +16,118 @@
    "show": "close",
    "say": "One joint held its north chain together: a pin through the eyes of two steel eyebars. At that pin, a crack had grown for forty years, to about an eighth of an inch. Then the eye broke, and its sister bar slid off the pin.",
    "cue": "broke",
-   "label": {"text": "JOINT C13N", "at": "joint", "from": "joint", "to": "slid"}
+   "label": {
+    "text": "JOINT C13N",
+    "at": "joint",
+    "from": "joint",
+    "to": "slid"
+   }
   },
   {
    "show": "stack",
    "say": "No inspection could have found it: it was hidden inside the joint. And each link had only two bars. With three or more, one break might not have dropped the chain. With two, it was inevitable.",
    "sides": {
     "needed": {
-     "joint": ["start", 0, 1.0],
-     "load": ["start", 0.6, 0.8],
-     "water": ["hidden", 0, 0.8],
-     "part": ["three", 0.2, 1.0],
-     "verdict": ["end", 1.3, 0.4]
+     "joint": [
+      "start",
+      0,
+      1.0
+     ],
+     "load": [
+      "start",
+      0.6,
+      0.8
+     ],
+     "water": [
+      "hidden",
+      0,
+      0.8
+     ],
+     "part": [
+      "three",
+      0.2,
+      1.0
+     ],
+     "verdict": [
+      "end",
+      1.3,
+      0.4
+     ]
     },
     "built": {
-     "joint": ["start", 0, 1.0],
-     "load": ["start", 0.6, 0.8],
-     "water": ["hidden", 0, 0.8],
-     "crack": ["hidden", 0.2, 2.4],
-     "stamp": ["two", 0, 0.35],
+     "joint": [
+      "start",
+      0,
+      1.0
+     ],
+     "load": [
+      "start",
+      0.6,
+      0.8
+     ],
+     "water": [
+      "hidden",
+      0,
+      0.8
+     ],
+     "crack": [
+      "hidden",
+      0.2,
+      2.4
+     ],
+     "stamp": [
+      "two",
+      0,
+      0.35
+     ],
      "stamp_text": "TWO BARS PER LINK",
-     "fracture": ["inevitable", -0.7, 0.5],
-     "part": ["inevitable", -0.3, 0.8],
-     "slip": ["inevitable", 0.3, 1.0],
-     "verdict": ["end", 1.3, 0.4]
+     "fracture": [
+      "inevitable",
+      -0.7,
+      0.5
+     ],
+     "part": [
+      "inevitable",
+      -0.3,
+      0.8
+     ],
+     "slip": [
+      "inevitable",
+      0.3,
+      1.0
+     ],
+     "verdict": [
+      "end",
+      1.3,
+      0.4
+     ]
     }
    },
    "sounds": [
-    {"at": ["two", 0], "sound": "lock", "level": 0.35},
-    {"at": ["inevitable", -0.6], "sound": "groan", "level": 0.4},
-    {"at": ["end", 0.3], "sound": "crash", "level": 0.45}
+    {
+     "at": [
+      "two",
+      0
+     ],
+     "sound": "lock",
+     "level": 0.35
+    },
+    {
+     "at": [
+      "inevitable",
+      -0.6
+     ],
+     "sound": "groan",
+     "level": 0.4
+    },
+    {
+     "at": [
+      "end",
+      0.3
+     ],
+     "sound": "crash",
+     "level": 0.45
+    }
    ]
   },
   {
