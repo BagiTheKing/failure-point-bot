@@ -40,10 +40,11 @@ def kit_class(variant):
     from kits.fuselage import Fuselage
     from kits.hanging_walkway import HangingWalkways
     from kits.earth_dam import EarthDam
+    from kits.eyebar_chain import EyebarChain
     from kits.orbiter import Orbiter
     from kits.truss_bridge import TrussBridge
     return {"hanging_walkways": HangingWalkways, "truss_bridge": TrussBridge, "fuselage": Fuselage,
-            "orbiter": Orbiter, "earth_dam": EarthDam}[variant]
+            "orbiter": Orbiter, "earth_dam": EarthDam, "eyebar_chain": EyebarChain}[variant]
 
 
 # --------------------------------------------------------------------------

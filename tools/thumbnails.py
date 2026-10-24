@@ -27,7 +27,7 @@ def main(prep, raw3d, out):
     at = joint
     # the part glowing; the structure going down (the walkways drop at 22.0
     # and are out of the shot a second later, the bridge's span falls slower)
-    fall = {"hanging_walkways": 22.35, "fuselage": 22.9, "orbiter": 22.6, "earth_dam": 23.0}.get(sheet["kit"]["variant"], 23.4)
+    fall = {"hanging_walkways": 22.35, "fuselage": 22.9, "orbiter": 22.6, "earth_dam": 23.0, "eyebar_chain": 22.4}.get(sheet["kit"]["variant"], 23.4)
     c, fl = tm.frame(17.5), tm.frame(fall)
     made = thumbnail.build(sheet, find_frame(raw3d, c), find_frame(raw3d, fl), at(fl), out, at(c))
     json.dump({"figures": thumbnail.figures(sheet), "made": made},

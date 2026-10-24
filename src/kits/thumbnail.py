@@ -151,10 +151,10 @@ def figures(sheet):
     # Hyatt; the nut pulled through the box beam after one design change
     part = {"truss_bridge": "STEEL PLATE", "hanging_walkways": "CONNECTION",
             "fuselage": "LAP JOINT", "orbiter": "HEAT SHIELD",
-            "earth_dam": "KEY TRENCH"}.get(kit.get("variant"), "PART")
+            "earth_dam": "KEY TRENCH", "eyebar_chain": "EYEBAR 330"}.get(kit.get("variant"), "PART")
     cause = {"truss_bridge": "ONE STEEL PLATE", "hanging_walkways": "ONE DESIGN CHANGE",
              "fuselage": "ONE CRACKED SEAM", "orbiter": "ONE HOLED PANEL",
-             "earth_dam": "ONE LEAK"}.get(kit.get("variant"), f"ONE {part}")
+             "earth_dam": "ONE LEAK", "eyebar_chain": "ONE CRACK"}.get(kit.get("variant"), f"ONE {part}")
     name = (sheet["disaster"].get("photo_article") or "").replace("Mississippi River bridge", "").strip().upper()
     node = kit.get("failed_node_label", "")
     block = " · ".join(x for x in ("THE POINT OF FAILURE", name, node and f"JOINT {node}") if x)

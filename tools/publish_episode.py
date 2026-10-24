@@ -68,7 +68,7 @@ def grouped(credits):
 def tags(sheet):
     place = sheet["disaster"].get("photo_article") or sheet["disaster"].get("place", "")
     kit = sheet.get("kit", {}).get("variant", "")
-    structure = kit in ("truss_bridge", "hanging_walkways", "earth_dam")
+    structure = kit in ("truss_bridge", "hanging_walkways", "earth_dam", "eyebar_chain")
     base = [place, place if "collapse" in place.lower() or not structure else f"{place} collapse",
             "engineering disaster", "structural failure" if structure else "engineering failure",
             "engineering explained", "disaster explained", "3D animation"]
@@ -80,7 +80,9 @@ def tags(sheet):
                           "aircraft structure"],
              "orbiter": ["space shuttle", "spaceflight disaster", "heat shield", "re-entry", "NASA"],
              "earth_dam": ["dam failure", "dam collapse", "internal erosion", "piping", "geotechnical engineering",
-                           "Bureau of Reclamation"]}.get(kit, [])
+                           "Bureau of Reclamation"],
+             "eyebar_chain": ["bridge collapse", "suspension bridge", "eyebar", "stress corrosion", "NTSB",
+                              "structural engineering"]}.get(kit, [])
     return list(dict.fromkeys(t for t in base if t))[:15]
 
 

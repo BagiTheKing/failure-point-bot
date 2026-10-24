@@ -129,6 +129,36 @@ KITS = {
             "Keep the sources' qualifiers: 'about', 'approximately'.",
         ],
     },
+    "eyebar_chain": {
+        "what": ("A suspension bridge hung from chains of steel eyebars, two bars to a link, pinned "
+                 "together at the joints; hangers drop from the chain joints to a stiffening truss "
+                 "and deck; the towers stand on rocker bearings. A crack grows unseen where one "
+                 "eyebar's eye bears on its pin; the eye breaks, its sister bar slides off the pin, "
+                 "the chain parts and the whole bridge collapses."),
+        "params": {"bridge": "the bridge's name, e.g. the Silver Bridge"},
+        "labels": ["west", "east", "chain", "tower", "truss", "node", "pin", "eyebar", "water", "crack",
+                   "hidden", "break", "slip"],
+        "labels_3d": [("bridge", [2.0, 6.0], [140, 140], "cyan"),
+                      ("tower", [2.6, 6.0], [760, 140], "amber"),
+                      ("chain", [9.0, 12.4], [820, 150], "cyan"),
+                      ("joint", [15.4, 19.4], [760, 150], "red")],
+        "multiplier": "the one figure behind the failure, e.g. the crack's size or the bars per link",
+        "big_3d_anchor": "joint",
+        "title_hint": "THE ... BRIDGE COLLAPSE",
+        "model_3d": {},
+        "rules": [
+            "The NTSB found the flaw could not be seen or found by any inspection method then known "
+            "without taking the joint apart: never say inspectors missed it or should have caught it.",
+            "In 1927 stress corrosion and corrosion fatigue were not known to occur in this class of "
+            "steel in rural exposure: say so; the design was normal practice for its time.",
+            "The design weakness is the NTSB's own: only two eyebars per link, so one broken bar made "
+            "the chain's failure inevitable; with three or more there was 'the possibility' one break "
+            "would not have led to disaster. Keep 'possibility'; claim no certainty.",
+            "Name no person as to blame. Keep the report's qualifiers: 'about', 'approximately'.",
+            "dramatization: the collapse in the report's terms (about 1 minute, beginning in the Ohio "
+            "side span and moving east); no invented last words or scenes in vehicles.",
+        ],
+    },
     "truss_bridge": {
         "what": ("A steel truss bridge over one or more spans; one joint (a gusset "
                  "plate where beams meet) is weaker than the forces through it and "
@@ -455,6 +485,8 @@ def assemble(reply, variant, facts_source="", source_name="source"):
         kit["rod_lines"], kit["failed_line"] = int(kit["rod_lines"]), int(kit["failed_line"])
     elif variant == "earth_dam":
         kit["family"] = "water"
+    elif variant == "eyebar_chain":
+        pass
     elif variant == "orbiter":
         kit["family"] = "spaceflight"
         kit["panel"] = int(str(kit["panel"]).strip())
