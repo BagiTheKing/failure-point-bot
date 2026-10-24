@@ -1,0 +1,80 @@
+{"search":{
+    "field": null, 
+    "hits": 0, 
+    "sort_order": null, 
+    "do_facets": true, 
+    "focus_item": null, 
+    "query": "aloha airlines", 
+    "type": "search", 
+    "sort_by": null
+},
+"focus":null,
+"views":{
+    "current": "list", 
+    "grid": "https://www.loc.gov/pictures/search/?q=aloha+airlines&st=grid", 
+    "list": "https://www.loc.gov/pictures/search/?q=aloha+airlines", 
+    "gallery": "https://www.loc.gov/pictures/search/?q=aloha+airlines&st=gallery", 
+    "slideshow": "https://www.loc.gov/pictures/search/?q=aloha+airlines&st=slideshow"
+},
+"facets":[
+    {
+        "type": "displayed", 
+        "filters": [
+            {
+                "count": 0, 
+                "on": "https://www.loc.gov/pictures/search/?q=aloha+airlines&fa=displayed%3Aanywhere&sp=1&fo=json", 
+                "selected": false, 
+                "off": "https://www.loc.gov/pictures/search/?q=aloha+airlines&sp=1&fo=json", 
+                "title": "Larger image available anywhere"
+            }, 
+            {
+                "count": 0, 
+                "on": "https://www.loc.gov/pictures/search/?q=aloha+airlines&fa=displayed%3Alc_only&sp=1&fo=json", 
+                "selected": false, 
+                "off": "https://www.loc.gov/pictures/search/?q=aloha+airlines&sp=1&fo=json", 
+                "title": "Larger image available only at the Library of Congress"
+            }, 
+            {
+                "count": 0, 
+                "on": "https://www.loc.gov/pictures/search/?q=aloha+airlines&fa=displayed%3Anot_digitized&sp=1&fo=json", 
+                "selected": false, 
+                "off": "https://www.loc.gov/pictures/search/?q=aloha+airlines&sp=1&fo=json", 
+                "title": "Not Digitized"
+            }, 
+            {
+                "count": 0, 
+                "on": "https://www.loc.gov/pictures/search/?q=aloha+airlines&fa=displayed%3Asurveys_only&sp=1&fo=json", 
+                "selected": false, 
+                "off": "https://www.loc.gov/pictures/search/?q=aloha+airlines&sp=1&fo=json", 
+                "title": "Surveys only"
+            }
+        ], 
+        "title": "displayed"
+    }
+],
+"links":{
+    "json": "https://www.loc.gov/pictures/search/?q=aloha%20airlines&fo=json", 
+    "html": "https://www.loc.gov/pictures/search/?q=aloha%20airlines", 
+    "rss": "https://www.loc.gov/pictures/search/?q=aloha%20airlines&fo=rss"
+},
+"suggestions":{
+    "possible": []
+},
+"pages":{
+    "current": 1, 
+    "next": null, 
+    "perpage": 20, 
+    "last": null, 
+    "page_list": [
+        {
+            "url": null, 
+            "number": 1
+        }
+    ], 
+    "previous": null, 
+    "total": 1, 
+    "results": "0 - 0", 
+    "first": null
+},
+"collection":null,
+"results":[]}
