@@ -242,6 +242,23 @@ def article_lead_image(article_title: str):
     return found[0] if found else None
 
 
+def commons_file(name: str):
+    """One Commons file by its exact name ("Teton Dam failure.jpg", with or
+    without "File:"), as a candidate, or None."""
+    name = name if name.startswith("File:") else f"File:{name}"
+    try:
+        r = _polite_get(COMMONS_API, params={
+            "action": "query", "format": "json", "titles": name,
+            "prop": "imageinfo", "iiprop": "url|size|mime|extmetadata",
+            "iiurlwidth": 1600}, timeout=25)
+        r.raise_for_status()
+        found = _candidates((r.json().get("query") or {}).get("pages") or {})
+    except Exception as e:
+        print(f"⚠️ Commons file lookup failed for {name!r}: {e}")
+        return None
+    return found[0] if found else None
+
+
 def article_images(article_title: str, limit: int = 50) -> list:
     """Every free picture a Wikipedia article uses, as Commons candidates,
     best first. An article about a disaster carries the photographs editors

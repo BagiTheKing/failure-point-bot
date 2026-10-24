@@ -134,17 +134,12 @@ jobs:
             git show "origin/preview-media:episodes/${{ inputs.episode }}/$f" > ep/$f
           done
           git show "origin/preview-media:shorts/${{ inputs.short }}/script.json" > script.json
-          # the photo: stored with the script, or the script's Commons search (public domain)
-          git show "origin/preview-media:shorts/${{ inputs.short }}/photo.jpg" > photo.jpg 2>/dev/null || python - <<'PY'
-          import json, sys
-          sys.path.insert(0, "src")
-          from archive_engine import download_archival_image, search_commons
-          q = json.load(open("script.json")).get("photo_search")
-          c = next(iter(search_commons(q, limit=5)), None) if q else None
-          if not c or not download_archival_image(c, "photo.jpg", 0, 0, fit=lambda im, w, h: im):
-              sys.exit("no photo for the Short")
-          print("photo:", c["title"], "|", c.get("license"))
-          PY
+          # the photo: stored with the script, else fetched by tools/short_photo.py
+          # (the named file, the article's lead image, or a search that names it)
+          git show "origin/preview-media:shorts/${{ inputs.short }}/photo.jpg" > photo.jpg 2>/dev/null \
+            || { rm -f photo.jpg; python tools/short_photo.py script.json photo.jpg; }
+          [ -f photo.json ] || git show "origin/preview-media:shorts/${{ inputs.short }}/photo.json" > photo.json 2>/dev/null || true
+          cat photo.json 2>/dev/null || true
           ls frames3d/*/ | head
       - name: The score's tracks
         run: python tools/fetch_music.py --score
@@ -174,6 +169,7 @@ jobs:
           mkdir -p shorts/${{ inputs.short }}
           cp ../short/short.mp4 ../short/short.json shorts/${{ inputs.short }}/
           [ -s ../photo.jpg ] && cp ../photo.jpg shorts/${{ inputs.short }}/photo.jpg
+          [ -s ../photo.json ] && cp ../photo.json shorts/${{ inputs.short }}/photo.json || true
           git add -A
           git diff --cached --quiet && { echo "same Short as before"; exit 0; }
           git commit -q -m "Short: ${{ inputs.short }} (run ${{ github.run_number }})"
