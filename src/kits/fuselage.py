@@ -408,7 +408,7 @@ class Fuselage(KitTiming):
         opening (a flap venting the cabin where it held, the roof tearing
         off as built), the verdict, a stamp; `counter` (the flights flown)
         sits over the built side."""
-        f = Frame(440, CY + 10, 1.9)                 # the front half, where it fails: big on a phone
+        f = Frame(415, CY - 22, 2.7)                 # the lap joint and the section that tore away: big on a phone
         f.grid(1)
         self.outline(f, outline)
         self.wing_tail(f, outline)
