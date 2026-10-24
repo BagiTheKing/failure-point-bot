@@ -66,6 +66,14 @@ def captions(text):
     return found
 
 
+def _bilevel(img, mid=0.08):
+    """True when a picture is nearly all pure black and pure white: a photo
+    scanned to one bit (the Silver Bridge report's), which shows on screen as
+    blobs, not as a picture."""
+    g = np.asarray(img.convert("L"), np.uint8)
+    return float(((g > 40) & (g < 215)).mean()) < mid
+
+
 def _picture_pages(pdf, out_dir, dpi=40):
     """Pages of a scanned report that hold a picture block, from a quick low-resolution pass."""
     stem = os.path.join(out_dir, "scan")
@@ -152,6 +160,8 @@ def figures(url_or_path, out_dir, credit, year=None, limit=40):
                                      r"Army|Corps|NASA|Department|Commission", who.group(1), re.I):
                 continue
             crop = page.crop((x0, y0, x1, y1)).convert("RGB")
+            if _bilevel(crop):                # a halftone scanned to pure black and white: unreadable on screen
+                continue
             path = os.path.join(out_dir, f"fig_{p:04d}_{k}.jpg")
             crop.save(path, quality=92)
             label = (re.match(r"^\S+\s*[\d.]+\w?", cap) or [f"Page {p}"])[0]

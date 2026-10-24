@@ -42,3 +42,13 @@ def test_a_scanned_reports_company_photo_is_left_out(tmp_path, monkeypatch):
         keep.append(not bad)
     assert keep == [True, False]
     assert rf.captions("Figure 6 - Variation of Hardness\nthrough Thickness")[0].startswith("Figure 6")
+
+
+def test_a_one_bit_scan_is_not_a_usable_picture():
+    import numpy as np
+    from PIL import Image
+    import report_figures as rf
+    rng = np.random.default_rng(0)
+    one_bit = Image.fromarray((rng.random((200, 300)) > 0.5).astype(np.uint8) * 255)
+    grey = Image.fromarray(rng.integers(0, 255, (200, 300)).astype(np.uint8))
+    assert rf._bilevel(one_bit) and not rf._bilevel(grey)
