@@ -1,0 +1,83 @@
+{
+ "seconds": 499.46666666666664,
+ "chapters": [
+  "0:00 The disaster",
+  "1:21 The structure and its weak point",
+  "2:31 The physics",
+  "4:20 Second by second",
+  "5:28 The warnings and the investigation",
+  "6:57 How it should have worked",
+  "7:36 Could it happen today?"
+ ],
+ "music_credits": [
+  "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Lightless Dawn\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Hidden Wonders\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Stay the Course\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Man Down\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Tyrant\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Leaving Home\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
+ ],
+ "credits": [
+  "Aloha Airlines Flight 243 fuselage left side \u2014 NTSB \u2014 Public domain (via Wikimedia Commons)",
+  "N73711 Aloha Airlines Boeing 737-297, Kahului Airport February 1988 \u2014 Juerg Schmid \u2014 CC BY-SA 4.0 (via Wikimedia Commons)",
+  "Aloha Airlines 737 boarding, Honolulu, October 1973 \u2014 Charles O'Rear \u2014 Public domain (U.S. National Archives, via Wikimedia Commons)",
+  "Aloha Airlines Boeing 737-200 N73713, 1985 \u2014 Clint Groves \u2014 GFDL 1.2 (https://www.gnu.org/licenses/old-licenses/fdl-1.2.html, via Wikimedia Commons)",
+  "Aloha Airlines Boeing 737-297 N726AL, Honolulu, September 1988 \u2014 Perry Hoppe \u2014 GFDL 1.2 (https://www.gnu.org/licenses/old-licenses/fdl-1.2.html, via Wikimedia Commons)",
+  "Aerial view landing at Hilo Airport \u2014 Forest and Kim Starr \u2014 CC BY 3.0 US (via Wikimedia Commons)",
+  "Route of Aloha Airlines Flight 243 \u2014 NASA imagery \u2014 Public domain (via Wikimedia Commons)",
+  "Boeing 737-200 fuselage from the tail dock, HAER NY-309-A-11 \u2014 Historic American Engineering Record, Library of Congress \u2014 Public domain (via Wikimedia Commons)",
+  "Lap joint crack detail, Aloha Airlines Flight 243 \u2014 FAA Lessons Learned \u2014 Public domain"
+ ],
+ "ai_clip": false,
+ "hook": {
+  "title": "ALOHA AIRLINES FLIGHT 243",
+  "lines": [
+   "April 28, 1988. Hilo to Honolulu.",
+   "At 24,000 feet, a large section of roof tears completely off a Boeing 737-200.",
+   "One crew member dies and 65 passengers and crew are injured.",
+   "The failure began at a cold-bonded lap joint on an airframe flown 89,680 times."
+  ],
+  "sub": "MAUI \u00b7 28 APRIL 1988"
+ },
+ "preview": {
+  "seconds": 11.0,
+  "at": 0.0,
+  "sources": {
+   "flaw": 177.59437499999999,
+   "forces": 245.77,
+   "failure": 269.959625,
+   "fix": 442.545,
+   "stay": 71.03337499999999
+  },
+  "spans": [
+   [
+    "flaw",
+    0.0,
+    1.3199999999999998
+   ],
+   [
+    "forces",
+    1.3199999999999998,
+    2.558333333333333
+   ],
+   [
+    "failure",
+    2.558333333333333,
+    3.708333333333333
+   ],
+   [
+    "fix",
+    3.708333333333333,
+    4.880583333333333
+   ],
+   [
+    "stay",
+    4.880583333333333,
+    10.19975
+   ]
+  ],
+  "music_credits": []
+ }
+}
