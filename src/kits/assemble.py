@@ -139,7 +139,13 @@ def reel(items, seconds, caption="", fade=0.8):
         t0 += dur
     rest = seconds - t0
     n = max(1, round(rest / 7.0)) if photos and rest >= 3.0 else 0
-    if n:
+    if photos and rest > 0 and all(p.get("seconds") for p in photos):
+        # each photo held for its own share: it lands on the words that name it
+        k = rest / sum(p["seconds"] for p in photos)
+        for p in photos:
+            plan.append([t0, p["seconds"] * k, p])
+            t0 += p["seconds"] * k
+    elif n:
         # too few photos for the time: each comes back as a closer look at
         # another part of it, rather than one picture held for half a minute
         for k in range(n):

@@ -8,10 +8,10 @@ on:
   workflow_dispatch:
     inputs:
       run_id:
-        description: "Episode sample run to publish (its full-quality episode artifact)"
+        description: "Episode sample run to publish (its full-quality episode artifact); preview = the folder episodes/<name> on preview-media"
         required: true
       name:
-        description: "The episode's name (artifact episode-<name>, thumbnails at preview-media thumbs/<thumbs>/)"
+        description: "The episode's name (artifact episode-<name> or preview-media episodes/<name>; thumbnails at thumbs/<thumbs>/)"
         required: true
       thumbs:
         description: "Folder under preview-media thumbs/"
@@ -44,11 +44,20 @@ jobs:
           cache: 'pip'
       - run: pip install -r requirements.txt
       - uses: actions/download-artifact@v4
+        if: inputs.run_id != 'preview'
         with:
           name: episode-${{ inputs.name }}
           path: ep
           run-id: ${{ inputs.run_id }}
           github-token: ${{ github.token }}
+      - name: The episode from preview-media (a cut patched after its run)
+        if: inputs.run_id == 'preview'
+        run: |
+          git fetch -q origin preview-media
+          mkdir -p ep
+          for f in episode.mp4 episode.json timed_sheet.json; do
+            git show "origin/preview-media:episodes/${{ inputs.name }}/$f" > "ep/$f"
+          done
       - name: Thumbnails
         run: |
           git fetch -q origin preview-media

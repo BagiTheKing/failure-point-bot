@@ -98,3 +98,22 @@ class EpisodeTimingTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReelTimingTest(unittest.TestCase):
+    def test_photos_keep_their_own_seconds(self):
+        import tempfile
+        from PIL import Image
+        from kits.assemble import reel
+        d = tempfile.mkdtemp()
+        paths = []
+        for name, rgb in (("red", (255, 0, 0)), ("blue", (0, 0, 255))):
+            p = os.path.join(d, name + ".png")
+            Image.new("RGB", (320, 180), rgb).save(p)
+            paths.append(p)
+        # 2 s for the first, 8 s for the second: at 4 s the second is on screen
+        fn = reel([{"path": paths[0], "seconds": 2.0}, {"path": paths[1], "seconds": 8.0}], 10.0)
+        r, g, b = fn(4.0, 10.0).getpixel((640, 360))
+        self.assertGreater(b, r)
+        r, g, b = fn(0.5, 10.0).getpixel((640, 360))
+        self.assertGreater(r, b)
