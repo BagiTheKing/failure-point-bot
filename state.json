@@ -85,7 +85,7 @@
         "videos/xqFy2qABc3w/2_xray.jpg",
         "videos/xqFy2qABc3w/3_drawing.jpg"
       ],
-      "status": "waiting",
+      "status": "done",
       "current": null,
       "since": null,
       "views_at_start": null,
@@ -99,10 +99,10 @@
         "videos/fLQIukS9yiI/3_xray.jpg",
         "videos/fLQIukS9yiI/4_drawing.jpg"
       ],
-      "status": "waiting",
-      "current": null,
-      "since": null,
-      "views_at_start": null,
+      "status": "testing",
+      "current": 0,
+      "since": "2026-10-25T01:24:13.349438+00:00",
+      "views_at_start": 0,
       "results": [],
       "registered": "2026-10-25T01:21:07.799146+00:00"
     }
