@@ -1,0 +1,16 @@
+{
+  "c_fuselage_ntsb.png": {"what": "N73711 after landing, right side (NTSB Figure 2b, clean copy)", "credit": "NTSB", "license": "Public domain"},
+  "c_after_accident_faa.jpg": {"what": "Investigators beside the wreck at Kahului", "credit": "FAA", "license": "Public domain"},
+  "c_aftermath_faa.jpg": {"what": "N73711 after landing, colour (300 px: inset only)", "credit": "FAA", "license": "Public domain"},
+  "faa_Aloha737_skindetail.jpg": {"what": "The lap joint at S-10: the sawtooth crack along the rivet row (FAA labels on it)", "credit": "FAA, Lessons Learned", "license": "Public domain"},
+  "c_aloha_7372_1985_groves.jpg": {"what": "Aloha 737-200 N73713, sister ship of N73711, in flight, 1985", "credit": "Clint Groves", "license": "GFDL 1.2"},
+  "c_aloha_737297_N726AL_1988.jpg": {"what": "Aloha 737-297 N726AL at Honolulu, September 1988", "credit": "Perry Hoppe", "license": "GFDL 1.2"},
+  "c_route_nasa.jpg": {"what": "Route: Hilo to Honolulu, diverted to Kahului", "credit": "NASA (map), Wikimedia Commons", "license": "Public domain"},
+  "c_hilo_aerial.jpg": {"what": "Landing at Hilo, where the flight departed (2018)", "credit": "Forest and Kim Starr", "license": "CC BY 3.0 US"},
+  "c_kahului_aerial.jpg": {"what": "Kahului Airport, Maui, where it landed (2009)", "credit": "Forest and Kim Starr", "license": "CC BY 2.0"},
+  "c_7372_cabin.jpg": {"what": "Inside a Boeing 737-200 cabin (Canadian North, 2013)", "credit": "CambridgeBayWeather", "license": "CC BY-SA 3.0"},
+  "c_haer_737_inspection.jpg": {"what": "737-200 crown from a tail dock: a safety cable lets inspectors walk the fuselage checking for cracks", "credit": "Historic American Engineering Record (HAER NY,15-BUF,33A-11), Library of Congress", "license": "Public domain"},
+  "faa_Aloha737_initialFinding.jpg": {"what": "FAA drawing: visible part of the long crack (a drawing, not a photo)", "credit": "FAA", "license": "Public domain"},
+  "already_used": {"NTSB fuselage left side (Figure 2a)": "Public domain", "N73711 at Kahului, February 1988, Juerg Schmid": "CC BY-SA 4.0"},
+  "not_usable": {"FAA page photo of an Aloha 737 by AirNikon": "copyright, used with permission only", "TV footage and frames": "copyright"}
+}
