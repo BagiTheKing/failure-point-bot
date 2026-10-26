@@ -23,7 +23,7 @@ on:
         type: boolean
         default: false
       reuse_run:
-        description: "Re-cut: reuse this earlier run's voice and 3D frames (blank = make everything; frames keep 2 days)"
+        description: "Re-cut: reuse this earlier run's voice and 3D frames (blank = make everything; voice and frames keep 14 days)"
         default: ""
       hook:
         description: "Cold-open lines, split by | (blank = the sheet's own, or written by the AI)"
@@ -116,7 +116,7 @@ jobs:
         with:
           name: prep
           path: prep/
-          retention-days: 3
+          retention-days: 14
 
   recut:
     if: inputs.reuse_run != ''
@@ -173,7 +173,7 @@ jobs:
         with:
           name: prep
           path: prep/
-          retention-days: 3
+          retention-days: 14
 
   render3d:
     needs: prepare
@@ -214,7 +214,7 @@ jobs:
         with:
           name: frames3d-${{ matrix.shard }}
           path: raw/
-          retention-days: 2
+          retention-days: 14
 
   assemble:
     needs: [prepare, render3d, recut]

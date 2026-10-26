@@ -86,7 +86,7 @@ jobs:
         with:
           name: short3d-${{ matrix.camera }}-${{ matrix.shard }}
           path: raw/
-          retention-days: 7
+          retention-days: 14
 
   short:
     needs: render
