@@ -1,5 +1,5 @@
 {
- "seconds": 44.98,
+ "seconds": 45.19,
  "top": "THE ROOF TORE OFF|AT 24,000 FEET.",
  "script": {
   "hook": "THE ROOF TORE OFF|AT 24,000 FEET.",
@@ -11,11 +11,11 @@
   "scenes": [
    {
     "show": "fall",
-    "say": "Aloha Flight 243, 1988. The roof tears away."
+    "say": "Mid-flight, the roof tears away."
    },
    {
     "show": "close",
-    "say": "The skin overlapped at a lap joint, bonded and riveted. The bond let go, and the rivets carried the cabin pressure alone. Fatigue cracks grew at the rivet holes until they linked up, and the seam unzipped.",
+    "say": "Aloha Flight 243, 1988. The skin overlapped at a lap joint, bonded and riveted. The bond let go, and the rivets carried the cabin pressure alone. Fatigue cracks grew at the rivet holes until they linked up, and the seam unzipped.",
     "cue": "unzipped",
     "label": {
      "text": "LAP JOINT",
