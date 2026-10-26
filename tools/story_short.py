@@ -272,8 +272,11 @@ def build(sheet, frames3d, script, out_dir, photo=None):
         t0, t1 = span(i)
         if sc["show"] == "fall":
             a0 = t_fall - 0.9                                   # the break, just under a second in
-            sfx.append((t0 + 0.85, score.boom(6) * 0.5))
-            pictures.append(lambda t, a0=a0, t0=t0: (renders.frame("fall", a0 + (t - t0)), {}))
+            # words longer than the render slow the fall down: never a held
+            # last frame in the seconds that decide whether a viewer stays
+            k = min(1.0, (cams["fall"][1] - a0) / max(0.1, t1 - t0))
+            sfx.append((t0 + 0.9 / k - 0.05, score.boom(6) * 0.5))
+            pictures.append(lambda t, a0=a0, t0=t0, k=k: (renders.frame("fall", a0 + (t - t0) * k), {}))
         elif sc["show"] == "close":
             a, b = cams["close"]
             hit = _word_at(words, sc.get("cue", "tore"), t0)
