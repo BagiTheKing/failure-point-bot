@@ -1,5 +1,5 @@
 {
- "seconds": 45.19,
+ "seconds": 25.86,
  "top": "THE ROOF TORE OFF|AT 24,000 FEET.",
  "script": {
   "hook": "THE ROOF TORE OFF|AT 24,000 FEET.",
@@ -8,15 +8,25 @@
    "label": "INJURED · 1 KILLED"
   },
   "photo_credit": "Photo: Aloha Airlines Flight 243, N73711, after landing on Maui — NTSB, public domain (via Wikimedia Commons)",
+  "comment": "Later 737s got an extra layer at this joint. Should the older airframes have flown without it?",
+  "photo_file": "Aloha Airlines Flight 243 fuselage left side",
+  "photo_search": "Aloha Airlines Flight 243 fuselage left side",
+  "end": "loop",
   "scenes": [
    {
     "show": "fall",
+    "lead": 0.25,
     "say": "Mid-flight, the roof tears away."
    },
    {
     "show": "close",
-    "say": "Aloha Flight 243, 1988. The skin overlapped at a lap joint, bonded and riveted. The bond let go, and the rivets carried the cabin pressure alone. Fatigue cracks grew at the rivet holes until they linked up, and the seam unzipped.",
+    "skip": [
+     15.3,
+     21.85
+    ],
+    "say": "Glued and riveted, this joint held the skin. The glue failed. Cracks linked rivet to rivet, and the seam unzipped.",
     "cue": "unzipped",
+    "tail": 1.0,
     "label": {
      "text": "LAP JOINT",
      "at": "joint",
@@ -26,7 +36,7 @@
    },
    {
     "show": "stack",
-    "say": "This airframe had flown 89,680 flights, and every one stretched that seam again. From line number 292, later 737s got an extra layer at this joint. This one, line 152, did not. Instead of stopping at a tear strap, the cracks joined up.",
+    "say": "89,680 flights stretched that seam. Newer 737s got an extra layer there. This one didn't. Nothing stopped the cracks.",
     "sides": {
      "needed": {
       "outline": [
@@ -40,17 +50,17 @@
        1.0
       ],
       "seam": [
-       "seam",
+       "stretched",
        0,
        0.8
       ],
       "strap": [
-       "layer",
+       "newer",
        0,
-       0.8
+       2.2
       ],
       "crack": [
-       "stopping",
+       "nothing",
        0,
        0.8
       ],
@@ -77,26 +87,26 @@
        1.0
       ],
       "seam": [
-       "seam",
+       "stretched",
        0,
        0.8
       ],
       "counter": {
        "count": "89,680",
        "at": [
-        "flown",
-        0,
-        2.6
+        "start",
+        0.2,
+        2.2
        ]
       },
       "stamp": [
-       "152,",
+       "this",
        0,
        0.35
       ],
       "stamp_text": "NO EXTRA LAYER",
       "crack": [
-       "stopping",
+       "nothing",
        0,
        1.6
       ],
@@ -115,7 +125,7 @@
     "sounds": [
      {
       "at": [
-       "152,",
+       "this",
        0
       ],
       "sound": "lock",
@@ -123,7 +133,7 @@
      },
      {
       "at": [
-       "joined",
+       "nothing",
        0
       ],
       "sound": "groan",
@@ -142,17 +152,93 @@
    {
     "show": "photo",
     "photo": "photo.jpg",
-    "say": "Thirteen minutes later, the crew landed on Maui. Sixty-five people were injured. Chief flight attendant Clarabelle Lansing was killed.",
-    "toll": "sixty-five"
+    "toll": "65",
+    "say": "It landed on Maui. 65 injured. One killed."
    }
-  ],
-  "comment": "Later 737s got an extra layer at this joint. Should the older airframes have flown without it?",
-  "photo_file": "Aloha Airlines Flight 243 fuselage left side",
-  "photo_search": "Aloha Airlines Flight 243 fuselage left side"
+  ]
  },
  "music_credits": [
   "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
   "\"Man Down\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
  ],
- "parts": []
+ "parts": [],
+ "stillness": {
+  "step": 0.5,
+  "motion": [
+   100.0,
+   11.18,
+   14.76,
+   11.66,
+   3.44,
+   100.0,
+   63.39,
+   28.4,
+   33.59,
+   35.49,
+   34.72,
+   28.4,
+   25.65,
+   22.94,
+   16.7,
+   12.73,
+   12.73,
+   82.37,
+   82.24,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   0.0,
+   0.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   60.44,
+   6.64,
+   6.44,
+   9.35,
+   14.58,
+   15.53,
+   16.39
+  ],
+  "still": []
+ },
+ "scenes": [
+  {
+   "show": "fall",
+   "from": 0.0,
+   "to": 2.5
+  },
+  {
+   "show": "close",
+   "from": 2.5,
+   "to": 9.9
+  },
+  {
+   "show": "stack",
+   "from": 9.9,
+   "to": 21.43
+  },
+  {
+   "show": "photo",
+   "from": 21.43,
+   "to": 25.86
+  }
+ ]
 }
