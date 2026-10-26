@@ -25,7 +25,7 @@ on:
         description: "Reuse this earlier run's 3D frames (blank = render them)"
         default: ""
       from_run:
-        description: "Publish the Short an earlier run made, as it is: the one reviewed (blank = make it here)"
+        description: "Publish the Short an earlier run made, as it is: the one reviewed; preview = shorts/<short>/ on preview-media (blank = make it here)"
         default: ""
       title:
         description: "The Short's title (needed to publish)"
@@ -154,12 +154,19 @@ jobs:
         run: python -u tools/story_short.py ep/timed_sheet.json frames3d script.json short --photo photo.jpg
       - uses: actions/download-artifact@v4
         # the reviewed Short, byte for byte: nothing made again
-        if: inputs.from_run != ''
+        if: inputs.from_run != '' && inputs.from_run != 'preview'
         with:
           name: short-${{ inputs.short }}
           path: short
           run-id: ${{ inputs.from_run }}
           github-token: ${{ github.token }}
+      - name: The Short as it is on preview-media (a cut finished by hand)
+        if: inputs.from_run == 'preview'
+        run: |
+          mkdir -p short
+          for f in short.mp4 short.json; do
+            git show "origin/preview-media:shorts/${{ inputs.short }}/$f" > "short/$f"
+          done
       - name: Description
         if: inputs.title != '' && inputs.full != ''
         env:
