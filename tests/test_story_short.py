@@ -20,3 +20,18 @@ def test_ramp_runs_zero_to_one():
     assert _ramp(0.9, 1.0, 0.5) == 0.0
     assert _ramp(1.25, 1.0, 0.5) == 0.5
     assert _ramp(2.0, 1.0, 0.5) == 1.0
+
+
+
+def test_parked_camera_is_cut_out():
+    import story_short as SS
+    segs = [(11.5, 15.3), (21.85, 23.8)]
+    assert abs(SS._canonical(segs, 3.8) - 15.3) < 1e-9
+    assert abs(SS._canonical(segs, 3.9) - 21.95) < 1e-9      # straight past the parked stretch
+    assert abs(SS._moving(segs, 22.15) - 4.1) < 1e-9
+
+
+def test_still_runs():
+    import stillness
+    series = [5, 5, 0.1, 0.1, 0.1, 5, 0.2, 0.2, 5]
+    assert stillness.still_runs(series) == [(1.0, 2.5)]       # 1.5 s still is caught; 1 s is allowed

@@ -174,6 +174,10 @@ jobs:
           git diff --cached --quiet && { echo "same Short as before"; exit 0; }
           git commit -q -m "Short: ${{ inputs.short }} (run ${{ github.run_number }})"
           for i in 1 2 3; do git push -q origin preview-media && break; git pull -q --rebase origin preview-media; done
+      - name: Nothing held still (owner, 2026-10-26)
+        # a picture standing still 1.5 s or more fails the run here: the review
+        # copy is already up to see it, and nothing is published
+        run: python tools/stillness.py --report short/short.json
       - name: 48-hour spacing
         id: gate
         if: inputs.publish

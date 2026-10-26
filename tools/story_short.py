@@ -29,8 +29,21 @@ short3d workflow), the 2D drawn by the kit (side()). The script:
 
     python tools/story_short.py SHEET FRAMES3D SCRIPT OUT [--photo P]
 
+Every scene is as long as its motion (owner, 2026-10-26: "if nothing is
+happening for over 3 s, people just leave"; they stay for 3D objects
+moving and 2D sheets built line by line). The words are written to fit:
+  "lead"  (fall)  seconds before the break the scene starts: the roof, the
+                  walkway, the span going within the first second
+  "skip"  (close) [from, to] canonical seconds the camera stands parked,
+                  cut out: the move runs straight into the pull-through
+  "tail"  (any)   seconds after the scene's last word (else the defaults)
+  "end": "loop"   (script) no card at the end: the last scene ends moving,
+                  a small line points to the full story, and the Short
+                  runs straight back into its first frame
+
 FRAMES3D holds fall/ and close/ (frames and anchors_*.json). Writes
 OUT/short.mp4 and OUT/short.json (length, script, music credits).
+tools/stillness.py checks the result: no picture held still for 1.5 s.
 """
 
 import argparse
@@ -55,6 +68,7 @@ LEAD = 0.2                  # each scene's words start this far in
 GAP = 0.25                  # breath after a scene's words
 DISSOLVE = 0.3              # one scene into the next
 END_HOLD = 2.6              # after the last word: the full story's card (owner, 2026-10-22: the old one, grey, on a hit)
+END_LOOP = 0.7              # after the last word, when the Short loops: no card, a moment, then frame one
 STACK_TAIL = 2.2            # after the stack's words: the fall and the verdict
 PANEL_H = SW * 9 // 16      # a 2D side, whole, full width
 STACK_Y = (300, 300 + PANEL_H + 92)          # the two sides; the words between them
@@ -124,6 +138,25 @@ class Renders:
     def anchor(self, cam, sec, name):
         row = self.anchors.get(cam, {}).get(int(round(sec * FPS)) + 1)
         return row.get(name) if row else None
+
+
+def _moving(segs, sec):
+    """Seconds of moving shot before canonical second sec (segs: the kept spans)."""
+    u = 0.0
+    for x0, x1 in segs:
+        if sec <= x1:
+            return u + max(0.0, sec - x0)
+        u += x1 - x0
+    return u
+
+
+def _canonical(segs, u):
+    """The canonical second u seconds into the moving shot."""
+    for x0, x1 in segs:
+        if u <= x1 - x0:
+            return x0 + u
+        u -= x1 - x0
+    return segs[-1][1]
 
 
 def _grid_canvas():
@@ -242,11 +275,13 @@ def build(sheet, frames3d, script, out_dir, photo=None):
 
     # the clock: each scene as long as its words and what follows them
     takes = voice(scenes, os.path.join(out_dir, "voice"))
+    loop = script.get("end") == "loop"
     starts, t = [], 0.0
     for i, (sc, (_, secs, _)) in enumerate(zip(scenes, takes)):
         starts.append(t)
-        tail = STACK_TAIL if sc["show"] == "stack" else END_HOLD if i == len(scenes) - 1 else GAP
-        t += LEAD + secs + tail
+        tail = STACK_TAIL if sc["show"] == "stack" else \
+            (END_LOOP if loop else END_HOLD) if i == len(scenes) - 1 else GAP
+        t += LEAD + secs + sc.get("tail", tail)
     total = t
     n_total = int(round(total * FPS))
     words = [(w, s0 + LEAD + a, s0 + LEAD + b) for s0, (_, _, ws) in zip(starts, takes) for w, a, b in ws]
@@ -268,32 +303,39 @@ def build(sheet, frames3d, script, out_dir, photo=None):
 
     sfx = [(max(0.0, starts[i] - 0.2), score.whoosh(20 + i) * 0.28) for i in range(1, len(scenes))]
     pictures = []                    # per scene: the Short's second -> (picture, overlays)
+    drawing = {}                     # per 2D scene: the spans in which something is being drawn
     for i, sc in enumerate(scenes):
         t0, t1 = span(i)
         if sc["show"] == "fall":
-            a0 = t_fall - 0.9                                   # the break, just under a second in
+            lead = sc.get("lead", 0.9)                          # the break, under a second in
+            a0 = t_fall - lead
             # words longer than the render slow the fall down: never a held
             # last frame in the seconds that decide whether a viewer stays
             k = min(1.0, (cams["fall"][1] - a0) / max(0.1, t1 - t0))
-            sfx.append((t0 + 0.9 / k - 0.05, score.boom(6) * 0.5))
+            sfx.append((t0 + lead / k - 0.05, score.boom(6) * 0.5))
             pictures.append(lambda t, a0=a0, t0=t0, k=k: (renders.frame("fall", a0 + (t - t0) * k), {}))
         elif sc["show"] == "close":
             a, b = cams["close"]
+            # the camera's timeline without the stretch it stands parked ("skip"):
+            # u, seconds of the shot that move, maps to the canonical second
+            sk = sc.get("skip")
+            segs = [(a, sk[0]), (sk[1], b)] if sk else [(a, b)]
             hit = _word_at(words, sc.get("cue", "tore"), t0)
-            knots = [(t0, a)]
+            pull = _moving(segs, t_fall + 0.15)
+            knots = [(t0, 0.0)]
             if hit:                                             # the pull-through on the word that says it
-                knots.append((hit[0], t_fall + 0.15))
+                knots.append((hit[0], pull))
                 sfx.append((hit[0] - 0.05, score.crash() * 0.45))
-                knots.append((t1, min(b, t_fall + 0.15 + (t1 - hit[0]))))
+                knots.append((t1, min(_moving(segs, b), pull + (t1 - hit[0]))))
             else:
-                knots.append((t1, b))
-            xs, ys = zip(*knots)
+                knots.append((t1, _moving(segs, b)))
+            xs, us = zip(*knots)
             lab = sc.get("label")
             l_from = _word_at(words, lab["from"], t0) if lab else None
             l_to = _word_at(words, lab["to"], t0) if lab else None
 
-            def close(t, xs=xs, ys=ys, lab=lab, l_from=l_from, l_to=l_to):
-                sec = float(np.interp(t, xs, ys))
+            def close(t, xs=xs, us=us, segs=segs, lab=lab, l_from=l_from, l_to=l_to):
+                sec = _canonical(segs, float(np.interp(t, xs, us)))
                 extras = {}
                 if lab and l_from:
                     a_ = _ramp(t, l_from[0], 0.3) * (1 - _ramp(t, l_to[0], 0.4) if l_to else 1)
@@ -336,6 +378,8 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                     else:
                         plan[key] = ("value", v)
                 plans[name] = plan
+            drawing[i] = [(p[1], p[1] + p[2]) for plan in plans.values() for p in plan.values()
+                          if p[0] in ("ramp", "count")]
             for moment in sc.get("sounds", []):           # e.g. {"at": ["approved", 0], "sound": "lock"}
                 kind = {"lock": score.lock, "crash": score.crash, "boom": score.boom, "ping": score.ping,
                         "groan": score.groan}[moment["sound"]]
@@ -359,9 +403,11 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                 top = kit.side(False, **args(plans["needed"], t))
                 bot = kit.side(True, **args(plans["built"], t))
                 img = _grid_canvas()
-                z = 1.0 + 0.06 * _ramp(t, t0, 12.0)                  # a slow push in: nothing stands still
-                img.paste(_cover(top, SW, PANEL_H, z), (0, STACK_Y[0]))
-                img.paste(_cover(bot, SW, PANEL_H, z), (0, STACK_Y[1]))
+                # in on the joint, the counter and the verdict still in frame, and pushing on
+                # (the counter's right edge, 0.93 across, stays in: 0.55 + 0.5 / z >= 0.93)
+                z = 1.15 + 0.13 * _ramp(t, t0, 10.0)
+                img.paste(_cover(top, SW, PANEL_H, z, 0.55, 0.42), (0, STACK_Y[0]))
+                img.paste(_cover(bot, SW, PANEL_H, z, 0.55, 0.42), (0, STACK_Y[1]))
                 d = ImageDraw.Draw(img)
                 for y in STACK_Y:
                     d.line([(0, y), (SW, y)], fill=(40, 70, 110), width=2)
@@ -383,19 +429,23 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                     sfx.append((n_ / FPS, tick(c) * 0.16))
                     prev = now_
             sfx.append((count_to, score.lock() * 0.3))
-            sfx.append((cta_at, score.boom() * 0.6))
+            if not loop:
+                sfx.append((cta_at, score.boom() * 0.6))
 
             def photo_(t, t0=t0, t1=t1, pic=pic, count_to=count_to, cta_at=cta_at):
                 k = (t - t0) / max(0.1, t1 - t0)
                 img = Image.new("RGB", (SW, SH), (4, 10, 20))
-                shot = _cover(pic, SW, SH - HOOK_H, 1.0 + 0.1 * k)
+                # looping: once the count lands, the camera pushes in hard until the cut back to frame one
+                z = 1.0 + 0.1 * k + (0.35 * _ramp(t, count_to, max(0.5, t1 - count_to)) ** 1.6 if loop else 0.0)
+                shot = _cover(pic, SW, SH - HOOK_H, z)
                 shade = Image.new("RGBA", shot.size, (4, 10, 20, 80))
                 shot.paste(shade, (0, 0), shade)
                 img.paste(shot, (0, HOOK_H))
                 count = _ramp(t, t0, max(0.3, count_to - t0))         # counting from the first frame
                 return img, {"tags": [("PHOTO", (36, HOOK_H + 60), (170, 206, 255))],
                              "toll": (str(toll.get("value", "")), toll.get("label", ""), count,
-                                      _ramp(t, cta_at, 0.35))}
+                                      0.0 if loop else _ramp(t, cta_at, 0.35)),
+                             "cta": _ramp(t, cta_at - 0.6, 0.3) if loop else 0.0}
             pictures.append(photo_)
 
     # the sound: the voice over the episode's own score (ducked), the sounds on their moments
@@ -413,6 +463,11 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                             os.path.join(out_dir, "short.mp4")], stdin=subprocess.PIPE)
     groups = chunks(words)
     prev_last = None
+    import stillness
+    # the picture's own motion, the spoken words left out: a 2D scene by what is
+    # being drawn (one thin line growing is motion a phone shows but few pixels
+    # measure); 3D and photos against the frame half a second before
+    changes, recent = [], []
     for i, sc in enumerate(scenes):
         t0, t1 = span(i)
         f0, f1 = int(round(t0 * FPS)), (int(round(t1 * FPS)) if i + 1 < len(scenes) else n_total)
@@ -426,9 +481,23 @@ def build(sheet, frames3d, script, out_dir, photo=None):
             g = next((g for g in groups if g[0][1] - 0.05 <= t < g[-1][2] + 0.15), None)
             img = _overlay(base.copy(), hook, (g, t) if g and not toll_on else None, cap_y,
                            extras.get("tags", ()), extras.get("toll"), extras.get("label"))
+            if extras.get("cta"):                                # a looping Short's pointer to the full story
+                d = ImageDraw.Draw(img, "RGBA")
+                _text(d, "FULL STORY ON THE CHANNEL", SW / 2, 1560, 44,
+                      (200, 215, 235, int(255 * extras["cta"])), "Inter-Bold.otf")
+            clean = img if not g or toll_on else _overlay(
+                base.copy(), hook, None, cap_y, extras.get("tags", ()), extras.get("toll"), extras.get("label"))
             k = (n - f0) / (DISSOLVE * FPS)
             if prev_last is not None and k < 1:                  # one scene dissolves into the next
                 img = Image.blend(prev_last, img, k)
+                clean = Image.blend(prev_last, clean, k)
+            if i in drawing:
+                changes.append(100.0 if any(a_ <= t <= b_ for a_, b_ in drawing[i]) else 0.0)
+            else:
+                small = np.asarray(clean.convert("L").resize((stillness.W, stillness.H)))
+                back = int(stillness.STEP * FPS)
+                changes.append(100.0 if n - f0 < back else stillness.changed_pct(recent[-back], small))
+                recent = (recent + [small])[-back:]
             enc.stdin.write(img.tobytes())
             last = img
             if n % 150 == 0:
@@ -436,8 +505,15 @@ def build(sheet, frames3d, script, out_dir, photo=None):
         prev_last = last
     enc.stdin.close()
     enc.wait()
+    series = stillness.per_step(changes, FPS)
+    still = stillness.still_runs(series)
+    for s0, s1 in still:
+        print(f"  STILL {s0:.1f}-{s1:.1f} s: nothing moves for {s1 - s0:.1f} s")
     info = {"seconds": round(total, 2), "top": script.get("hook", ""), "script": script,
-            "music_credits": credits, "parts": []}
+            "music_credits": credits, "parts": [],
+            "stillness": {"step": stillness.STEP, "motion": [round(v, 2) for v in series], "still": still},
+            "scenes": [{"show": sc["show"], "from": round(span(i)[0], 2), "to": round(span(i)[1], 2)}
+                       for i, sc in enumerate(scenes)]}
     json.dump(info, open(os.path.join(out_dir, "short.json"), "w"), indent=1, ensure_ascii=False)
     print(f"{out_dir}/short.mp4: {total:.1f} s")
     return info
