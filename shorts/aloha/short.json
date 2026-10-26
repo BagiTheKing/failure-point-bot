@@ -1,5 +1,5 @@
 {
- "seconds": 25.86,
+ "seconds": 27.98,
  "top": "THE ROOF TORE OFF|AT 24,000 FEET.",
  "script": {
   "hook": "THE ROOF TORE OFF|AT 24,000 FEET.",
@@ -244,5 +244,10 @@
    "from": 21.43,
    "to": 25.86
   }
- ]
+ ],
+ "end_card": {
+  "from": 25.5,
+  "seconds": 2.48,
+  "source": "the full story's card from the first Aloha Short's render, 46.40 s on, dissolved in over 0.35 s (owner, 2026-10-26: the Short leads to the long video)"
+ }
 }
