@@ -53,13 +53,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - name: System packages, retried (a runner's apt mirror sometimes hangs)
-        run: |
-          for i in 1 2 3; do
-            timeout 600 sudo apt-get -o Acquire::http::Timeout=20 update -q && timeout 600 sudo apt-get -o Acquire::http::Timeout=20 install -y -q ffmpeg espeak-ng && break
-            echo "apt try $i failed: next on the main Ubuntu mirror"; [ $i = 3 ] && exit 1
-            echo 'http://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt; sleep 5
-          done
+      - uses: ./.github/actions/ffmpeg
       - run: pip install -r requirements.txt
       - uses: actions/download-artifact@v4
         with:

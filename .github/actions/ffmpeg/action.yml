@@ -1,0 +1,29 @@
+name: ffmpeg
+description: >
+  Ubuntu's own ffmpeg package, its .deb files cached between runs: installed
+  straight from the cache, without apt-get update (which took about 10 of a
+  Short run's 15 minutes, and sometimes hung). The cache follows the runner
+  image, and a miss or a failed install falls back to apt as before. No
+  espeak-ng: kokoro-onnx loads its own copy (espeakng-loader).
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache@v4
+      id: cache
+      with:
+        path: ~/aptdebs
+        key: apt-ffmpeg-${{ env.ImageOS }}-${{ env.ImageVersion }}-v1
+    - shell: bash
+      run: |
+        if [ "${{ steps.cache.outputs.cache-hit }}" = "true" ] && sudo dpkg -i ~/aptdebs/*.deb > /dev/null; then
+          ffmpeg -version | head -1
+          exit 0
+        fi
+        for i in 1 2 3; do
+          timeout 600 sudo apt-get -o Acquire::http::Timeout=20 update -q && timeout 600 sudo apt-get -o Acquire::http::Timeout=20 install -y -q ffmpeg && break
+          echo "apt try $i failed: next on the main Ubuntu mirror"; [ $i = 3 ] && exit 1
+          echo 'http://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt; sleep 5
+        done
+        mkdir -p ~/aptdebs
+        cp /var/cache/apt/archives/*.deb ~/aptdebs/ 2>/dev/null || true
+        ffmpeg -version | head -1
