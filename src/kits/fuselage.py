@@ -399,7 +399,7 @@ class Fuselage(KitTiming):
         return img
 
     def side(self, built, outline=1.0, details=1.0, seam=1.0, crack=0.0, strap=0.0, open_=0.0,
-             verdict=0.0, stamp=0.0, stamp_text="", counter=""):
+             verdict=0.0, stamp=0.0, stamp_text="", counter="", zoom=2.7, cx=415):
         """One side of the comparison on its own, for a Short (owner,
         2026-10-22: "what it needed" above "as built", both drawn from
         nothing at the same time). Each argument is a 0..1 progress: the
@@ -407,8 +407,10 @@ class Fuselage(KitTiming):
         running along it, the tear straps (where it needed them), the
         opening (a flap venting the cabin where it held, the roof tearing
         off as built), the verdict, a stamp; `counter` (the flights flown)
-        sits over the built side."""
-        f = Frame(415, CY - 22, 2.7)                 # the lap joint and the section that tore away: big on a phone
+        sits over the built side. zoom and cx frame it (owner, 2026-10-26: at
+        2.7 on the joint 'we don't even know if it is a plane anymore'); the
+        words are drawn at screen size, the same at any zoom."""
+        f = Frame(cx, CY - 22, zoom)
         f.grid(1)
         self.outline(f, outline)
         self.wing_tail(f, outline)
@@ -435,8 +437,8 @@ class Fuselage(KitTiming):
                 self.cabin(f, SEC_X0, SEC_X1)
             self._torn(f, open_)
             if counter:
-                f.text(counter, 1180, 150, 48, AMBER, "InterDisplay-Black.otf", anchor="rs", screen=True)
-                f.text("FLIGHTS", 1180, 178, 22, LINE, "Inter-Bold.otf", anchor="rs", screen=True)
+                f.text(counter, 1180, 92, 48, AMBER, "InterDisplay-Black.otf", anchor="rs", screen=True)
+                f.text("FLIGHTS", 1180, 120, 22, LINE, "Inter-Bold.otf", anchor="rs", screen=True)
         if stamp > 0 and stamp_text and verdict < 1:
             k = min(1.0, stamp)
             f.text(stamp_text, W / 2 - 120, 120, int(56 * (1.6 - 0.6 * k)), RED, "InterDisplay-Black.otf",

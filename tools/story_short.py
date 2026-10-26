@@ -403,11 +403,10 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                 top = kit.side(False, **args(plans["needed"], t))
                 bot = kit.side(True, **args(plans["built"], t))
                 img = _grid_canvas()
-                # in on the joint, the counter and the verdict still in frame, and pushing on
-                # (the counter's right edge, 0.93 across, stays in: 0.55 + 0.5 / z >= 0.93)
-                z = 1.15 + 0.13 * _ramp(t, t0, 10.0)
-                img.paste(_cover(top, SW, PANEL_H, z, 0.55, 0.42), (0, STACK_Y[0]))
-                img.paste(_cover(bot, SW, PANEL_H, z, 0.55, 0.42), (0, STACK_Y[1]))
+                # the kit frames the drawing (the whole plane, owner 2026-10-26); a slight push in
+                z = 1.0 + 0.04 * _ramp(t, t0, 12.0)
+                img.paste(_cover(top, SW, PANEL_H, z), (0, STACK_Y[0]))
+                img.paste(_cover(bot, SW, PANEL_H, z), (0, STACK_Y[1]))
                 d = ImageDraw.Draw(img)
                 for y in STACK_Y:
                     d.line([(0, y), (SW, y)], fill=(40, 70, 110), width=2)
