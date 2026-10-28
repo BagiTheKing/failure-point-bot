@@ -55,13 +55,13 @@ def sources(prep, episode_mp4):
     """Where each cut's picture is in the episode: {key: start seconds}, and
     where the cold open ends (the preview goes in there)."""
     from highlight_short import plan
-    cuts, _ = plan(prep, episode_mp4, ["connection", "physics", "dramatization", "compare", "establish", "photo"])
+    cuts, _ = plan(prep, episode_mp4, ["connection", "physics", "dramatization", "compare", "establish"])
     at = {c["span"]: c for c in cuts}
     return {"flaw": at["connection"]["end"] - 2.8,           # the part red-hot, close up
             "forces": at["physics"]["end"] - 3.6,            # the tear
             "failure": at["dramatization"]["shot_start"] - 0.3,   # the drop
             "fix": at["compare"]["end"] - 2.8,               # HOLDS / FAILS
-            "stay": at["establish"]["shot_start"] + 1.0}, at["photo"]["shot_start"]
+            "stay": at["establish"]["shot_start"] + 1.0}, at["establish"]["shot_start"]
 
 
 def voice(out_dir):

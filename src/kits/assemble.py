@@ -138,7 +138,7 @@ def reel(items, seconds, caption="", fade=0.8):
         plan.append([t0, dur, v])
         t0 += dur
     rest = seconds - t0
-    n = max(1, round(rest / 7.0)) if photos and rest >= 3.0 else 0
+    n = max(1, round(rest / 3.5)) if photos and rest >= 3.0 else 0     # a photo every ~3.5 s
     if photos and rest > 0 and all(p.get("seconds") for p in photos):
         # each photo held for its own share: it lands on the words that name it
         k = rest / sum(p["seconds"] for p in photos)
@@ -146,11 +146,13 @@ def reel(items, seconds, caption="", fade=0.8):
             plan.append([t0, p["seconds"] * k, p])
             t0 += p["seconds"] * k
     elif n:
-        # too few photos for the time: each comes back as a closer look at
-        # another part of it, rather than one picture held for half a minute
+        # never the same photo twice (owner, 2026-10-28: Aloha's pictures came
+        # back as closer looks and read as a loop): with too few for the time,
+        # each simply stays a little longer
+        n = min(n, len(photos)) if len(photos) > 1 else n
         for k in range(n):
             p = photos[k % len(photos)]
-            if k >= len(photos):
+            if k >= len(photos):             # one photo alone: closer looks at it
                 p = {**p, "focus": (k // len(photos)) % 3}
             plan.append([t0, rest / n, p])
             t0 += rest / n

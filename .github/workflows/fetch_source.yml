@@ -16,6 +16,12 @@ on:
       file:
         description: "File name to save it as, e.g. panel_report.pdf"
         required: true
+      start:
+        description: "A video: keep only from this second (blank = the whole file)"
+        default: ""
+      seconds:
+        description: "A video: and this many seconds (with start; saved as H.264 .mp4)"
+        default: ""
 
 permissions:
   contents: write
@@ -32,6 +38,10 @@ jobs:
             echo "apt try $i failed: next on the main Ubuntu mirror"; [ $i = 3 ] && exit 1
             echo 'http://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt; sleep 5
           done
+      - uses: actions/checkout@v4
+        if: inputs.start != ''
+      - uses: ./.github/actions/ffmpeg
+        if: inputs.start != ''
       - name: Download, and its text
         env:
           URL: ${{ inputs.url }}
@@ -39,6 +49,12 @@ jobs:
         run: |
           mkdir -p out
           curl -sSL --fail --retry 3 -A "Mozilla/5.0 (research; failure-point-bot)" -o "out/$FILE" "$URL"
+          if [ -n "${{ inputs.start }}" ]; then
+            # a piece of a long video, small enough for git (GitHub refuses files over 100 MB)
+            ffmpeg -v error -y -ss "${{ inputs.start }}" -i "out/$FILE" -t "${{ inputs.seconds }}" \
+              -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p -c:a aac -b:a 128k "out/${FILE%.*}.mp4"
+            [ "$FILE" = "${FILE%.*}.mp4" ] || rm "out/$FILE"
+          fi
           ls -la out
           case "$FILE" in
             *.pdf) pdftotext -layout "out/$FILE" "out/${FILE%.pdf}.txt"; pdftotext "out/$FILE" "out/${FILE%.pdf}.flow.txt"

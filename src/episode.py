@@ -443,6 +443,8 @@ def gather_footage(sheet, out_dir, limit=3, longest=24.0, owner_dir=None):
     cands.sort(key=lambda c: not c["cctv"])             # security cameras first, stably
     os.makedirs(os.path.join(out_dir, "footage"), exist_ok=True)
     got = owner_footage(owner_dir, out_dir, longest)
+    if got:                                 # the owner's choice stands alone
+        cands = []
     for c in cands:
         if len(got) >= limit:
             break
@@ -544,54 +546,41 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
                       "credit": _short_credit(c["credit"]).replace("Photo:", "Footage:"),
                       "tag": "SECURITY CAMERA FOOTAGE" if c.get("cctv") else "ARCHIVE FOOTAGE"})
 
+    shown = set()                            # the pictures the cold open showed
+
     def archive(name, trans, lead_clips=()):
         seconds = slots[name] + (d if trans != "cut" else 0)
-        add2d(name, reel(list(lead_clips) + pictures(name), seconds, caps.get(name, "")),
+        if lead_clips:                       # with footage: no stand-in, never a picture twice
+            pics = [p for p in pictures(name) if p["path"] not in shown] if photos.get(name) else []
+        else:
+            pics = pictures(name)
+        add2d(name, reel(list(lead_clips) + pics, seconds, caps.get(name, "")),
               seconds, trans, [(name, 0)])
 
-    # the cold open: a burst of press shots, the title, one picture per hook line
+    # the cold open: a burst of press shots, the title, one picture per hook line.
+    # It is never given the footage: real footage is kept for the disaster's
+    # own chapter, after the 3D and 2D have shown how it happened
     hook_T = 0.0
-    intro = intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures)
+    intro = intro_plan(sheet, voiced, photos, [], raw3d, tm, pictures)
     if intro:
         fn, hook_T, hook_shots = intro
-        # the cold open runs straight on into the bridge's story: one chapter
+        # the cold open runs straight on into the structure: one chapter
         add2d("hook", fn, hook_T, "dissolve", hook_shots)
+        if photos.get("photos_disaster"):
+            # with a cold open the disaster shot is not made: its photos go
+            # to the opening shot and the aftermath instead of being lost
+            extra = list(photos["photos_disaster"])
+            half = (len(extra) + 1) // 2
+            photos = {**photos, "photo": (photos.get("photo") or []) + extra[:half],
+                      "aftermath": (photos.get("aftermath") or []) + extra[half:], "photos_disaster": []}
+        # no picture twice: what the cold open showed is not shown again,
+        # unless a shot would be left with nothing
+        shown |= getattr(intro_plan, "used", set())
+        photos = {k: ([p for p in v if p["path"] not in shown] or v) for k, v in photos.items()}
 
-    # part 1: real footage first (security cameras before anything), then photos;
-    # a long opening shot borrows spare wreckage photos so no picture holds for long
-    if intro and photos.get("photos_disaster"):
-        # with a cold open the disaster shot is not made: its photos (the
-        # writer filed the Hyatt report's two aftermath pictures there) go to
-        # the opening shot and the aftermath instead of being lost
-        extra = list(photos["photos_disaster"])
-        half = (len(extra) + 1) // 2
-        photos = {**photos, "photo": (photos.get("photo") or []) + extra[:half],
-                  "aftermath": (photos.get("aftermath") or []) + extra[half:], "photos_disaster": []}
-    seconds = slots["photo"] + d
-    lead = pictures("photo")
-    # spare wreckage only: never photos of officials visiting
-    spare = [p for p in photos.get("aftermath") or []
-             if not re.search(_WEAK, " ".join(str(p.get(k, "")) for k in ("title", "credit", "about")).lower())]
-    if len(lead) < seconds / 8 and len(spare) > 4:
-        borrow = min(len(spare) - 4, int(seconds / 8) - len(lead))
-        lead += [{"path": p["path"], "credit": _short_credit(p["credit"])} for p in spare[-borrow:]]
-        taken = {p["path"] for p in spare[-borrow:]}
-        photos = {**photos, "aftermath": [p for p in photos["aftermath"] if p["path"] not in taken]}
-    if len(lead) < seconds / 7:
-        # still too few to keep the first minute moving (the Hyatt episode
-        # held one wreckage photo for 30 s): our 3D model, standing, from
-        # its establishing angles, while the narration describes the structure
-        need = int(seconds / 7) - len(lead)
-        lead += [{**x, "credit": ""} for x in stills_3d(1.0, 3.0, 5.0, 9.5, 12.0)[:need]]
-    add2d("photo", common.photo(sheet, reel(clips[:1] + lead, seconds), tint_out=False,
-                                toll_at=(narration.PAD_IN + toll_t) if toll_shot == "photo" else None,
-                                quiet=bool(intro)),
-          seconds, "dissolve", [("photo", 0)])
-    if not intro:
-        # with a cold open, this shot only says again what the cold open said
-        # (the date, the toll, the vehicles): owner, 2026-10-18, "all down to
-        # one minute, one chapter"
-        archive("photos_disaster", "dissolve", clips[1:])
+    # owner, 2026-10-28: after the opening, straight into the 3D and 2D; the
+    # disaster's real footage and pictures come after "Second by second", as
+    # the reward for having watched how it happened
     e1 = tm.real(7.0)
     add3d("establish", 0, e1, "dissolve", [("establish", 0)])
     add2d("build", kit.build, D["build"], "dissolve", [("build", 0)])
@@ -616,11 +605,17 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
         add3d("fall", tm.real(20.0), tm.real(28.0), "dissolve",
               [("fall", 0), ("dramatization", tm.real(22.0) - tm.real(20.0))],
               fill_to=frames(slots["fall"] + slots["dramatization"] + d))
+    # the disaster as it was seen: the real footage first, then the pictures
+    archive("photo", "dissolve", clips)
+    if not intro and texts.get("photos_disaster"):
+        archive("photos_disaster", "dissolve")
     archive("aftermath", "dissolve")
+    # what happened against what should have, then how it came to happen
+    add2d("compare", kit.compare, D["compare"], "dissolve", [("compare", 0)])
     add2d("timeline", common.timeline(sheet, timeline_reveal(sheet, words.get("timeline"))),
           slots["timeline"] + d, "dissolve", [("timeline", 0)])
-    archive("investigation", "dissolve")
-    add2d("compare", kit.compare, D["compare"], "dissolve", [("compare", 0)])
+    if texts.get("investigation"):
+        archive("investigation", "dissolve")
     archive("today_photos", "dissolve")
     add2d("today", common.today(sheet), slots["today"], "cut", [("today", 0)])
 
@@ -715,6 +710,7 @@ def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures, fade_out=False
             pick = best_picture(hook["lines"][i], spare, used=[it.get("path") for it in items])
             items.append(pick or {"path": None})
     cuts = coldopen.layout(burst, items, lines, T)
+    intro_plan.used = {p.get("path") for p in burst + items if p.get("path")}
     fx = coldopen.events(cuts, items)
     fn = coldopen.cold_open(cuts, lines, T, hook.get("title", ""), hook.get("sub", ""), fx,
                             fade_out=fade_out)
@@ -982,7 +978,7 @@ def score_plan(part_starts, hook_T, total):
     return plan
 
 
-PARTS = {1: "The disaster", 2: "The structure and its weak point", 3: "The physics",
+PARTS = {1: "The disaster, for real", 2: "The structure and its weak point", 3: "The physics",
          4: "Second by second", 5: "The warnings and the investigation",
          6: "How it should have worked", 7: "Could it happen today?"}
 

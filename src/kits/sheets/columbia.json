@@ -208,15 +208,15 @@
       "part": 1,
       "tool": "archive",
       "clip": "photo",
-      "caption": "Columbia on Launch Complex 39A before mission STS-107",
-      "narration": "This is Columbia on Launch Complex 39A before mission STS-107. It was the 113th flight of the Space Shuttle program, and Columbia's 28th. Seven astronauts flew it, commanded by Rick Husband, with William McCool as pilot. It was a 16-day science mission, and it met all its objectives. Neither the crew nor Mission Control had any sign that the mission was in trouble."
+      "caption": "Mission Control, then the sky over Texas: 1 February 2003",
+      "narration": "This is Mission Control that morning. At eight fifty-four, the mechanical systems officer reported four hydraulic sensors in the left wing reading off-scale low. At eight fifty-nine and thirty-two seconds came the last call from commander Rick Husband: Roger. Cut off in midword. Over central Texas, the crew of an Army helicopter filmed what followed on its gun camera. One streak becomes many: each one a piece of Columbia, still moving at hypersonic speed."
     },
     {
       "part": 1,
       "tool": "archive",
       "clip": "photos_disaster",
       "caption": "Columbia's debris trails over Texas, 1 February 2003",
-      "narration": "On the morning of February 1, 2003, people on the ground watched a bright point of light cross the sky, shedding pieces as it went. Over Texas, at about 200,000 feet and Mach 19, it broke apart into streaks. That light was Columbia, sixteen minutes from landing. The orbiter had fallen out of control at more than 10,000 miles per hour. There was no explosion: the air itself tore the damaged orbiter apart. All seven astronauts aboard were killed. Debris fell across Texas and Louisiana."
+      "narration": ""
     },
     {
       "part": 2,
@@ -258,42 +258,42 @@
       "tool": "2d",
       "clip": "clock",
       "caption": "Last call from Columbia: 8:59:32 a.m.",
-      "narration": "At eight fifty-nine and thirty-two seconds, Mission Control heard Columbia for the last time. Forty-six seconds later, video from the ground shows the orbiter breaking apart."
+      "narration": "Nine o'clock, over Texas. Columbia is sixteen minutes from landing, and its left wing is coming apart from the inside."
     },
     {
       "part": 4,
       "tool": "3d",
       "clip": "fall",
       "caption": "Breakup at about 200,000 feet and Mach 19",
-      "narration": "At nine o'clock and eighteen seconds, over Texas, at about 200,000 feet and Mach 19, the aerodynamic forces overcame the damaged left wing. Columbia lost control and broke apart."
+      "narration": "At nine o'clock and eighteen seconds, at about 200,000 feet and Mach 19, the aerodynamic forces overcame the damaged left wing. Columbia lost control and broke apart."
     },
     {
       "part": 4,
       "tool": "ai_video",
       "clip": "dramatization",
       "caption": "Mission Control: four left-wing hydraulic sensors off-scale low",
-      "narration": "At eight fifty-four and twenty-four seconds, the mechanical systems officer told the Flight Director that four hydraulic sensors in the left wing were reading off-scale low. At eight fifty-nine and thirty-two seconds came the last call from commander Rick Husband: Roger. Cut off in midword."
+      "narration": "There was no explosion. The air itself tore the damaged orbiter apart."
     },
     {
       "part": 4,
       "tool": "archive",
       "clip": "aftermath",
       "caption": "The search: about 84,000 pieces, some 38 percent of the orbiter",
-      "narration": "Debris fell across Texas and Louisiana. More than 25,000 searchers combed the ground and recovered about 84,000 pieces, some 38 percent of the orbiter. Two of them, with the U.S. Forest Service, died in a helicopter accident during the search. The pieces were mapped and laid out on a hangar floor, so the investigators could see where the heat had been. On March 19, 2003, the orbiter's data recorder was found intact near Hemphill, in San Augustine County, Texas. It held the readings from the left wing's sensors that had never been sent to the ground: the record of the heat moving through the wing, sensor by sensor, until the end."
+      "narration": "Debris fell across Texas and Louisiana; weather radar in Shreveport tracked it. More than 25,000 searchers walked the ground and searched the lakes, and recovered about 84,000 pieces, some 38 percent of the orbiter. Two of them, with the U.S. Forest Service, died in a helicopter accident during the search. The pieces were laid out on a hangar floor, so the investigators could see where the heat had been."
     },
     {
       "part": 5,
       "tool": "2d",
       "clip": "timeline",
       "caption": "Foam came off before. It was treated as normal.",
-      "narration": "Foam had come off the tank before. On Columbia's very first flight, in 1981, debris strikes damaged it so badly that more than 300 tiles had to be replaced. Foam from the left bipod ramp had been seen coming off on 7 of the 72 missions with imagery to check. In October 2002, three months before this launch, foam from the same ramp broke away on STS-112 and dented an attachment ring. It was treated as in-family: a known problem, not a safety-of-flight issue. On January 16, 2003, it happened again, and this time the foam hit the wing. On January 21, 2003, the Debris Assessment Team held its first formal meeting, and the engineers asked for images of the wing in orbit. Managers declined. On January 24, 2003, the Mission Management Team declared the strike a turnaround issue, a maintenance item for after landing. On February 1, 2003, Columbia came home."
+      "narration": "Foam had come off the tank before. On Columbia's very first flight, in 1981, debris strikes damaged it so badly that more than 300 tiles had to be replaced. Foam from the left bipod ramp had been seen coming off on 7 of the 72 missions with imagery to check. In October 2002, three months before this launch, foam from the same ramp broke away on STS-112 and dented an attachment ring. It was treated as in-family: a known problem, not a safety-of-flight issue. On January 16, 2003, it happened again, and this time the foam hit the wing. On January 21, 2003, the Debris Assessment Team held its first formal meeting, and the engineers asked for images of the wing in orbit. Managers declined. On January 24, 2003, the Mission Management Team declared the strike a turnaround issue, a maintenance item for after landing. On February 1, 2003, Columbia came home. The board found that the management practices overseeing the program were as much a cause of the accident as the foam that struck the wing."
     },
     {
       "part": 5,
       "tool": "archive",
       "clip": "investigation",
       "caption": "The board: management practices were as much a cause as the foam",
-      "narration": "About ninety minutes after the breakup, NASA Administrator Sean O'Keefe convened the Columbia Accident Investigation Board, chaired by retired Navy Admiral Harold Gehman. It released its report on August 26, 2003. The physical cause was the foam strike on the lower half of panel 8. But the board put the same weight on NASA itself. In its own words, the management practices overseeing the Space Shuttle Program were as much a cause of the accident as the foam that struck the left wing. Foam loss had become normal. The requests to image the wing had gone nowhere."
+      "narration": ""
     },
     {
       "part": 6,
@@ -307,7 +307,7 @@
       "tool": "archive",
       "clip": "today_photos",
       "caption": "Discovery launches on STS-114, the first flight after Columbia",
-      "narration": "This is Discovery lifting off on STS-114 on July 26, 2005, the first flight after Columbia. It carried a new 50-foot inspection boom on the robot arm, to examine the heat shield in orbit. Foam still came off the tank on this flight. After Discovery landed on August 9, 2005, NASA grounded the fleet again because of the foam loss."
+      "narration": "This is Discovery lifting off on July 26, 2005, the first flight after Columbia. It carried a new 50-foot boom to inspect the heat shield in orbit. Foam still came off the tank, and the fleet was grounded again."
     },
     {
       "part": 7,
@@ -321,7 +321,17 @@
     "today_photos": [
       "STS-114 launch Discovery",
       "STS-114 Discovery liftoff"
+    ],
+    "aftermath": [
+      "Space Shuttle Columbia Nose Gear",
+      "Columbia's Main Engine Powerheads GPN-2003-00076",
+      "STS-107-Debris KSC Hangar",
+      "STS-107 debris in hangar",
+      "Columbia debris detected by radar",
+      "Workers Search for Columbia's Debris GPN-2003-00082",
+      "FEMA 7508 Mark Wolfe",
+      "Searching Underwater for Space Shuttle Columbia"
     ]
   },
-  "photo_exclude": "memorial|remembered|in cabin|final moments|foam lodged|foam projectile|test assembly|barrel on the nitrogen gun|typical foam strike"
+  "photo_exclude": "memorial|remembered|in cabin|final moments|foam lodged|foam projectile|test assembly|barrel on the nitrogen gun|typical foam strike|Chawla|Laurel Clark|Ramon|Astros|tribute|Remembrance|Gehman|O'Keefe|Linda Ham|Project Team|honor guard|coffin|Arlington"
 }

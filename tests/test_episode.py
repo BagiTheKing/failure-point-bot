@@ -117,3 +117,23 @@ class ReelTimingTest(unittest.TestCase):
         self.assertGreater(b, r)
         r, g, b = fn(0.5, 10.0).getpixel((640, 360))
         self.assertGreater(r, b)
+
+    def test_no_photo_comes_back(self):
+        # owner, 2026-10-28: two photos over 30 s are two pictures, not a loop
+        import tempfile
+        from PIL import Image
+        from kits.assemble import reel
+        d = tempfile.mkdtemp()
+        paths = []
+        for name, rgb in (("red", (255, 0, 0)), ("blue", (0, 0, 255))):
+            p = os.path.join(d, name + ".png")
+            Image.new("RGB", (320, 180), rgb).save(p)
+            paths.append(p)
+        fn = reel([{"path": paths[0]}, {"path": paths[1]}], 30.0)
+        seen = []
+        for t in range(0, 30):
+            r, g, b = fn(float(t), 30.0).getpixel((640, 360))
+            colour = "red" if r > b else "blue"
+            if not seen or seen[-1] != colour:
+                seen.append(colour)
+        self.assertEqual(seen, ["red", "blue"])
