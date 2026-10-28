@@ -184,15 +184,16 @@ def _glitch(img, k):
     return Image.merge("RGB", (ImageChops.offset(r, off, 0), g, ImageChops.offset(b, -off, 0)))
 
 
-def cold_open(cuts, lines, T, title="", sub="", fx=None, fade_out=True):
+def cold_open(cuts, lines, T, title="", sub="", fx=None, fade_out=True, opening=True):
     """cuts: layout(). lines: [(start, end, text)] when each hook line is
-    spoken, shown on screen while it is said. fx: events()."""
+    spoken, shown on screen while it is said. fx: events(). opening=False:
+    the hook lines alone, later in the episode (no burst, no title)."""
     fx = fx or {}
 
     def clip(t, T_):
         k = next((j for j, (a, d, _) in enumerate(cuts) if t < a + d), len(cuts) - 1)
         a, d, item = cuts[k]
-        burst = k < BURST and t < BURST * BURST_EACH
+        burst = opening and k < BURST and t < BURST * BURST_EACH
         img = _grade(_picture(item, t - a, d, still=burst))
         for at in fx.get("shake", []):
             if at is not None and 0 <= t - at < 0.35:
@@ -209,7 +210,8 @@ def cold_open(cuts, lines, T, title="", sub="", fx=None, fade_out=True):
             img = Image.blend(Image.new("RGB", img.size, (0, 0, 0)), img, 1 - prog(t, T_ - 0.4, T_))
         f = Frame()
         f.img, f.d = img, ImageDraw.Draw(img, "RGBA")
-        title_card(f, title, sub, t)
+        if opening:
+            title_card(f, title, sub, t)
         for s, e, text in lines:
             if s - 0.15 <= t <= e + 0.4:
                 al = prog(t, s - 0.15, s + 0.1) * (1 - prog(t, e + 0.15, e + 0.4))

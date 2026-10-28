@@ -620,6 +620,15 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
         add3d("fall", tm.real(20.0), tm.real(28.0), "dissolve",
               [("fall", 0), ("dramatization", tm.real(22.0) - tm.real(20.0))],
               fill_to=frames(slots["fall"] + slots["dramatization"] + d))
+    # owner, 2026-10-28: the hook lines ("February 1, 2003. Over Texas...")
+    # open the disaster's chapter instead of the episode, over the helicopter's
+    # footage of the breakup, then the 3D of the hole; the rest of that
+    # footage plays on after Mission Control, nothing shown twice
+    lines_at = hook_lines(sheet, voiced, clips, photos, raw3d, tm, pictures, shown)
+    if lines_at:
+        fn, T, hook_shots, rest = lines_at
+        add2d("hook_lines", fn, T, "dissolve", hook_shots)
+        clips = rest
     # the disaster as it was seen: the real footage first, then the pictures
     archive("photo", "dissolve", clips)
     if not intro and texts.get("photos_disaster"):
@@ -686,6 +695,45 @@ def run_parallel(makes, workers=None):
 # --------------------------------------------------------------------------
 
 KEEP_FOR_AFTERMATH = 3
+
+
+def hook_lines(sheet, voiced, clips, photos, raw3d, tm, pictures, shown):
+    """The hook lines as the disaster chapter's opening: (fn, length, shots,
+    the footage left for the next shot), or None. Each line has a moving
+    picture: the breakup footage for the first two (the 3D fall if there is
+    none), the 3D close-up of the failed part, then a photo not yet shown."""
+    hook = sheet.get("hook") or {}
+    takes = [voiced[k] for k in sorted((k for k in voiced if k.startswith("hook_")),
+                                       key=lambda k: int(k.split("_")[1]))]
+    if not (hook.get("lines") and takes):
+        return None
+    lines, T = hook_schedule(hook["lines"], takes, start=0.5, gap=0.6, tail=1.0, shortest=0.0)
+    starts = [0.0] + [max(0.0, s - 0.25) for s, _, _ in lines[1:]]
+    durs = [b - a for a, b in zip(starts, starts[1:] + [T])]
+    frames3d = lambda a, b: [p for p in (find_frame(raw3d, n) for n in range(tm.frame(a), tm.frame(b) + 1)) if p]
+    sky = next((c for c in clips if re.search(r"army|gun camera|helicopter", c.get("credit", "") + c.get("title", ""), re.I)),
+               clips[-1] if clips else None)
+    rest = list(clips)
+    items = []
+    if sky:
+        used = int(round(sum(durs[:2]) * FPS))
+        items += [{**sky, "offset": 0}, {**sky, "offset": int(round(durs[0] * FPS))}]
+        rest = [c if c is not sky else {**c, "frames": c["frames"][used:]} for c in clips]
+        rest = [c for c in rest if len(c["frames"]) > FPS]
+    else:
+        fall = frames3d(20.0, 28.0)
+        items += [{"frames": fall, "speed": len(fall) / (FPS * max(1.0, sum(durs[:2])))}] * 2
+        items[1] = {**items[1], "offset": int(durs[0] * FPS * items[1]["speed"])}
+    close = frames3d(15.4, 19.4)
+    pool = [p for k in ("photo", "photos_disaster") if photos.get(k) for p in pictures(k) if p["path"] not in shown]
+    if close:
+        items.append({"frames": close, "speed": max(0.3, len(close) / (FPS * max(1.0, durs[min(2, len(durs) - 1)])))})
+    wide = frames3d(1.0, 6.0)
+    items.append(pool[0] if pool else ({"frames": wide, "speed": 0.6} if wide else items[-1]))
+    items = [it for it in items if it.get("path") or it.get("frames")] or [{"path": None}]
+    cuts = [(a, d, items[min(i, len(items) - 1)]) for i, (a, d) in enumerate(zip(starts, durs))]
+    fn = coldopen.cold_open(cuts, lines, T, fade_out=False, opening=False)
+    return fn, T, [(f"hook_{i}", s - narration.PAD_IN) for i, (s, _, _) in enumerate(lines)], rest
 
 
 def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures, fade_out=False):
@@ -888,7 +936,8 @@ def toll_moment(sheet, words):
     if not digits:
         return None, None
     needles = [digits, f"{int(digits):,}", number_words(digits)]
-    for clip in [c for _, _, c, _ in SHOTS]:         # the cold open has no lines now
+    hooks = sorted((c for c in words if c.startswith("hook_")), key=lambda c: int(c.split("_")[1]))
+    for clip in hooks + [c for _, _, c, _ in SHOTS]:      # the hook lines say it first
         t = narration.find_word(words.get(clip) or [], *needles)
         if t is not None:
             return clip, t
@@ -989,7 +1038,7 @@ def part_times(segs, starts):
     out, seen = [], set()
     for i, (_, _, _, shots) in enumerate(segs):
         for clip, off in shots:
-            p = part.get(clip)
+            p = part.get(clip) or (1 if clip.startswith("hook_") else None)
             if p and p not in seen:
                 seen.add(p)
                 out.append((p, starts[i] / FPS + max(0.0, off)))
