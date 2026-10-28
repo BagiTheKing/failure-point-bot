@@ -73,6 +73,18 @@ class EpisodeTimingTest(unittest.TestCase):
         self.assertEqual(got[5], said["January"])
         self.assertTrue(got[0] < got[1] and got[1] < got[2] < got[3])   # unsaid ones slot in, in order
 
+    def test_three_dates_in_one_month_land_in_turn(self):
+        s = sheet()
+        s["timeline"] = [{"date": d} for d in ("OCTOBER 2002", "16 JANUARY 2003", "21 JANUARY 2003",
+                                                "24 JANUARY 2003", "1 FEBRUARY 2003")]
+        text = ("In October 2002 foam came off. On January 16, 2003, it hit. On January 21, 2003, engineers "
+                "asked. On January 24, 2003, managers said no. On February 1, 2003, it came home.")
+        words = [{"word": w, "start": i * 0.5} for i, w in enumerate(text.split())]
+        got = [round(t - narration.PAD_IN, 2) for t in episode.timeline_reveal(s, words)]
+        jan = [w["start"] for w in words if w["word"] == "January"]
+        self.assertEqual(got[1:4], jan)
+        self.assertEqual(got[4], [w["start"] for w in words if w["word"] == "February"][0])
+
     def test_photo_of_another_city_is_dropped(self):
         hyatt = {"disaster": {"place": "Hyatt Regency Kansas City atrium",
                               "place_date": "KANSAS CITY · 17 JULY 1981", "photo_article": "Hyatt Regency walkway collapse"}}

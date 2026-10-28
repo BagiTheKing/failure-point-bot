@@ -678,6 +678,9 @@ def run_parallel(makes, workers=None):
 # The cold open
 # --------------------------------------------------------------------------
 
+KEEP_FOR_AFTERMATH = 3
+
+
 def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures, fade_out=False):
     """(clip fn, length, [(take, offset)]) for the cold open, or None.
     The burst takes four wreckage photos; the hook lines get, in turn: the
@@ -693,7 +696,11 @@ def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures, fade_out=False
     frames3d = lambda a, b: [p for p in (find_frame(raw3d, n) for n in range(tm.frame(a), tm.frame(b) + 1)) if p]
     fall = frames3d(21.6, 28.0)
     close = frames3d(15.4, 19.4)
-    wreck = (pictures("aftermath") if photos.get("aftermath") else []) + \
+    after = pictures("aftermath") if photos.get("aftermath") else []
+    # the disaster's own chapter keeps its last few pictures: none of them is
+    # flashed here first (owner, 2026-10-28: no picture twice)
+    kept = after[-min(KEEP_FOR_AFTERMATH, len(after) - 1):] if len(after) > 1 else []
+    wreck = [p for p in after if p not in kept] + \
             (pictures("photos_disaster") if photos.get("photos_disaster") else [])
     lead = pictures("photo")
     # the press shots: wreckage first, never a photo of officials visiting
@@ -904,6 +911,10 @@ def with_toll(fn, sheet, at):
     return clip
 
 
+_MONTHS = {"january", "february", "march", "april", "may", "june", "july", "august", "september",
+           "october", "november", "december"}
+
+
 def timeline_reveal(sheet, words):
     """The second each timeline event appears: on the word where the
     narrator says its date (month and year, or the year). A date the
@@ -919,8 +930,12 @@ def timeline_reveal(sheet, words):
         years = re.findall(r"\b(1[89]\d\d|20\d\d)\b", date)
         t = None
         if years:
-            later = [w for w in words if w["start"] >= after - 0.01]
-            t = narration.find_word(later, date.title(), years[0])
+            # strictly after the last one found: "16 JANUARY", "21 JANUARY" and
+            # "24 JANUARY 2003" are three Januaries said in turn (Columbia's all
+            # came up at once on the first "2003", and the line held for 30 s)
+            later = [w for w in words if w["start"] > after + 0.01] if found else words
+            months = [m.title() for m in re.findall(r"[A-Za-z]{3,}", date) if m.lower() in _MONTHS]
+            t = narration.find_word(later, date.title(), *months, years[0])
         if t is not None:
             after = t
         found.append(t)

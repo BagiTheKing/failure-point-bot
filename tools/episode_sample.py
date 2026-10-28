@@ -104,7 +104,7 @@ def recut(out, hook_text="", title="", name="", report="", report_credit="", kee
     repo = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "kits", "sheets", f"{name}.json")
     if name and os.path.exists(repo):
         later = json.load(open(repo))
-        for k in ("photo_pins", "photo_exclude"):
+        for k in ("photo_pins", "photo_exclude", "timeline"):     # none of these changes the timing
             if later.get(k):
                 sheet[k] = later[k]
     if keep:                               # an approved cut, assembled again as it is
