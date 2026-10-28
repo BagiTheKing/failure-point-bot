@@ -1,13 +1,13 @@
 {
- "seconds": 418.73333333333335,
+ "seconds": 396.43333333333334,
  "chapters": [
   "0:00 The structure and its weak point",
-  "1:43 The physics",
-  "3:18 Second by second",
-  "3:44 The disaster, for real",
-  "4:31 How it should have worked",
-  "5:20 The warnings and the investigation",
-  "6:20 Could it happen today?"
+  "1:21 The physics",
+  "2:55 Second by second",
+  "3:21 The disaster, for real",
+  "4:09 How it should have worked",
+  "4:57 The warnings and the investigation",
+  "5:58 Could it happen today?"
  ],
  "music_credits": [
   "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
@@ -45,11 +45,11 @@
   "seconds": 11.0,
   "at": 0.0,
   "sources": {
-   "flaw": 125.004,
-   "forces": 183.266,
-   "failure": 207.195,
-   "fix": 305.826375,
-   "stay": 27.3
+   "flaw": 102.704,
+   "forces": 160.966,
+   "failure": 184.89499999999998,
+   "fix": 283.526375,
+   "stay": 5.0
   },
   "spans": [
    [
