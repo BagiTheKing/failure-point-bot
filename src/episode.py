@@ -210,14 +210,19 @@ def pinned_photos(sheet, out_dir):
     picture (Columbia: Discovery's return-to-flight launch under "this is
     Discovery lifting off"): {"photo_pins": {shot: [Commons search]}}, the
     first usable result of each search, put first in that shot."""
-    from archive_engine import download_archival_image, format_credit, search_commons
-    out = {}
+    from archive_engine import commons_file, download_archival_image, format_credit, search_commons
+    out, taken = {}, set()
     for shot, queries in (sheet.get("photo_pins") or {}).items():
         for q in queries:
-            for c in search_commons(q, limit=6):
-                if (_excluded(c, sheet) or (c.get("height") or 0) > (c.get("width") or 1)
-                        or not _names_match(q, c)):
+            # "File:..." is that very file; anything else a search (Columbia's
+            # "nose gear" search found an intact Columbia landing in 2002)
+            found = [c for c in [commons_file(q)] if c] if q.startswith("File:") else search_commons(q, limit=6)
+            for c in found:
+                if (c.get("url") in taken or _excluded(c, sheet)
+                        or (c.get("height") or 0) > (c.get("width") or 1)
+                        or not (q.startswith("File:") or _names_match(q, c))):
                     continue
+                taken.add(c.get("url"))
                 path = os.path.join(out_dir, "photos", f"pin_{shot}_{len(out.get(shot, []))}.jpg")
                 if download_archival_image(c, path, 2560, 1440):
                     out.setdefault(shot, []).append({**c, "path": path, "credit": format_credit(c)})
@@ -283,8 +288,11 @@ def gather_photos(sheet, out_dir, limit=16, pool=None, call=None):
         except Exception as e:
             print(f"  photo picking by the writer failed ({type(e).__name__}: {e}): by title")
     picked = picked or assign(sheet, got)
-    for shot, pins in pinned_photos(sheet, out_dir).items():
-        picked[shot] = pins + [c for c in picked.get(shot, []) if c.get("url") not in {p.get("url") for p in pins}]
+    pins = pinned_photos(sheet, out_dir)
+    pinned = {p.get("url") for v in pins.values() for p in v}
+    picked = {k: [c for c in v if c.get("url") not in pinned] for k, v in picked.items()}   # each in one shot only
+    for shot, chosen in pins.items():
+        picked[shot] = chosen + picked.get(shot, [])
     shots = {k: [{"path": c["path"], "credit": c["credit"], "title": c.get("title", ""),
                   "about": (c.get("about") or "")[:300]} for c in v]
              for k, v in picked.items()}
