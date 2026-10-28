@@ -95,7 +95,48 @@ def _drop_excluded(sheet, out):
     json.dump(sheet, open(os.path.join(out, "timed_sheet.json"), "w"), indent=2, ensure_ascii=False)
 
 
-def recut(out, hook_text="", title="", name="", report="", report_credit="", keep=False):
+SHOTS_3D = ("establish", "load_path", "connection", "fall", "dramatization")
+
+
+def revoice(sheet, later, out):
+    """Shots whose narration the repo's sheet has since changed are voiced
+    again; the rest keep their takes. A shot over the 3D keeps its slot, so
+    the rendered frames still fit: its new take must not run longer (it is
+    read a little faster, at most 12 %, if it would)."""
+    import episode
+    import narration
+    voiced = json.load(open(os.path.join(out, "voiced.json")))
+    new = {s["clip"]: s for s in later.get("shots", [])}
+    slots = dict(sheet["timing"]["slots"])
+    before = json.dumps(sheet.get("model_3d", {}).get("shot_seconds"), sort_keys=True)
+    for sh in sheet["shots"]:
+        c = sh["clip"]
+        if c not in new or new[c].get("narration", "") == sh.get("narration", ""):
+            continue
+        sh["narration"], sh["caption"] = new[c].get("narration", ""), new[c].get("caption", sh.get("caption", ""))
+        one = {"shots": [sh]}
+        took = narration.record(one, os.path.join(out, "voice"))
+        if c in SHOTS_3D and c in took and c in voiced:
+            room = voiced[c]["seconds"]
+            if took[c]["seconds"] > room:
+                took = narration.record(one, os.path.join(out, "voice"),
+                                        speed=min(1.12, took[c]["seconds"] / room * 1.01))
+            if took[c]["seconds"] > room + 0.05:
+                raise SystemExit(f"{c}: the new take ({took[c]['seconds']:.1f} s) does not fit its 3D "
+                                 f"({room:.1f} s): shorten the line")
+            print(f"  {c}: new take {took[c]['seconds']:.1f} s in its {room:.1f} s")
+            voiced[c] = took[c]                      # the slot stays as rendered
+        elif c in took:
+            voiced[c] = took[c]
+            slots[c] = narration.slots_of(one, took)[c]
+    sheet = episode.timing(sheet, slots, sheet["timing"].get("ai", False))
+    if json.dumps(sheet.get("model_3d", {}).get("shot_seconds"), sort_keys=True) != before:
+        raise SystemExit("re-voicing changed the 3D timing: the rendered frames would not fit")
+    json.dump(voiced, open(os.path.join(out, "voiced.json"), "w"), indent=1)
+    return sheet
+
+
+def recut(out, hook_text="", title="", name="", report="", report_credit="", keep=False, redo_voice=False):
     """A new cut of an episode already voiced and rendered: keeps the
     timed sheet, the voice takes and the 3D frames; adds or redoes the cold
     open, and fetches the pictures again."""
@@ -107,6 +148,8 @@ def recut(out, hook_text="", title="", name="", report="", report_credit="", kee
         for k in ("photo_pins", "photo_exclude", "timeline"):     # none of these changes the timing
             if later.get(k):
                 sheet[k] = later[k]
+        if redo_voice:
+            sheet = revoice(sheet, later, out)
     if keep:                               # an approved cut, assembled again as it is
         print("keeping the cold open and the pictures")
         _drop_excluded(sheet, out)
@@ -174,6 +217,7 @@ if __name__ == "__main__":
     r.add_argument("--report", default="")
     r.add_argument("--report-credit", default="")
     r.add_argument("--keep", action="store_true", help="keep the cold open and the pictures as they are")
+    r.add_argument("--revoice", action="store_true", help="voice again the lines the repo's sheet has changed")
     a = sub.add_parser("assemble")
     a.add_argument("out")
     a.add_argument("raw3d")
@@ -182,6 +226,7 @@ if __name__ == "__main__":
     if args.cmd == "prepare":
         prepare(args.sheet, args.out, args.ai, args.name, args.report, args.report_credit)
     elif args.cmd == "recut":
-        recut(args.out, args.hook, args.title, args.name, args.report, args.report_credit, args.keep)
+        recut(args.out, args.hook, args.title, args.name, args.report, args.report_credit, args.keep,
+              args.revoice)
     else:
         assemble(args.out, args.raw3d, args.ai)

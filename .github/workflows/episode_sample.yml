@@ -35,6 +35,10 @@ on:
         description: "Re-cut keeping the earlier run's cold open and pictures (only assemble again)"
         type: boolean
         default: false
+      revoice:
+        description: "Re-cut: voice again the lines the repo's sheet has changed (the 3D keeps its timing)"
+        type: boolean
+        default: false
       frames_run:
         description: "Run whose 3D frames to use (blank = the re-cut run's)"
         default: ""
@@ -168,7 +172,8 @@ jobs:
           REPORT_CREDIT: ${{ inputs.report_credit }}
         run: |
           python tools/episode_sample.py recut prep --hook "$HOOK" --title "$TITLE" --name "${{ inputs.name }}" \
-            --report "$REPORT" --report-credit "$REPORT_CREDIT" ${{ inputs.keep && '--keep' || '' }}
+            --report "$REPORT" --report-credit "$REPORT_CREDIT" ${{ inputs.keep && '--keep' || '' }} \
+            ${{ inputs.revoice && '--revoice' || '' }}
       - uses: actions/upload-artifact@v4
         with:
           name: prep

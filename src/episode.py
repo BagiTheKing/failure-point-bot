@@ -522,6 +522,13 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
     def add3d(name, a, b, trans, shots, fill_to=None):
         def make():
             files = render_3d_part(sheet, raw3d, anchors, a, b, os.path.join(work, name))
+            if toll_shot in [c for c, _ in shots]:     # the death toll rolls up over the 3D
+                at = toll_t + dict(shots)[toll_shot]
+                for i, p in enumerate(files):
+                    if -0.5 <= i / FPS - at - narration.PAD_IN <= 7.5:
+                        from PIL import Image
+                        img = Image.open(p).convert("RGB")
+                        with_toll(lambda t, T, img=img: img, sheet, at)(i / FPS, None).save(p)
             if fill_to:
                 files = held(files, fill_to, os.path.join(work, name + "_hold"))
             out = to_mp4(files, os.path.join(work, f"{name}.mp4"))
@@ -689,10 +696,12 @@ def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures, fade_out=False
     hook = sheet.get("hook") or {}
     takes = [voiced[k] for k in sorted((k for k in voiced if k.startswith("hook_")),
                                        key=lambda k: int(k.split("_")[1]))]
-    if not (hook.get("lines") and takes):
+    if not hook.get("title"):
         return None
-    # the first line waits for the title to clear: no title over its picture
-    lines, T = hook_schedule(hook["lines"], takes, start=coldopen.TITLE_END + 0.5, shortest=20.0)
+    # owner, 2026-10-28: the burst of press shots and the title, then straight
+    # into the moving 3D; no hook lines over pictures (Columbia's first line
+    # sat on a still of the 3D shuttle from 0:15 to 0:22)
+    lines, T = [], coldopen.TITLE_END + 0.4
     frames3d = lambda a, b: [p for p in (find_frame(raw3d, n) for n in range(tm.frame(a), tm.frame(b) + 1)) if p]
     fall = frames3d(21.6, 28.0)
     close = frames3d(15.4, 19.4)
@@ -879,8 +888,7 @@ def toll_moment(sheet, words):
     if not digits:
         return None, None
     needles = [digits, f"{int(digits):,}", number_words(digits)]
-    hooks = sorted((c for c in words if c.startswith("hook_")), key=lambda c: int(c.split("_")[1]))
-    for clip in hooks + [c for _, _, c, _ in SHOTS]:      # the cold open says it first
+    for clip in [c for _, _, c, _ in SHOTS]:         # the cold open has no lines now
         t = narration.find_word(words.get(clip) or [], *needles)
         if t is not None:
             return clip, t

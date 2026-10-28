@@ -98,7 +98,7 @@ def _trim(samples, sr, floor=0.01):
     return samples[a:b]
 
 
-def record(sheet, out_dir, voice=None):
+def record(sheet, out_dir, voice=None, speed=1.0):
     """Records every shot's narration; returns {clip: {"wav", "seconds"}}."""
     import soundfile as sf
     from audio_engine import KOKORO_VOICE, _kokoro_instance_get, _kokoro_lang
@@ -110,7 +110,7 @@ def record(sheet, out_dir, voice=None):
         text = spoken((sh.get("narration") or "").strip())
         if not text:
             continue
-        samples, sr = tts.create(text, voice=voice, speed=1.0, lang=_kokoro_lang(voice))
+        samples, sr = tts.create(text, voice=voice, speed=speed, lang=_kokoro_lang(voice))
         samples = _trim(samples, sr)
         path = os.path.join(out_dir, f"{sh['clip']}.wav")
         sf.write(path, samples, sr)
