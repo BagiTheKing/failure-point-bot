@@ -116,7 +116,7 @@ jobs:
         with:
           name: prep
           path: prep/
-          retention-days: 14
+          retention-days: 90
 
   recut:
     if: inputs.reuse_run != ''
@@ -173,7 +173,7 @@ jobs:
         with:
           name: prep
           path: prep/
-          retention-days: 14
+          retention-days: 90
 
   render3d:
     needs: prepare
@@ -214,7 +214,7 @@ jobs:
         with:
           name: frames3d-${{ matrix.shard }}
           path: raw/
-          retention-days: 14
+          retention-days: 90
 
   assemble:
     needs: [prepare, render3d, recut]
@@ -299,7 +299,7 @@ jobs:
             prep/episode.mp4
             prep/episode.json
             prep/timed_sheet.json
-          retention-days: 14
+          retention-days: 90
       - name: Push to preview-media
         run: |
           mkdir -p pm && cd pm

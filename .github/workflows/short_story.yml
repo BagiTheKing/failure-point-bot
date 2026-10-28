@@ -91,7 +91,7 @@ jobs:
         with:
           name: short3d-${{ matrix.camera }}-${{ matrix.shard }}
           path: raw/
-          retention-days: 14
+          retention-days: 90
 
   short:
     needs: render
@@ -176,7 +176,7 @@ jobs:
         with:
           name: short-${{ inputs.short }}
           path: short/short.*
-          retention-days: 14
+          retention-days: 90
       - name: Push to preview-media
         continue-on-error: true            # the review copy never holds back publishing
         run: |

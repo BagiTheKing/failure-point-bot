@@ -81,7 +81,7 @@ jobs:
         with:
           name: short-${{ inputs.name }}
           path: short/short.*
-          retention-days: 14
+          retention-days: 90
       - name: Push to preview-media
         continue-on-error: true            # the review copy never holds back publishing
         run: |
