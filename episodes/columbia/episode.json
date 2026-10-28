@@ -1,36 +1,41 @@
 {
- "seconds": 480.26666666666665,
+ "seconds": 418.73333333333335,
  "chapters": [
-  "0:00 The disaster",
-  "0:59 The structure and its weak point",
-  "2:05 The physics",
-  "3:40 Second by second",
-  "4:57 The warnings and the investigation",
-  "6:25 How it should have worked",
-  "7:14 Could it happen today?"
+  "0:00 The structure and its weak point",
+  "1:43 The physics",
+  "3:18 Second by second",
+  "3:44 The disaster, for real",
+  "4:31 How it should have worked",
+  "5:20 The warnings and the investigation",
+  "6:20 Could it happen today?"
  ],
  "music_credits": [
   "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
-  "\"Lightless Dawn\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
   "\"Hidden Wonders\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
   "\"Stay the Course\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
   "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
-  "\"Man Down\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Lightless Dawn\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
   "\"Tyrant\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Man Down\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
   "\"Leaving Home\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
  ],
  "credits": [
-  "Chairman Gehman - GPN-2003-00084 — NASA — Public domain (via Wikimedia Commons)",
+  "Columbia breaking up over central Texas, 1 February 2003 — U.S. Army (AH-64D Apache gun camera) — Public domain",
+  "Columbia making its final landing after STS-109 mission — NASA — Public domain (via Wikimedia Commons)",
   "Columbia's Main Engine Powerheads - GPN-2003-00076 — NASA — Public domain (via Wikimedia Commons)",
   "Figure 3.6 — Columbia Accident Investigation Board, Report Volume I (2003) — Public domain",
+  "Figure 3.7 — Columbia Accident Investigation Board, Report Volume I (2003) — Public domain",
   "Figure 3.8 — Columbia Accident Investigation Board, Report Volume I (2003) — Public domain",
-  "Grid with Columbia's Debris - GPN-2003-00081 — NASA — Public domain (via Wikimedia Commons)",
-  "S114E5108 - STS-114 - View of STS-114 External Fuel Tank during separation - DPLA - 256aa3b018e3eaf1ce6a64a24a9bd553 — National Aeronautics and Space Administration. Lyndon B. Joh — Public domain (via Wikimedia Commons)",
-  "STS 107 Columbia 2003 02 14 Entry Flight Director Briefing NASA — NASA / Johnson Space Flight Center — Public domain (via Wikimedia Commons)",
+  "Figure 6.1 — Columbia Accident Investigation Board, Report Volume I (2003) — Public domain",
+  "Impact-test — Rick Stiles — Public domain (via Wikimedia Commons)",
+  "Left bipod foam ramp — NASA  The original uploader was Fplay at English Wikipedia. — Public domain (via Wikimedia Commons)",
+  "Mission Control, Houston, 1 February 2003 — NASA — Public domain",
+  "S114E5163 - STS-114 - View of STS-114 External Fuel Tank during separation - DPLA - 57d053238e4824909c95eecb3f6cfe1f — National Aeronautics and Space Administration. Lyndon B. Joh — Public domain (via Wikimedia Commons)",
   "STS-107 debris in hangar — NASA — Public domain (via Wikimedia Commons)",
-  "STS-107 launchpad circled — NASA — Public domain (via Wikimedia Commons)",
+  "STS-107-Debris KSC Hangar — NASA — Public domain (via Wikimedia Commons)",
   "STS-114 launch ocean — NASA — Public domain (via Wikimedia Commons)",
-  "Shuttle Columbia Disaster - Flight Director Communications Loop — NASA — Public domain (via Wikimedia Commons)"
+  "Space Shuttle Columbia Nose Gear (33377693670) — NTSBgov — Public domain (via Wikimedia Commons)",
+  "Workers Search for Columbia's Debris - GPN-2003-00082 — NASA — Public domain (via Wikimedia Commons)"
  ],
  "ai_clip": false,
  "hook": {
@@ -47,11 +52,11 @@
   "seconds": 11.0,
   "at": 0.0,
   "sources": {
-   "flaw": 147.57062499999998,
-   "forces": 205.832625,
-   "failure": 233.18499999999997,
-   "fix": 419.859625,
-   "stay": 49.866625
+   "flaw": 125.004,
+   "forces": 183.266,
+   "failure": 207.195,
+   "fix": 305.826375,
+   "stay": 27.3
   },
   "spans": [
    [
