@@ -728,8 +728,11 @@ def hook_lines(sheet, voiced, clips, photos, raw3d, tm, pictures, shown):
     pool = [p for k in ("photo", "photos_disaster") if photos.get(k) for p in pictures(k) if p["path"] not in shown]
     if close:
         items.append({"frames": close, "speed": max(0.3, len(close) / (FPS * max(1.0, durs[min(2, len(durs) - 1)])))})
-    wide = frames3d(1.0, 6.0)
-    items.append(pool[0] if pool else ({"frames": wide, "speed": 0.6} if wide else items[-1]))
+    # the camera flying in to the wing: the slow opening angles read as a still
+    fly = frames3d(7.0, 13.0)
+    last = durs[-1] if durs else 4.0
+    items.append(pool[0] if pool else ({"frames": fly, "speed": min(3.0, max(1.0, len(fly) / (FPS * last)))}
+                                       if fly else items[-1]))
     items = [it for it in items if it.get("path") or it.get("frames")] or [{"path": None}]
     cuts = [(a, d, items[min(i, len(items) - 1)]) for i, (a, d) in enumerate(zip(starts, durs))]
     fn = coldopen.cold_open(cuts, lines, T, fade_out=False, opening=False)
