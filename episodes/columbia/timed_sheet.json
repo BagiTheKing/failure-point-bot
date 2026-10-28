@@ -163,6 +163,13 @@
   },
   "timeline": [
     {
+      "date": "APRIL 1981",
+      "title": "First flight: debris damage",
+      "sub": "More than 300 tiles replaced",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
       "date": "OCTOBER 2002",
       "title": "Foam off the same ramp",
       "sub": "STS-112: it dents an attachment ring",
