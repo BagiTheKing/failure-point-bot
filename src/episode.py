@@ -728,8 +728,9 @@ def hook_lines(sheet, voiced, clips, photos, raw3d, tm, pictures, shown):
     pool = [p for k in ("photo", "photos_disaster") if photos.get(k) for p in pictures(k) if p["path"] not in shown]
     if close:
         items.append({"frames": close, "speed": max(0.3, len(close) / (FPS * max(1.0, durs[min(2, len(durs) - 1)])))})
-    # the camera flying in to the wing: the slow opening angles read as a still
-    fly = frames3d(7.0, 13.0)
+    # the whole orbiter in its re-entry glow, the camera's opening move played
+    # fast: at its own speed it read as a still, and under the wing too dim
+    fly = frames3d(2.0, 7.0)
     last = durs[-1] if durs else 4.0
     items.append(pool[0] if pool else ({"frames": fly, "speed": min(3.0, max(1.0, len(fly) / (FPS * last)))}
                                        if fly else items[-1]))
