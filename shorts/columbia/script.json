@@ -50,7 +50,7 @@
       0.8
      ],
      "heat": [
-      "normal",
+      "same",
       0,
       0.8
      ],
@@ -77,23 +77,23 @@
       0.8
      ],
      "foam": [
-      "foam",
-      0,
-      0.8
+      "built",
+      1.4,
+      1.6
      ],
      "hole": [
-      "foam",
-      0.75,
-      0.3
+      "hit",
+      0,
+      0.4
      ],
      "heat": [
-      "normal",
+      "same",
       0,
       0.8
      ],
      "breach": [
       "same",
-      0,
+      0.3,
       0.8
      ],
      "melt": [
@@ -117,8 +117,8 @@
    "sounds": [
     {
      "at": [
-      "foam",
-      0.8
+      "hit",
+      0
      ],
      "sound": "ping",
      "level": 0.4
