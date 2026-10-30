@@ -6,25 +6,32 @@
  },
  "photo_search": "Grid with Columbia's Debris GPN-2003-00081",
  "photo_credit": "Photo: NASA, Columbia's debris on the hangar grid (GPN-2003-00081) — Public domain",
+ "comment": "Foam had hit the shuttle on earlier flights and was accepted as normal. Would you have grounded the fleet? The full step-by-step breakdown is on the channel.",
  "scenes": [
   {
    "show": "fall",
-   "say": "February 2003. Space Shuttle Columbia breaks apart over Texas, sixteen minutes from landing."
+   "lead": 0.4,
+   "say": "February 2003. Columbia broke apart over Texas."
   },
   {
    "show": "close",
-   "say": "At launch, foam from the fuel tank hit the left wing and holed panel 8 of its heat shield. Sixteen days later, on the way home, superheated air got in through that hole and melted the wing from the inside.",
-   "cue": "inside",
+   "skip": [
+    15.3,
+    21.0
+   ],
+   "tail": 0.6,
+   "say": "Foam had holed this panel at launch. Coming home, the heat got in.",
+   "cue": "in",
    "label": {
     "text": "PANEL 8",
     "at": "panel",
     "from": "panel",
-    "to": "inside"
+    "to": "in"
    }
   },
   {
    "show": "stack",
-   "say": "The tank was required to shed no debris. The panels were built for an impact of zero point zero zero six foot-pounds. But foam had come off on earlier flights, and it was treated as normal. Same wing. One hole.",
+   "say": "Built for 0.006 foot-pounds. Foam had hit before, and was treated as normal. Same wing. One hole.",
    "sides": {
     "needed": {
      "shell": [
@@ -137,9 +144,8 @@
   {
    "show": "photo",
    "photo": "photo.jpg",
-   "say": "Investigators recovered eighty-four thousand pieces of Columbia. All seven astronauts aboard were killed.",
+   "say": "All seven astronauts were killed.",
    "toll": "seven"
   }
- ],
- "comment": "Foam had hit the shuttle on earlier flights and was accepted as normal. Would you have grounded the fleet? The full step-by-step breakdown is on the channel."
+ ]
 }
