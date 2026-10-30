@@ -61,6 +61,11 @@
        "end",
        1.3,
        0.4
+      ],
+      "clock": [
+       "start",
+       0,
+       12.0
       ]
      },
      "built": {
@@ -114,7 +119,17 @@
        0,
        0.35
       ],
-      "stamp_text": "ACCEPTED AS NORMAL"
+      "stamp_text": "ACCEPTED AS NORMAL",
+      "clock": [
+       "start",
+       0,
+       12.0
+      ],
+      "pulse": [
+       "hit",
+       0,
+       6.0
+      ]
      }
     },
     "sounds": [
@@ -186,8 +201,8 @@
    100.0,
    100.0,
    100.0,
-   0.0,
-   0.0,
+   100.0,
+   100.0,
    100.0,
    100.0,
    100.0,
