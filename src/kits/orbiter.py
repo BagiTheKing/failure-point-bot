@@ -151,7 +151,8 @@ class Orbiter(KitTiming):
     def hole_xy():
         return LX + LR * math.cos(math.radians(HOLE_A)), LY + LR * math.sin(math.radians(HOLE_A))
 
-    def section(self, f, shell=1.0, wing=1.0, hole=0.0, heat=0.0, breach=0.0, melt=0.0, flow=0.0, t=0.0):
+    def section(self, f, shell=1.0, wing=1.0, hole=0.0, heat=0.0, breach=0.0, melt=0.0, flow=0.0, t=0.0,
+                hole_gap=14):
         """The heat shield's C round the wing's front (the air comes from the
         left), the spar and skins behind it; a hole in its lower face; the
         heat outside, getting in."""
@@ -197,7 +198,7 @@ class Orbiter(KitTiming):
         # the heat shield: a thick C, with the hole in its lower face
         if shell > 0:
             if hole > 0:
-                gap = 14 * hole
+                gap = hole_gap * hole
                 f.poly(_arc(LX, LY, LR, C0, HOLE_A - gap), hot, 12, shell)
                 f.poly(_arc(LX, LY, LR, HOLE_A + gap, C1), hot, 12, shell)
             else:
@@ -214,25 +215,35 @@ class Orbiter(KitTiming):
                 cx, cy = f.P(LX + 20, LY + 10)
                 d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=RED + (int(14 * (7 - k)),))
 
-    def foam(self, f, k):
-        """The debris on its way to the panel (k 0..1) and the flash as it hits (k > 1)."""
+    def foam(self, f, k, size=1.0, trail=False, start=(-80, None)):
+        """The debris on its way to the panel (k 0..1) and the flash as it hits
+        (k > 1). size and trail: bigger, filled and streaking, for a phone."""
         if k <= 0:
             return
         hx, hy = self.hole_xy()
         if k < 1:
-            x, y = lerp(-80, hx - 14, k), lerp(LY + 230, hy + 8, k)
-            ang = k * 7
-            pts = []
-            for dx, dy in ((-26, -12), (26, -16), (22, 14), (-24, 12), (-26, -12)):
-                c, s_ = math.cos(ang), math.sin(ang)
-                pts.append((x + dx * c - dy * s_, y + dx * s_ + dy * c))
-            f.poly(pts, AMBER, 3)
+            def piece(k, alpha):
+                x0, y0 = start[0], (start[1] if start[1] is not None else LY + 230)
+                x, y = lerp(x0, hx - 14 * size, k), lerp(y0, hy + 8 * size, k)
+                ang = k * 7
+                pts = []
+                for dx, dy in ((-26, -12), (26, -16), (22, 14), (-24, 12), (-26, -12)):
+                    c, s_ = math.cos(ang), math.sin(ang)
+                    pts.append((x + (dx * c - dy * s_) * size, y + (dx * s_ + dy * c) * size))
+                if trail:
+                    f.d.polygon([f.P(*q) for q in pts], fill=AMBER + (int(200 * alpha),))
+                f.poly(pts, AMBER + (int(255 * alpha),) if trail else AMBER, 3 * (1 + (size - 1) * 0.5))
+            if trail:
+                for j in (0.24, 0.16, 0.08):
+                    if k - j > 0:
+                        piece(k - j, 0.25 * (1 - j * 3))
+            piece(k, 1.0)
         else:
             fl = max(0.0, 1 - (k - 1) * 4)
             if fl > 0:
                 cx, cy = f.P(hx, hy)
                 for r in (60, 40, 22):
-                    rr = r * SS * f.zoom * (1.4 - fl * 0.4)
+                    rr = r * size * SS * f.zoom * (1.4 - fl * 0.4)
                     f.d.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], fill=(255, 230, 180, int(90 * fl)))
 
     # -------------------------------------------------------------------- clips
@@ -388,7 +399,7 @@ class Orbiter(KitTiming):
         return img
 
     def side(self, built, shell=1.0, wing=1.0, flow=0.0, foam=0.0, hole=0.0, heat=0.0, breach=0.0,
-             melt=0.0, verdict=0.0, stamp=0.0, stamp_text="", counter=""):
+             melt=0.0, verdict=0.0, stamp=0.0, stamp_text="", counter="", clock=0.0, pulse=0.0):
         """One side of the comparison on its own, for a Short (owner,
         2026-10-22: "what it needed" above "as built", both drawn from
         nothing at the same time): the leading edge in section, whole (the
@@ -399,9 +410,21 @@ class Orbiter(KitTiming):
         f.grid(1)
         if not built:
             foam = hole = breach = melt = 0.0
-        self.section(f, shell, wing, hole=hole, heat=heat, breach=breach, melt=melt, flow=flow, t=heat * 3)
+        # clock (0..1 across the scene) keeps the airflow streaming on both
+        # sides, so the drawing never stands still between its steps
+        self.section(f, shell, wing, hole=hole, heat=heat, breach=breach, melt=melt, flow=flow,
+                     t=heat * 3 + clock * 10, hole_gap=26)
         if built:
-            self.foam(f, foam if foam < 1 else 1 + hole * 0.3)
+            # from the frame's left edge (the zoomed-in side starts well right of x=0)
+            self.foam(f, foam if foam < 1 else 1 + hole * 0.3, size=2.4, trail=True,
+                      start=(LX + 240 - W / 2 / 1.25 + 40, LY + 200))
+            if hole > 0:                                 # the hole, marked and beating until the heat takes over
+                hx, hy = self.hole_xy()
+                a = hole * (1 - min(1.0, heat * 1.5))
+                rr = (34 + 10 * math.sin(pulse * 2 * math.pi * 6)) * SS * f.zoom
+                cx, cy = f.P(hx, hy)
+                f.d.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], outline=RED + (int(255 * a),), width=4 * SS)
+                f.text("HOLE", hx - 10, hy + 78, 30, RED, "InterDisplay-Black.otf", anchor="mm", alpha=a)
             if counter:
                 f.text(counter, 1180, 150, 64, LINE, "InterDisplay-Black.otf", anchor="rs", screen=True)
                 f.text("DAYS IN ORBIT", 1180, 182, 22, DIM, "Inter-Bold.otf", anchor="rs", screen=True)
