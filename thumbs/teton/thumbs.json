@@ -1,0 +1,17 @@
+{
+ "figures": {
+  "big": "UNDER 5 HOURS",
+  "dead": "11",
+  "part": "KEY TRENCH",
+  "cause": "ONE LEAK",
+  "why": "WHY UNDER 5 HOURS WASN'T ENOUGH",
+  "block": "THE POINT OF FAILURE · TETON DAM",
+  "top": "DAM BREACHED",
+  "sub": "UNDER 5 HOURS"
+ },
+ "made": {
+  "model": "out/thumb_model.jpg",
+  "drawing": "out/thumb_drawing.jpg",
+  "xray": "out/thumb_xray.jpg"
+ }
+}
