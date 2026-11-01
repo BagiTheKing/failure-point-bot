@@ -130,6 +130,20 @@ class ReelTimingTest(unittest.TestCase):
         r, g, b = fn(0.5, 10.0).getpixel((640, 360))
         self.assertGreater(r, b)
 
+    def test_a_frozen_stretch_of_3d_is_squeezed_out(self):
+        import tempfile
+        from PIL import Image
+        from kits.assemble import unfreeze
+        d = tempfile.mkdtemp()
+        files = []
+        for i in range(90):                              # 1 s still, then 2 s moving
+            p = os.path.join(d, f"{i:03d}.png")
+            Image.new("RGB", (160, 90), (0, 0, 0) if i < 30 else (i * 2, 0, 0)).save(p)
+            files.append(p)
+        out = unfreeze(files)
+        self.assertEqual(len(out), 90)                   # the same length
+        self.assertLessEqual(sum(1 for p in out if p in files[:30]), 14)   # 1 s still -> under half a second
+
     def test_no_photo_comes_back(self):
         # owner, 2026-10-28: two photos over 30 s are two pictures, not a loop
         import tempfile

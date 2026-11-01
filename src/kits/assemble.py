@@ -97,6 +97,31 @@ def join(segments, out_mp4, work):
     print(f"{out_mp4}: {len(seq) / FPS:.1f} s")
 
 
+def unfreeze(files, still=0.5, keep=0.3):
+    """A 3D shot without its frozen stretches (owner, 2026-10-28: "anything
+    frozen is bad"): where the render stands still for more than `still`
+    seconds (a camera hold, stretched to fit the narration; Teton's opening
+    shot stood still from 0:16.5 to 0:21), only `keep` seconds of it stay and
+    the moving frames play a little slower to fill the same length."""
+    import numpy as np
+    if len(files) < 2:
+        return files
+    small = [np.asarray(Image.open(p).convert("L").resize((160, 90)), np.int16) for p in files]
+    moving = [True] + [float(np.abs(small[i] - small[i - 1]).mean()) > 0.15 for i in range(1, len(files))]
+    out, run = [], []
+    for p, m in zip(files, moving):
+        if m:
+            out += run[:int(keep * FPS)] if len(run) > still * FPS else run
+            run = []
+            out.append(p)
+        else:
+            run.append(p)
+    out += run[:int(keep * FPS)] if len(run) > still * FPS else run
+    if len(out) == len(files):
+        return files
+    return [out[min(len(out) - 1, int(i * len(out) / len(files)))] for i in range(len(files))]
+
+
 def find_frame(raw, n):
     """A rendered 3D frame by number: PNG straight from Blender, or the JPEG
     the render shards ship to save space."""
