@@ -559,7 +559,9 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
         frames_dir = os.path.join(work, f"footage_{i}")
         clips.append({"frames": frames_of(c["path"], frames_dir, cover=True),
                       "credit": _short_credit(c["credit"]).replace("Photo:", "Footage:"),
-                      "tag": "SECURITY CAMERA FOOTAGE" if c.get("cctv") else "ARCHIVE FOOTAGE"})
+                      # a run of real photos played as a clip is not footage: say so
+                      "tag": "SECURITY CAMERA FOOTAGE" if c.get("cctv") else
+                             "PHOTOS, AS IT HAPPENED" if "photos" in c.get("title", "") else "ARCHIVE FOOTAGE"})
 
     shown = set()                            # the pictures the cold open showed
 
@@ -734,6 +736,8 @@ def hook_lines(sheet, voiced, clips, photos, raw3d, tm, pictures, shown):
     last = durs[-1] if durs else 4.0
     items.append(pool[0] if pool else ({"frames": fly, "speed": min(3.0, max(1.0, len(fly) / (FPS * last)))}
                                        if fly else items[-1]))
+    if pool:
+        shown.add(pool[0]["path"])                   # not shown again by the next shot
     items = [it for it in items if it.get("path") or it.get("frames")] or [{"path": None}]
     cuts = [(a, d, items[min(i, len(items) - 1)]) for i, (a, d) in enumerate(zip(starts, durs))]
     fn = coldopen.cold_open(cuts, lines, T, fade_out=False, opening=False)
