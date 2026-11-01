@@ -24,7 +24,7 @@ import shutil
 import subprocess
 
 from kits import common, timemap
-from kits.assemble import (DISSOLVE, find_frame, frames_of, render_3d_part, dramatization, unfreeze,
+from kits.assemble import (DISSOLVE, find_frame, frames_of, render_3d_part, dramatization,
                            held, reel, to_mp4, xfade_join)
 from kits import coldopen
 from kits.blueprint import FPS, render_clip
@@ -521,7 +521,7 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
 
     def add3d(name, a, b, trans, shots, fill_to=None):
         def make():
-            files = unfreeze(render_3d_part(sheet, raw3d, anchors, a, b, os.path.join(work, name)))
+            files = render_3d_part(sheet, raw3d, anchors, a, b, os.path.join(work, name))
             if toll_shot in [c for c, _ in shots]:     # the death toll rolls up over the 3D
                 at = toll_t + dict(shots)[toll_shot]
                 for i, p in enumerate(files):

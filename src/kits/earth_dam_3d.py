@@ -272,7 +272,14 @@ class Model:
             cam.data.lens = lens
             cam.data.keyframe_insert("lens", frame=s(sec))
 
-        cam_key(0, (180, -1050, 260), (0, 0, 45), 35)                       # establish
+        # establish: a real sweep, from high over the right bank round to the
+        # downstream face (owner, 2026-10-28: "anything frozen is bad"; the
+        # old 140-unit drift read as a still once stretched to its narration)
+        prefs = bpy.context.preferences.edit         # the sweep moves from its first frame (no ease-in)
+        was, prefs.keyframe_new_interpolation_type = prefs.keyframe_new_interpolation_type, "LINEAR"
+        cam_key(0, (760, -620, 560), (0, 0, 45), 35)                        # establish
+        prefs.keyframe_new_interpolation_type = was
+        cam_key(3.2, (430, -960, 360), (-20, 0, 45), 35)
         cam_key(6.5, (40, -950, 210), (-60, 0, 45), 35)
         cam_key(8.5, h + Vector((160, -420, 90)), h + Vector((20, 0, 10)), 42)   # the right abutment
         cam_key(12.5, h + Vector((120, -360, 70)), h + Vector((10, 0, 5)), 42)
