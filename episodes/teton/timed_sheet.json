@@ -96,7 +96,7 @@
       "connection": 17.105,
       "pull": 6.5233,
       "hold": 2.7957,
-      "drop": 9.0
+      "drop": 6.361000000000001
     }
   },
   "disaster": {
@@ -105,19 +105,19 @@
     "caption": "Teton Dam breaches during its first filling",
     "photo_article": "Teton Dam",
     "report": {
-      "url": "https://damfailures.org/sites/default/files/wp-pdf/IR_Independent-Investigation_Teton.pdf",
-      "credit": "Independent Panel to Review Cause of Teton Dam Failure, Report to the U.S. Department of the Interior and State of Idaho (1976)"
+      "credit": "Independent Panel to Review Cause of Teton Dam Failure, Report (1976)",
+      "url": "https://damfailures.org/sites/default/files/wp-pdf/IR_Independent-Investigation_Teton.pdf"
     }
   },
   "hook": {
+    "title": "THE TETON DAM FAILURE",
     "lines": [
       "June 5, 1976. Idaho. Teton Dam, 305 feet high, is filling for the first time.",
       "Just before noon, the dam gives way. The flood that follows kills at least 11 people.",
       "Water had found open joints in the rock and was washing out the soil of its core.",
       "The design counted on stopping the water. It had no way to make the leaks harmless."
     ],
-    "title": "THE TETON DAM FAILURE",
-    "sub": "TETON RIVER, IDAHO · 5 JUNE 1976 · 11:55 AM"
+    "sub": "TETON RIVER, IDAHO · 5 JUNE 1976"
   },
   "design_vs_built": {
     "designed": {
@@ -207,17 +207,17 @@
       "part": 1,
       "tool": "archive",
       "clip": "photo",
-      "caption": "Teton Dam, Teton River, Idaho",
-      "narration": "This is Teton Dam, on the Teton River in southeastern Idaho. The Bureau of Reclamation designed it, and awarded the construction contract to Morrison-Knudsen. It was a central-core zoned earthfill dam, 305 feet above the riverbed and 405 feet above the lowest point in its foundation. Construction ran from February 1972. The embankment was topped out on November 26, 1975. The reservoir behind it had begun filling on October 3, 1975.",
-      "seconds": 30.67
+      "caption": "The breach, photographed as it happened: 5 June 1976",
+      "narration": "These photographs were taken as it happened. The first sign of grave trouble was seen at about seven in the morning. By nine thirty, a wet spot had appeared on the face of the dam, near the right abutment. By about ten thirty, it was a flowing leak, eating its way up into the embankment. Bulldozers were sent to fill the hole. The hole took them. At about eleven fifty-five, the crest broke.",
+      "seconds": 20.38
     },
     {
       "part": 1,
       "tool": "archive",
       "clip": "photos_disaster",
       "caption": "Teton Dam breaching, 5 June 1976",
-      "narration": "On Saturday, June 5, 1976, the first sign of grave trouble was seen at about seven in the morning. By nine thirty a wet spot had appeared on the face of the dam, near the right abutment. By about ten thirty it was a flowing leak, and the leak was eating its way up into the embankment. Bulldozers were sent to fill the hole. The hole took them. At about eleven fifty-five, the crest broke. Reclamation says more than a million cubic feet of water per second tore through the gap. Sugar City, Rexburg and Wilford were battered by the trees, houses, cattle and cars the flood carried.",
-      "seconds": 32.78
+      "narration": "",
+      "seconds": 3.0
     },
     {
       "part": 2,
@@ -280,8 +280,8 @@
       "tool": "ai_video",
       "clip": "dramatization",
       "caption": "What the witnesses saw that morning",
-      "narration": "The witnesses timed it. A wet spot on the face at nine thirty. A flowing leak from the embankment by ten thirty. A whirlpool in the reservoir at ten fifty. Bulldozers sent to fill the hole, lost in it.",
-      "seconds": 12.5
+      "narration": "Reclamation says more than a million cubic feet of water per second tore through the gap.",
+      "seconds": 6.36
     },
     {
       "part": 4,
@@ -296,16 +296,16 @@
       "tool": "2d",
       "clip": "timeline",
       "caption": "The warnings, and how fast it went",
-      "narration": "The difficulties were known early. In 1969, a pilot grouting program at the site forecast the problems the final grout curtain would meet. The construction contract was awarded in December 1971. On October 3, 1975, before the embankment was even topped out, the reservoir started to fill. The panel judged that a slower rate of filling would have delayed the failure, but that a similar failure would have come at some later date. On June 3, 1976, several small seeps appeared in the rock about 1,400 feet downstream of the dam. On June 5, the first serious sign was seen at about seven in the morning, and before noon the dam was breached. The panel also found the dam and its foundations were not instrumented well enough for the engineers on site to know what was changing inside.",
-      "seconds": 47.12
+      "narration": "The difficulties were known early. In 1969, a pilot grouting program at the site forecast the problems the final grout curtain would meet. The construction contract was awarded in December 1971. On October 3, 1975, before the embankment was even topped out, the reservoir started to fill. The panel judged that a slower rate of filling would have delayed the failure, but that a similar failure would have come at some later date. On June 3, 1976, several small seeps appeared in the rock about 1,400 feet downstream of the dam. On June 5, the first serious sign was seen at about seven in the morning, and before noon the dam was breached. The panel also found the dam and its foundations were not instrumented well enough for the engineers on site to know what was changing inside. In December 1976, the panel gave its conclusion: the dam failed by internal erosion of the core, deep in the right foundation key trench.",
+      "seconds": 54.79
     },
     {
       "part": 5,
       "tool": "archive",
       "clip": "investigation",
       "caption": "The Independent Panel's findings, December 1976",
-      "narration": "An Independent Panel to Review Cause of Teton Dam Failure reported to the Interior Department and the State of Idaho. It ran its own tests on the site, studied the records, and had the sworn testimony of 37 eyewitnesses: 14 from Reclamation, 13 from the contractor, 10 from the public. In December 1976 it gave its conclusion: the dam failed by internal erosion, piping, of the core deep in the right foundation key trench. The design did not adequately take into account the foundation conditions and the soil used to fill the key trench. Construction conformed to the design in all significant aspects, except scheduling.",
-      "seconds": 37.75
+      "narration": "",
+      "seconds": 3.0
     },
     {
       "part": 6,
@@ -320,8 +320,8 @@
       "tool": "archive",
       "clip": "today_photos",
       "caption": "What is left of Teton Dam",
-      "narration": "What is left of Teton Dam still stands in the canyon, with the gap at the right abutment open. The section that failed is gone, carried away by the water it once held back. That is why the panel said it will probably never be possible to know for certain which of its two mechanisms started the leak. What it could still test was the rock that remained. Its on-site tests showed that the rock just under the grout cap, between stations 13 and 15, had not been adequately sealed.",
-      "seconds": 24.44
+      "narration": "What is left of Teton Dam still stands in the canyon, with the gap at the right abutment open. The section that failed was carried away by the water, so the panel could never know for certain which mechanism started the leak. Its tests on the rock that remained showed the rock under the grout cap had not been adequately sealed.",
+      "seconds": 17.88
     },
     {
       "part": 7,
@@ -332,16 +332,37 @@
       "seconds": 30.81
     }
   ],
+  "photo_exclude": "RC Gym|Gym burn|Progressive stages",
   "photo_pins": {
+    "aftermath": [
+      "File:-IDAHO-L-0013- Teton Dam Flood - Wilford (5811893505).jpg",
+      "File:-IDAHO-L-0043- Teton Dam Flood - Rexburg (5874587893).jpg",
+      "File:-IDAHO-L-0019- Teton Dam Flood - Meyers Feedlot (5812456710).jpg",
+      "File:-IDAHO-L-0020- Teton Dam Flood - Meyers Feedlot (5812471690).jpg",
+      "File:-IDAHO-L-0021- Teton Dam Flood - Rexburg (5811908469).jpg",
+      "File:-IDAHO-L-0023- Teton Dam Flood - Rexburg (5811914419).jpg",
+      "File:-IDAHO-L-0025- Teton Dam Flood - Rexburg (5874612409).jpg",
+      "File:-IDAHO-L-0040- Teton Dam Flood - Rexburg (5874633245).jpg",
+      "File:-IDAHO-L-0074- Teton Dam Flood - Rexburg (5898247421).jpg",
+      "File:-IDAHO-L-0057- Teton Dam Flood - Rexburg (5894876454).jpg",
+      "File:-IDAHO-L-0049- Teton Dam Flood - Rexburg (5892843604).jpg",
+      "File:-IDAHO-L-0071- Teton Dam Flood - Rexburg (5898297095).jpg"
+    ],
     "today_photos": [
-      "TetonDamRemains01",
-      "Teton Dam remains"
+      "File:(IDAHO-L-0010) Teton Dam Flood - Newdale.jpg",
+      "File:-IDAHO-L-0001- Teton Dam Flood - Newdale (5812284122).jpg"
+    ],
+    "photo": [
+      "File:-IDAHO-L-0012- Teton Dam Flood - Newdale (5812316462).jpg",
+      "File:-IDAHO-L-0009- Teton Dam Flood - Newdale (5811723977).jpg",
+      "File:-IDAHO-L-0015- Teton Dam Flood (5811899677).jpg",
+      "File:-IDAHO-L-0016- Teton Dam Flood (5811902699).jpg"
     ]
   },
   "timing": {
     "slots": {
-      "photo": 30.673999999999996,
-      "photos_disaster": 32.782,
+      "photo": 20.378999999999998,
+      "photos_disaster": 3.0,
       "establish": 20.281,
       "build": 36.379,
       "load_path": 19.657999999999998,
@@ -349,12 +370,12 @@
       "physics": 54.209999999999994,
       "clock": 8.431000000000001,
       "fall": 9.319,
-      "dramatization": 12.503,
+      "dramatization": 6.361000000000001,
       "aftermath": 38.303999999999995,
-      "timeline": 47.116,
-      "investigation": 37.751,
+      "timeline": 54.794,
+      "investigation": 3.0,
       "compare": 40.147999999999996,
-      "today_photos": 24.435999999999996,
+      "today_photos": 17.875999999999998,
       "today": 30.81
     },
     "dissolve": 0.8,
@@ -364,6 +385,5 @@
       "physics": 55.00999999999999,
       "compare": 40.94799999999999
     }
-  },
-  "photo_exclude": "RC Gym|Gym burn"
+  }
 }
