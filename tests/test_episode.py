@@ -163,3 +163,14 @@ class ReelTimingTest(unittest.TestCase):
             if not seen or seen[-1] != colour:
                 seen.append(colour)
         self.assertEqual(seen, ["red", "blue"])
+
+
+def test_a_frame_used_twice_survives_encoding(tmp_path, monkeypatch):
+    from PIL import Image
+    from kits import assemble
+    a, b = str(tmp_path / "a.png"), str(tmp_path / "b.png")
+    Image.new("RGB", (8, 8)).save(a); Image.new("RGB", (8, 8), "white").save(b)
+    seen = []
+    monkeypatch.setattr(assemble, "encode", lambda d, mp4: seen.extend(sorted(os.listdir(d))))
+    assemble.to_mp4([a, a, b, b], str(tmp_path / "x.mp4"))
+    assert len(seen) == 4

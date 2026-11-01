@@ -119,7 +119,16 @@ def unfreeze(files, still=0.5, keep=0.3):
     out += run[:int(keep * FPS)] if len(run) > still * FPS else run
     if len(out) == len(files):
         return files
-    return [out[min(len(out) - 1, int(i * len(out) / len(files)))] for i in range(len(files))]
+    picked, used = [], set()
+    for i in range(len(files)):
+        p = out[min(len(out) - 1, int(i * len(out) / len(files)))]
+        if p in used:                        # a frame shown twice gets its own file (overlays draw in place)
+            q = f"{p[:-4]}_r{i:05d}{p[-4:]}"
+            shutil.copyfile(p, q)
+            p = q
+        used.add(p)
+        picked.append(p)
+    return picked
 
 
 def find_frame(raw, n):
@@ -136,10 +145,11 @@ def to_mp4(files, mp4, keep=False):
     """Encodes a list of frame files as one clip; returns (mp4, frames)."""
     tmp = mp4 + "_seq"
     os.makedirs(tmp, exist_ok=True)
+    last = {p: i for i, p in enumerate(files)}        # a frame used twice (unfreeze) moves on its last use
     for i, p in enumerate(files):
         dst = os.path.join(tmp, f"{i:05d}.png")
         if p.endswith(".png"):
-            shutil.copyfile(p, dst) if keep else shutil.move(p, dst)
+            shutil.copyfile(p, dst) if keep or last[p] != i else shutil.move(p, dst)
         else:
             Image.open(p).convert("RGB").save(dst)
     encode(tmp, mp4)
