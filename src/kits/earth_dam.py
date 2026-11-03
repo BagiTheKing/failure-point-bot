@@ -373,7 +373,7 @@ class EarthDam(KitTiming):
         return img
 
     def side(self, built, rock=1.0, dam=1.0, water=0.0, seep=0.0, crack=0.0, pipe=0.0, leak=0.0,
-             collapse=0.0, verdict=0.0, stamp=0.0, stamp_text="", t=0.0):
+             collapse=0.0, verdict=0.0, stamp=0.0, stamp_text="", t=0.0, clock=0.0):
         """One side of the comparison on its own, for a Short (what it
         needed above, as built below, both drawn from nothing at once): the
         section through the trench, the joints sealed and a filter in place
@@ -381,6 +381,7 @@ class EarthDam(KitTiming):
         collapse)."""
         f = Frame(CX, (SEC_CREST + H) / 2 + 10, 1.15)
         f.grid(1)
+        t = t + clock * 12            # clock (0..1 across the scene): the water keeps flowing, nothing stands still
         if not built:
             crack = pipe = leak = collapse = 0.0
         self.section(f, rock, dam, water=water, seep=seep, joints_sealed=not built, crack=crack, pipe=pipe,

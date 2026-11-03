@@ -363,9 +363,12 @@ class Model:
 
         a, b = SHORT[mode]
         if mode == "fall":
-            cam_key(a, (-60, -900, 140), (-230, 0, 45), 28)
-            cam_key(T_FALL + 0.5, (-50, -920, 130), (-220, 0, 40), 28)
-            cam_key(b, (-30, -980, 120), (-200, -100, 25), 26)
+            # low and close downstream of the gap (owner, 2026-11-03: the Short
+            # opens on its most violent frame): the crest drops into the hole
+            # above, the reservoir comes out toward the viewer below
+            cam_key(a, (-90, -620, 120), (-240, -30, 40), 30)
+            cam_key(T_FALL + 0.6, (-95, -600, 115), (-240, -40, 36), 30)
+            cam_key(b, (-110, -560, 105), (-245, -70, 28), 28)
         else:
             cam_key(a, h + Vector((90, -260, 50)), h + Vector((0, 0, 10)), 40)
             cam_key(15.0, h + Vector((40, -140, 22)), h, 46)
