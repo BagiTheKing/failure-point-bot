@@ -126,9 +126,9 @@
         "videos/fLQIukS9yiI/4_drawing.jpg"
       ],
       "status": "testing",
-      "current": 2,
-      "since": "2026-11-01T17:56:02.502633+00:00",
-      "views_at_start": 58,
+      "current": 3,
+      "since": "2026-11-04T19:45:33.174263+00:00",
+      "views_at_start": 65,
       "results": [
         {
           "file": "videos/fLQIukS9yiI/1_photo.jpg",
@@ -141,6 +141,12 @@
           "views": 21,
           "days": 3.98,
           "per_day": 5.27
+        },
+        {
+          "file": "videos/fLQIukS9yiI/3_xray.jpg",
+          "views": 7,
+          "days": 3.08,
+          "per_day": 2.28
         }
       ],
       "registered": "2026-10-25T01:21:07.799146+00:00"
@@ -167,15 +173,21 @@
         "videos/sSjHt9jXv28/4_drawing.jpg"
       ],
       "status": "testing",
-      "current": 1,
-      "since": "2026-11-01T17:56:02.502633+00:00",
-      "views_at_start": 2,
+      "current": 2,
+      "since": "2026-11-04T19:45:33.174263+00:00",
+      "views_at_start": 8,
       "results": [
         {
           "file": "videos/sSjHt9jXv28/1_photo.jpg",
           "views": 2,
           "days": 3.68,
           "per_day": 0.54
+        },
+        {
+          "file": "videos/sSjHt9jXv28/2_model.jpg",
+          "views": 6,
+          "days": 3.08,
+          "per_day": 1.95
         }
       ],
       "registered": "2026-10-28T23:37:20.665057+00:00"
