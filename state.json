@@ -199,10 +199,17 @@
         "videos/zcW0NBygU_s/3_model.jpg"
       ],
       "status": "testing",
-      "current": 0,
-      "since": "2026-11-01T22:57:27.655144+00:00",
-      "views_at_start": 0,
-      "results": [],
+      "current": 1,
+      "since": "2026-11-05T19:57:15.555594+00:00",
+      "views_at_start": 48,
+      "results": [
+        {
+          "file": "videos/zcW0NBygU_s/1_photo_A.jpg",
+          "views": 48,
+          "days": 3.87,
+          "per_day": 12.39
+        }
+      ],
       "registered": "2026-11-01T22:39:56.075251+00:00"
     }
   },
