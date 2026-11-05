@@ -630,7 +630,10 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
               [("fall", 0), ("dramatization", tm.real(22.0) - tm.real(20.0))],
               fill_to=frames(slots["fall"] + slots["dramatization"] + d))
     # the disaster as it was seen: the real footage first, then the pictures
-    archive("photo", "dissolve", clips)
+    # (no opening shot when it has neither words nor footage: its pictures would
+    # only come back from the teaser)
+    if texts.get("photo") or clips:
+        archive("photo", "dissolve", clips)
     if not intro and texts.get("photos_disaster"):
         archive("photos_disaster", "dissolve")
     archive("aftermath", "dissolve")
@@ -721,7 +724,11 @@ def teaser(sheet, voiced, clips, photos, pictures, shown):
             at += int(round(d * FPS))
         rest = [x if x is not c else {**x, "frames": x["frames"][at:]} for x in clips]
         rest = [x for x in rest if len(x["frames"]) > FPS]
-    pool = [p for k in ("photo", "aftermath") if photos.get(k) for p in pictures(k) if p["path"] not in shown]
+    own = [p for p in (pictures("photo") if photos.get("photo") else []) if p["path"] not in shown]
+    # the event's own photos; the wreckage only if there are too few (the
+    # disaster's chapter needs its pictures: Silver Bridge has so few)
+    pool = own if len(own) >= 2 else own + [p for p in (pictures("aftermath") if photos.get("aftermath") else [])
+                                            if p["path"] not in shown]
     for p in pool:
         if len(items) >= len(durs):
             break
@@ -806,7 +813,11 @@ def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures, fade_out=False
     # the press shots: wreckage first, never a photo of officials visiting
     burst = sorted(wreck + lead, key=lambda p: bool(re.search(
         _WEAK, " ".join(str(p.get(k, "")) for k in ("title", "credit", "about")).lower())))[:coldopen.BURST]
-    while burst and len(burst) < coldopen.BURST:
+    if photos.get("burst"):
+        # pinned for the flash on its own (Silver Bridge: so few free photos of
+        # 1967 that the teaser and the chapters need every one of the others)
+        burst = pictures("burst")[:coldopen.BURST]
+    while burst and len(burst) < coldopen.BURST and not photos.get("burst"):   # pinned: never a repeat
         burst.append(burst[len(burst) % max(1, len(burst))])
     spare = [p for p in wreck if p not in burst] or wreck or lead
     items = []

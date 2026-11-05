@@ -175,7 +175,7 @@ def test_the_teaser_uses_real_photos_once():
     from episode import teaser
     sheet = {"hook": {"lines": ["One.", "Two."]}}
     voiced = {"hook_0": {"seconds": 3.0}, "hook_1": {"seconds": 3.0}}
-    pics = {"photo": [{"path": "a.jpg"}], "aftermath": [{"path": "b.jpg"}, {"path": "c.jpg"}]}
+    pics = {"photo": [{"path": "a.jpg"}], "aftermath": [{"path": "b.jpg"}, {"path": "c.jpg"}]}   # one own photo: the wreckage helps
     shown = {"b.jpg"}                                         # the cold open already showed this one
     out = teaser(sheet, voiced, [], pics, lambda k: pics[k], shown)
     assert out is not None
