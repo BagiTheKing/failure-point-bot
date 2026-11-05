@@ -333,10 +333,14 @@ class Model:
         J = lambda x, y, z: j + Vector((x, y, z))
         prefs = bpy.context.preferences.edit
         was, prefs.keyframe_new_interpolation_type = prefs.keyframe_new_interpolation_type, "LINEAR"
-        # the establishing shots: the whole bridge, the Ohio tower from the water, the roadway
-        shot(0.0, 2.3, (420, 820, 150), (330, 790, 146), (-40, 0, 105), (-90, 0, 105), 26)
-        shot(2.3, 4.6, (-230, -300, 30), (-275, -285, 38), (-350, 0, 140), (-350, 0, 150), 22)
-        shot(4.6, 7.0, (140, 0, 77), (40, 0, 77), (-350, 0, 100), (-350, 0, 100), 30)
+        # the establishing shots, in the narration's order: the whole bridge, the
+        # chain over the Ohio tower from the water, the anchorage on the Ohio
+        # shore, the roadway among the traffic, the rocker seat under the tower
+        shot(0.0, 1.4, (420, 820, 150), (360, 800, 147), (-40, 0, 105), (-75, 0, 105), 26)
+        shot(1.4, 2.8, (-230, -300, 30), (-270, -287, 37), (-350, 0, 140), (-350, 0, 150), 22)
+        shot(2.8, 4.2, (-640, -190, 115), (-625, -175, 108), (-715, 0, 75), (-705, 0, 78), 28)
+        shot(4.2, 5.6, (140, 0, 77), (60, 0, 77), (-350, 0, 100), (-350, 0, 100), 30)
+        shot(5.6, 7.0, (-318, -62, 28), (-326, -55, 31), (-350, 0, 20), (-350, 0, 24), 30)
         # the load path down to the joint: the chain, the hangers from below, the approach
         shot(7.0, 9.2, (-580, 280, 145), (-545, 250, 140), (-470, CHAIN_Y, 120), (-460, CHAIN_Y, 118), 32)
         shot(9.2, 11.2, (-520, -45, 52), (-470, -45, 55), (-440, CHAIN_Y, 92), (-410, CHAIN_Y, 94), 26)
