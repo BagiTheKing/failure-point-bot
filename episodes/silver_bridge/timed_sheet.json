@@ -89,8 +89,8 @@
     },
     "ai_prompt": "A steel eyebar-chain suspension bridge over a wide river collapsing, its chain parting near one tower, the side span and towers falling into the water. Static camera.",
     "shot_seconds": {
-      "establish": 20.964,
-      "load_path": 18.348999999999997,
+      "establish": 31.447999999999997,
+      "load_path": 20.597999999999995,
       "connection": 16.201,
       "pull": 6.3056,
       "hold": 2.7024000000000004,
@@ -103,17 +103,16 @@
     "caption": "The Silver Bridge collapses into the Ohio River",
     "photo_article": "Silver Bridge",
     "report": {
-      "url": "https://www.ntsb.gov/investigations/AccidentReports/Reports/HAR7101.pdf",
-      "credit": "National Transportation Safety Board, Highway Accident Report NTSB-HAR-71-1 (1970)"
+      "credit": "National Transportation Safety Board, Highway Accident Report NTSB-HAR-71-1 (1970)",
+      "url": "https://www.ntsb.gov/investigations/AccidentReports/Reports/HAR7101.pdf"
     }
   },
   "hook": {
     "title": "THE SILVER BRIDGE COLLAPSE",
     "lines": [
-      "December 15, 1967. Traffic stands still on the Silver Bridge, West Virginia.",
-      "At about 5 p.m. the bridge collapses into the Ohio River. 46 people die.",
-      "It began with a crack about an eighth of an inch deep, in one joint of its chain.",
-      "No inspection could have found it. And the chain had only two bars to a link."
+      "December 15, 1967, about 5 p.m. The Silver Bridge falls into the Ohio River. 46 people die.",
+      "It began with a crack an eighth of an inch deep, inside one joint of its chain.",
+      "No inspection of the day could have found it."
     ],
     "sub": "POINT PLEASANT, WEST VIRGINIA · 15 DECEMBER 1967"
   },
@@ -185,6 +184,20 @@
       "sub": "About 5 p.m.: 46 dead",
       "kind": "failure",
       "source": "source"
+    },
+    {
+      "date": "DECEMBER 1968",
+      "title": "Stress corrosion suspected",
+      "sub": "Minute cracks found in eyebar 330",
+      "kind": "warning",
+      "source": "source"
+    },
+    {
+      "date": "16 DECEMBER 1970",
+      "title": "The final report",
+      "sub": "The cause: one cracked eyebar, two bars to a link",
+      "kind": "event",
+      "source": "source"
     }
   ],
   "today": {
@@ -206,24 +219,24 @@
       "tool": "archive",
       "clip": "photo",
       "caption": "The U.S. 35 bridge, Point Pleasant to Kanauga",
-      "narration": "This is the U.S. 35 highway bridge over the Ohio River, between Point Pleasant, West Virginia, and Kanauga, Ohio: the Silver Bridge. It was designed in 1927 and completed in 1928. It was a suspension bridge, with a 700-foot center span and two 380-foot side spans. It did not hang from wire cables. It hung from chains of steel eyebars: long flat bars with an eye at each end, pinned together at the joints.",
-      "seconds": 28.12
+      "narration": "",
+      "seconds": 3.0
     },
     {
       "part": 1,
       "tool": "archive",
       "clip": "photos_disaster",
       "caption": "The collapse, 15 December 1967",
-      "narration": "On Friday, December 15, 1967, at approximately five in the afternoon, the bridge collapsed. Thirty-seven vehicles were on it, many of them standing still in westbound traffic. Thirty-one fell with the bridge: twenty-four into the Ohio River and seven onto the Ohio shore. There were no pedestrians on the bridge. The collapse began in the Ohio side span and moved east toward West Virginia. Within about a minute, the center span, both side spans and the towers were down. Forty-six people died. Nine were injured. Divers later found both dump trucks on the river bottom, near the center of the main span.",
-      "seconds": 34.69
+      "narration": "",
+      "seconds": 3.0
     },
     {
       "part": 2,
       "tool": "3d",
       "clip": "establish",
       "caption": "A suspension bridge hung from two eyebar chains",
-      "narration": "The bridge crossed the Ohio between two towers standing on piers. Two eyebar chains, one on each side, ran from an anchorage on the Ohio shore, over both towers, to an anchorage on the West Virginia shore. Hangers dropped from the chain joints to two stiffening trusses that carried the roadway. The towers rested on rocker seats: they depended on the chains to hold them up.",
-      "seconds": 20.16
+      "narration": "The Silver Bridge carried U.S. 35 over the Ohio River, between Point Pleasant, West Virginia, and Kanauga, Ohio. It was a suspension bridge, but it did not hang from wire cables. Two chains of steel eyebars, one on each side, ran from an anchorage on the Ohio shore, over both towers, to an anchorage on the West Virginia shore. Hangers dropped from the chain joints to two stiffening trusses that carried the roadway. The towers rested on rocker seats: they depended on the chains to hold them up. So how could one small crack bring all of it down?",
+      "seconds": 30.65
     },
     {
       "part": 2,
@@ -238,8 +251,8 @@
       "tool": "3d",
       "clip": "load_path",
       "caption": "Deck to trusses to hangers to the chain",
-      "narration": "The load path was simple and direct. The deck and its traffic hung on the stiffening trusses, the trusses hung on the hangers, the hangers hung on the chain joints, and the chains carried everything to the towers and the anchorages. In every link, the full pull of the chain passed through just two eyebars, and at every joint, through their eyes and the pin.",
-      "seconds": 18.35
+      "narration": "The load path was simple and direct. The deck and its traffic hung on the stiffening trusses, the trusses hung on the hangers, the hangers hung on the chain joints, and the chains carried everything to the towers and the anchorages. In every link, the full pull of the chain passed through just two eyebars, and at every joint, through their eyes and the pin. So what happens when one of those two bars breaks?",
+      "seconds": 20.6
     },
     {
       "part": 3,
@@ -254,8 +267,8 @@
       "tool": "2d",
       "clip": "physics",
       "caption": "Stress corrosion and corrosion fatigue at the pinhole",
-      "narration": "Inside an eyebar joint there is clearance between the pin and its hole, enough for water to get in. The Safety Board found a water collection pocket right beside a point of high stress: the edge of the hole in the eye. At joint C13N, on the inside surface of the pinhole of eyebar 330, at a point in contact with the pin, small corrosion pits started cracks. Two mechanisms worked together over the bridge's forty-year life: stress corrosion, and corrosion fatigue. The main crack reached about one eighth of an inch. That was enough. The lower limb of the eye broke in a cleavage fracture: a sudden, brittle break. The upper limb then tore in a ductile fracture, and eyebar 330 came free of the joint. Its sister, eyebar 33, was now the whole link, and it slipped off the pin. The north chain had parted. Because the towers rested on rocker seats, the report says, total collapse of the bridge was then a certainty. Nothing in the design could take over the load of a broken link.",
-      "seconds": 52.81
+      "narration": "Where would water collect in a joint like this? Inside an eyebar joint there is clearance between the pin and its hole, enough for water to get in. The Safety Board found a water collection pocket right beside a point of high stress: the edge of the hole in the eye. At joint C13N, on the inside surface of the pinhole of eyebar 330, at a point in contact with the pin, small corrosion pits started cracks. Two mechanisms worked together over the bridge's forty-year life: stress corrosion, and corrosion fatigue. The main crack reached about one eighth of an inch. That was enough. The lower limb of the eye broke in a cleavage fracture: a sudden, brittle break. The upper limb then tore in a ductile fracture, and eyebar 330 came free of the joint. Its sister, eyebar 33, was now the whole link, and it slipped off the pin. The north chain had parted. Because the towers rested on rocker seats, the report says, total collapse of the bridge was then a certainty. Nothing in the design could take over the load of a broken link.",
+      "seconds": 54.9
     },
     {
       "part": 4,
@@ -286,24 +299,24 @@
       "tool": "archive",
       "clip": "aftermath",
       "caption": "31 of 37 vehicles fell",
-      "narration": "Thirty-one of the thirty-seven vehicles on the bridge fell with it. Twenty-four went into the Ohio River, and seven fell on the Ohio shore. Forty-six people died, and nine were injured. Divers searched the river, and found both dump trucks on the bottom near the center of the main span. The wreckage that fell on the Ohio shore was photographed and measured. The main members of the eyebar chains and stiffening trusses were raised and laid out at a reassembly site: by October 1968, about sixty percent of them had been put back together there.",
-      "seconds": 30.53
+      "narration": "This is the bridge as the people of Point Pleasant knew it: designed in 1927, open in 1928, with a 700-foot center span and two 380-foot side spans. On the afternoon of December 15, 1967, it was full of traffic, much of it standing still. Within about a minute, it was gone. Thirty-one of the thirty-seven vehicles on the bridge fell with it. Twenty-four went into the Ohio River, and seven fell on the Ohio shore. Forty-six people died, and nine were injured. Divers searched the river, and found both dump trucks on the bottom near the center of the main span. The wreckage that fell on the Ohio shore was photographed and measured. The main members of the eyebar chains and stiffening trusses were raised and laid out at a reassembly site: by October 1968, about sixty percent of them had been put back together there.",
+      "seconds": 49.38
     },
     {
       "part": 5,
       "tool": "2d",
       "clip": "timeline",
       "caption": "From 1927 to the final report",
-      "narration": "In 1927, the bridge was designed. In the report's words, stress corrosion and corrosion fatigue were then not known to occur in this class of bridge steel, under the exposure normally found in rural areas. In 1928, the bridge was completed. For almost forty years, a crack grew at the pinhole of eyebar 330, inside joint C13N, where no one could see it. On December 15, 1967, the chain parted and the bridge fell. In October 1968, the Safety Board issued an interim report: the fracture in eyebar 330 was essential to the collapse, but its cause was still unknown. On December 31, 1968, the Board announced that laboratory examinations had found minute cracks inside the fractured head of eyebar 330, and that stress corrosion was suspected. On December 16, 1970, it adopted its final report.",
-      "seconds": 52.62
+      "narration": "In 1927, the bridge was designed. In the report's words, stress corrosion and corrosion fatigue were then not known to occur in this class of bridge steel, under the exposure normally found in rural areas. In 1928, the bridge was completed. For almost forty years, a crack grew at the pinhole of eyebar 330, inside joint C13N, where no one could see it. On December 15, 1967, the chain parted and the bridge fell. In October 1968, the Safety Board issued an interim report: the fracture in eyebar 330 was essential to the collapse, but its cause was still unknown. On December 31, 1968, the Board announced that laboratory examinations had found minute cracks inside the fractured head of eyebar 330, and that stress corrosion was suspected. On December 16, 1970, it adopted its final report. Its finding: a cleavage fracture in eyebar 330, from a flaw about an eighth of an inch deep that had grown for forty years where no inspection could reach it.",
+      "seconds": 59.45
     },
     {
       "part": 5,
       "tool": "archive",
       "clip": "investigation",
       "caption": "The NTSB's findings, 1970",
-      "narration": "The National Transportation Safety Board investigated. Laboratory work at the National Bureau of Standards found a small crack, about one eighth of an inch deep, running from the surface of the pinhole of eyebar 330 in the plane of the fracture, with smaller cracks beside it that had started from corrosion pits. The Board's finding: the cause of the collapse was the cleavage fracture in the lower limb of the eye of eyebar 330 at joint C13N, from a flaw that grew to critical size over forty years through stress corrosion and corrosion fatigue. The flaw's location was inaccessible to visual inspection, and no inspection method then known could have found it without taking the joint apart.",
-      "seconds": 39.25
+      "narration": "",
+      "seconds": 3.0
     },
     {
       "part": 6,
@@ -317,7 +330,7 @@
       "part": 7,
       "tool": "archive",
       "clip": "today_photos",
-      "caption": "The same combination elsewhere",
+      "caption": "St. Marys today: the 1977 bridge that replaced its closed sister",
       "narration": "The Safety Board found only one other bridge in the country that combined all of these factors: the bridge at St. Marys, West Virginia. It had been closed early in the investigation. But the Board warned that many other structures had one or more of the same factors in their designs, and that no one knew precisely which combinations could let a hidden flaw grow to critical size. In some materials, it added, the critical flaw was too small for the inspection devices of the day to detect at all.",
       "seconds": 28.7
     },
@@ -330,21 +343,39 @@
       "seconds": 37.98
     }
   ],
+  "photo_pins": {
+    "burst": [
+      "File:Silver Bridge which collapsed into Ohio River - DPLA - 5c0036e5b9e2b4bd3af8bdee5b8a58b0 (page 2).jpg",
+      "File:Silver Bridge - DPLA - 9fc0bcf07698072f128124fc79edd1c7 (page 2).jpg",
+      "File:Silver and Point Pleasant Bridges aerial 2019.jpg"
+    ],
+    "photo": [
+      "File:Silver Bridge - DPLA - 9fc0bcf07698072f128124fc79edd1c7 (page 1).jpg",
+      "File:Silver Bridge which collapsed into Ohio River - DPLA - 5c0036e5b9e2b4bd3af8bdee5b8a58b0 (page 1).jpg"
+    ],
+    "aftermath": [
+      "File:Coal Barge Near Silver Bridge Collapse (5069432249).jpg",
+      "File:Silver Bridge Collapse Signage (5070040586).jpg"
+    ],
+    "today_photos": [
+      "File:The Hi Carpenter Memorial Bridge, a cantilever bridge over the Ohio River between St. Marys, West Virginiaand Newport, Ohio LCCN2015632148.tif"
+    ]
+  },
   "timing": {
     "slots": {
-      "photo": 28.116999999999997,
-      "photos_disaster": 34.687,
-      "establish": 20.163999999999998,
+      "photo": 3.0,
+      "photos_disaster": 3.0,
+      "establish": 30.647999999999996,
       "build": 41.315999999999995,
-      "load_path": 18.348999999999997,
+      "load_path": 20.597999999999995,
       "connection": 15.401000000000002,
-      "physics": 52.814,
+      "physics": 54.903999999999996,
       "clock": 11.872,
       "fall": 9.008000000000001,
       "dramatization": 13.025,
-      "aftermath": 30.531999999999996,
-      "timeline": 52.620999999999995,
-      "investigation": 39.254999999999995,
+      "aftermath": 49.379999999999995,
+      "timeline": 59.455,
+      "investigation": 3.0,
       "compare": 40.876999999999995,
       "today_photos": 28.698999999999998,
       "today": 37.976
@@ -353,7 +384,7 @@
     "ai": false,
     "kit": {
       "build": 42.11599999999999,
-      "physics": 53.614,
+      "physics": 55.70399999999999,
       "compare": 41.67699999999999
     }
   }
