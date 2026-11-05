@@ -23,7 +23,12 @@ from visual_engine import generate_visual_pipeline
 from video_engine import generate_video_pipeline
 from shorts_archive import archive_credits, fill_real_images
 from shorts_facts import SHORTS_FACTS, research_short
-from youtube_publisher import upload_video_to_youtube
+from functools import partial
+
+import youtube_publisher
+
+# these generators' pictures are realistic AI scenes: YouTube's rule asks for the disclosure
+upload_video_to_youtube = partial(youtube_publisher.upload_video_to_youtube, synthetic=True)
 
 
 def cleanup_build_dir(build_dir="build"):

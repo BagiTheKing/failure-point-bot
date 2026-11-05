@@ -27,7 +27,12 @@ from audio_engine import generate_audio_pipeline
 from published_history import (covered_topics, describe, load_published,
                                recent_titles)
 from topics import pick_topic
-from youtube_publisher import upload_video_to_youtube
+from functools import partial
+
+import youtube_publisher
+
+# these generators' pictures are realistic AI scenes: YouTube's rule asks for the disclosure
+upload_video_to_youtube = partial(youtube_publisher.upload_video_to_youtube, synthetic=True)
 
 # main.py (Shorts) has carried this exact protection since 19 August, after a
 # manual run stacked on the day's scheduled one found Cloudflare's 10,000-

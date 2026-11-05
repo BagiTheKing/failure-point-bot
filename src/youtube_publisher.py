@@ -185,7 +185,8 @@ def post_first_comment(youtube, video_id: str, text: str) -> bool:
 def upload_video_to_youtube(video_path: str, title: str, description: str, tags=None,
                             thumbnail_path: str = None, first_comment: str = None,
                             caption_path: str = None, playlist_title: str = None,
-                            playlist_description: str = "", publish_at: str = None):
+                            playlist_description: str = "", publish_at: str = None,
+                            synthetic: bool = None):
     youtube = get_authenticated_service()
     print(f"📤 Uploading: {title}")
 
@@ -207,11 +208,12 @@ def upload_video_to_youtube(video_path: str, title: str, description: str, tags=
         "status": {
             "privacyStatus": privacy,
             "madeForKids": False,
-            # Honest altered/synthetic content disclosure. Keep this: it's
-            # required by YouTube's policy for realistic AI-generated visuals,
-            # and disclosed AI content is NOT excluded from monetization.
-            # Getting caught *not* disclosing is what gets channels penalized.
-            "containsSyntheticMedia": True,
+            # The altered/synthetic content question (owner, 2026-11-05: left
+            # unanswered, like the made-for-kids one). Answered yes only by a
+            # caller whose video holds realistic AI-generated pictures of a
+            # real event, the case YouTube's rule names: an episode's AI
+            # dramatization clip, the old generators' AI scenes.
+            **({"containsSyntheticMedia": True} if synthetic else {}),
             **({"publishAt": publish_at} if publish_at else {}),
         },
     }
