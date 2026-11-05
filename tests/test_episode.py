@@ -169,3 +169,17 @@ def test_one_track_across_two_chapters_plays_on():
     beds = [e for e in plan if e[2] == score.PARTS[2]]
     if score.PARTS[2] == score.PARTS[3]:
         assert len(beds) == 1 and beds[0][0] == 15.0 and beds[0][1] == 161.0
+
+
+def test_the_teaser_uses_real_photos_once():
+    from episode import teaser
+    sheet = {"hook": {"lines": ["One.", "Two."]}}
+    voiced = {"hook_0": {"seconds": 3.0}, "hook_1": {"seconds": 3.0}}
+    pics = {"photo": [{"path": "a.jpg"}], "aftermath": [{"path": "b.jpg"}, {"path": "c.jpg"}]}
+    shown = {"b.jpg"}                                         # the cold open already showed this one
+    out = teaser(sheet, voiced, [], pics, lambda k: pics[k], shown)
+    assert out is not None
+    fn, T, shots, rest = out
+    assert [c for c, _ in shots] == ["hook_0", "hook_1"]
+    assert {"a.jpg", "c.jpg"} <= shown                        # used here, so not shown again later
+    assert 5.0 < T < 9.0

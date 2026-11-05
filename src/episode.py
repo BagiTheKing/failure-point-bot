@@ -569,8 +569,8 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
         seconds = slots[name] + (d if trans != "cut" else 0)
         if lead_clips:                       # with footage: no stand-in, never a picture twice
             pics = [p for p in pictures(name) if p["path"] not in shown] if photos.get(name) else []
-        else:
-            pics = pictures(name)
+        else:                                # never a picture the cold open or the teaser showed
+            pics = [p for p in pictures(name) if p["path"] not in shown] or pictures(name)
         add2d(name, reel(list(lead_clips) + pics, seconds, caps.get(name, "")),
               seconds, trans, [(name, 0)])
 
@@ -595,9 +595,16 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
         shown |= getattr(intro_plan, "used", set())
         photos = {k: ([p for p in v if p["path"] not in shown] or v) for k, v in photos.items()}
 
-    # owner, 2026-10-28: after the opening, straight into the 3D and 2D; the
-    # disaster's real footage and pictures come after "Second by second", as
-    # the reward for having watched how it happened
+    # owner, 2026-11-05: after the title, a short teaser of the real thing (the
+    # hook lines over footage or photos), then the 3D and 2D from about 0:30
+    # (Teton waited for real pictures until 3:05; Aloha for its animation
+    # until past a minute). The disaster's own chapter still comes after
+    # "Second by second", with the pictures the teaser did not use.
+    teaser_T = 0.0
+    tz = teaser(sheet, voiced, clips, photos, pictures, shown)
+    if tz:
+        fn, teaser_T, tz_shots, clips = tz
+        add2d("teaser", fn, teaser_T, "dissolve", tz_shots)
     e1 = tm.real(7.0)
     add3d("establish", 0, e1, "dissolve", [("establish", 0)])
     add2d("build", kit.build, D["build"], "dissolve", [("build", 0)])
@@ -622,15 +629,6 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
         add3d("fall", tm.real(20.0), tm.real(28.0), "dissolve",
               [("fall", 0), ("dramatization", tm.real(22.0) - tm.real(20.0))],
               fill_to=frames(slots["fall"] + slots["dramatization"] + d))
-    # owner, 2026-10-28: the hook lines ("February 1, 2003. Over Texas...")
-    # open the disaster's chapter instead of the episode, over the helicopter's
-    # footage of the breakup, then the 3D of the hole; the rest of that
-    # footage plays on after Mission Control, nothing shown twice
-    lines_at = hook_lines(sheet, voiced, clips, photos, raw3d, tm, pictures, shown)
-    if lines_at:
-        fn, T, hook_shots, rest = lines_at
-        add2d("hook_lines", fn, T, "dissolve", hook_shots)
-        clips = rest
     # the disaster as it was seen: the real footage first, then the pictures
     archive("photo", "dissolve", clips)
     if not intro and texts.get("photos_disaster"):
@@ -657,7 +655,7 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
     wav = narration.track(placed, total, os.path.join(work, "voice.wav"))
     part_starts = part_times(segs, starts)
     mixed = os.path.join(work, "mix.wav")
-    music_credits = score.mix(wav, score_plan(part_starts, hook_T, total), total, mixed)
+    music_credits = score.mix(wav, score_plan(part_starts, hook_T + teaser_T, total), total, mixed)
     if hook_T:
         score.add_sfx(mixed, intro_effects(getattr(intro_plan, "fx", {})), mixed)
     even = score.even_loudness(mixed, os.path.join(work, "mix_even.wav"))
@@ -697,6 +695,43 @@ def run_parallel(makes, workers=None):
 # --------------------------------------------------------------------------
 
 KEEP_FOR_AFTERMATH = 3
+
+
+def teaser(sheet, voiced, clips, photos, pictures, shown):
+    """The hook lines as a teaser of the real thing, straight after the title:
+    (fn, length, shots, the footage left), or None. Each line over real
+    material only: footage first (one clip runs on under the next line), then
+    photos the episode has not shown yet: the event's own first, then the
+    wreckage. What it shows is not shown again."""
+    hook = sheet.get("hook") or {}
+    takes = [voiced[k] for k in sorted((k for k in voiced if k.startswith("hook_")),
+                                       key=lambda k: int(k.split("_")[1]))]
+    if not (hook.get("lines") and takes):
+        return None
+    lines, T = hook_schedule(hook["lines"], takes, start=0.4, gap=0.5, tail=0.8, shortest=0.0)
+    starts = [0.0] + [max(0.0, s - 0.25) for s, _, _ in lines[1:]]
+    durs = [b - a for a, b in zip(starts, starts[1:] + [T])]
+    items, rest = [], list(clips)
+    for c in clips[:1]:                          # footage: the first clip, for as many lines as it lasts
+        at = 0
+        for d in durs:
+            if at + d * FPS > len(c["frames"]):
+                break
+            items.append({**c, "offset": at})
+            at += int(round(d * FPS))
+        rest = [x if x is not c else {**x, "frames": x["frames"][at:]} for x in clips]
+        rest = [x for x in rest if len(x["frames"]) > FPS]
+    pool = [p for k in ("photo", "aftermath") if photos.get(k) for p in pictures(k) if p["path"] not in shown]
+    for p in pool:
+        if len(items) >= len(durs):
+            break
+        items.append(p)
+        shown.add(p["path"])
+    if not items:
+        return None
+    cuts = [(a, d, items[min(i, len(items) - 1)]) for i, (a, d) in enumerate(zip(starts, durs))]
+    fn = coldopen.cold_open(cuts, lines, T, fade_out=False, opening=False)
+    return fn, T, [(f"hook_{i}", s - narration.PAD_IN) for i, (s, _, _) in enumerate(lines)], rest
 
 
 def hook_lines(sheet, voiced, clips, photos, raw3d, tm, pictures, shown):
@@ -1046,7 +1081,7 @@ def part_times(segs, starts):
     out, seen = [], set()
     for i, (_, _, _, shots) in enumerate(segs):
         for clip, off in shots:
-            p = part.get(clip) or (1 if clip.startswith("hook_") else None)
+            p = part.get(clip)                      # the teaser's hook lines: the opening's
             if p and p not in seen:
                 seen.add(p)
                 out.append((p, starts[i] / FPS + max(0.0, off)))
