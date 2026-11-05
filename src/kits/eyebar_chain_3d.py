@@ -34,6 +34,8 @@ import random
 
 import bpy
 from bpy_extras.object_utils import world_to_camera_view
+
+from kits import look
 from mathutils import Vector
 
 FPS = 30
@@ -159,6 +161,15 @@ class Model:
         car_cols = [(0.55, 0.10, 0.08), (0.12, 0.22, 0.45), (0.75, 0.72, 0.65), (0.15, 0.15, 0.16),
                     (0.60, 0.48, 0.12)]
         car_m = [mat(f"car{i}", c, 0.4, 0.3) for i, c in enumerate(car_cols)]
+        if look.enabled():                     # the finish: paint, grime, rust, ripples, dead grass
+            steel = look.painted_steel("steel")
+            self.steel = steel
+            self.bar330 = look.painted_steel("bar330", emit=(1.0, 0.18, 0.08))
+            pin_m = look.painted_steel("pin", paint=(0.48, 0.49, 0.50), metal=0.85)
+            deck_m = look.concrete("deck", (0.20, 0.20, 0.21))
+            conc = look.concrete("concrete")
+            water = look.river("river")
+            land = look.ground("bank")
 
         # the river and its banks
         mesh("river", [(BANK0 - 60, -3000, 0), (BANK1 + 60, -3000, 0), (BANK1 + 60, 3000, 0),
@@ -245,7 +256,13 @@ class Model:
         for i in range(37):
             x = rnd.uniform(XA0 + 30, XA1 - 30)
             lane = rnd.choice((-5.5, 5.5))
-            c = beam(f"car{i}", (x - 7, lane, DECK_Z + 3.4), (x + 7, lane, DECK_Z + 3.4), 6, 4.2, rnd.choice(car_m))
+            if look.enabled():                 # a 1960s sedan, or now and then a truck
+                kind = "truck" if rnd.random() < 0.15 else "sedan"
+                c = look.car(f"car{i}", kind, rnd.choice(car_cols), (x, lane, DECK_Z + 1.6),
+                             heading=1 if lane > 0 else -1)
+            else:
+                c = beam(f"car{i}", (x - 7, lane, DECK_Z + 3.4), (x + 7, lane, DECK_Z + 3.4), 6, 4.2,
+                         rnd.choice(car_m))
             self.parts.append((c, x))
 
         world = bpy.data.worlds.new("world")
@@ -258,6 +275,9 @@ class Model:
         sun = bpy.context.object
         sun.data.energy = 2.2
         sun.rotation_euler = (math.radians(62), math.radians(15), math.radians(-150))
+        if look.enabled():                     # 15 Dec 1967, 4:58 pm: the sun 2 degrees up in the southwest
+            look.sky(sc, elevation_deg=3.0, azimuth_deg=238)
+            look.valley("hills", river_axis="y", floor=900.0, rise=3200.0)
         self.sc = sc
 
     # -------------------------------------------------------------- animation
@@ -281,6 +301,8 @@ class Model:
         c = cam.constraints.new("TRACK_TO")
         c.target = target
         c.track_axis, c.up_axis = "TRACK_NEGATIVE_Z", "UP_Y"
+        if look.enabled():
+            look.lens(cam, target, fstop=2.8)
         j = self.joint()
 
         def cam_key(sec, loc, look, lens):
@@ -427,6 +449,8 @@ def setup_render(sc, samples, size=(1280, 720)):
     sc.view_settings.exposure = -0.4
     views = [i.identifier for i in sc.view_settings.bl_rna.properties["view_transform"].enum_items]
     sc.view_settings.view_transform = "AgX" if "AgX" in views else "Filmic"
+    if look.enabled():
+        look.finish(sc)
 
 
 def render(sheet, out_dir, first=1, last=None, samples=16, still=0, short=None, size=None):
