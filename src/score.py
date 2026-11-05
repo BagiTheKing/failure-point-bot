@@ -28,8 +28,10 @@ XFADE = 2.5
 # owner's pick from the audition, 2026-10-18 (tools/fetch_music.py fetches it)
 COLD_OPEN = os.getenv("INTRO_TRACK", "Impact Prelude - Kevin MacLeod.mp3")
 PARTS = {1: "Lightless Dawn - Kevin MacLeod.mp3",          # the disaster: somber
-         2: "Hidden Wonders - Kevin MacLeod.mp3",          # the structure: mysterious, like the intro's
-         3: "Stay the Course - Kevin MacLeod.mp3",         # the physics: suspenseful, calm under the voice
+         # the animation chapters: owner's pick from the 2026-11-05 audition (sample 6), one track
+         # playing on through both (episode.score_plan joins them)
+         2: "Impending Boom - Kevin MacLeod.mp3",          # the structure: steady tension, sixteenth notes
+         3: "Impending Boom - Kevin MacLeod.mp3",          # the physics: the same track, carrying on
          4: "Volatile Reaction - Kevin MacLeod.mp3",       # second by second: intense
          5: "Man Down - Kevin MacLeod.mp3",                # warnings and investigation: somber
          6: "Tyrant - Kevin MacLeod.mp3",                  # how it should have worked: steady

@@ -160,3 +160,12 @@ def test_a_frame_used_twice_survives_encoding(tmp_path, monkeypatch):
     monkeypatch.setattr(assemble, "encode", lambda d, mp4: seen.extend(sorted(os.listdir(d))))
     assemble.to_mp4([a, a, b, b], str(tmp_path / "x.mp4"))
     assert len(seen) == 4
+
+
+def test_one_track_across_two_chapters_plays_on():
+    from episode import score_plan
+    import score
+    plan = score_plan([(2, 15.0), (3, 71.0), (4, 161.0)], 0.0, 300.0)
+    beds = [e for e in plan if e[2] == score.PARTS[2]]
+    if score.PARTS[2] == score.PARTS[3]:
+        assert len(beds) == 1 and beds[0][0] == 15.0 and beds[0][1] == 161.0

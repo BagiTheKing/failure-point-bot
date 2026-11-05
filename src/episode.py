@@ -1062,7 +1062,11 @@ def score_plan(part_starts, hook_T, total):
         end = part_starts[i + 1][1] if i + 1 < len(part_starts) else total
         start = max(t, hook_T + 1.0) if i == 0 and hook_T else t
         if end > start:
-            plan.append((start, end, score.PARTS[p], score.BED_LEVEL))
+            last = plan[-1] if plan else None
+            if last and last[2] == score.PARTS[p] and abs(last[1] - start) < 0.5:
+                plan[-1] = (last[0], end) + tuple(last[2:])     # the same track carries on, no restart
+            else:
+                plan.append((start, end, score.PARTS[p], score.BED_LEVEL))
     return plan
 
 

@@ -99,7 +99,16 @@ Shorts:
   from about 0:30. Decided by: retention at 0:30 and 1:00 against Teton
   (56% and 40%).
 - Music under the animation chapters is replaced (owner: it does not fit
-  the scenes). Candidates go to the owner to listen to before use.
+  the scenes). Audition on 5 Nov: 8 samples of 7 Kevin MacLeod tracks under
+  the real Teton picture and voice. The owner liked none of them and picked
+  "Impending Boom" (sample 6) to move on. It now plays on through both
+  animation chapters (the structure, the physics). Still open: a better
+  track, possibly from the YouTube Audio Library (the owner downloads it in
+  Studio; this session cannot reach it).
+- The 3D models get a finish (kits/look.py): dusk sky with the real sun
+  position, painted and rusted steel, rippled river, valley hills, 1960s
+  cars, depth of field. Tested on Silver Bridge stills on 5 Nov; a short
+  moving test comes before any episode.
 
 ## 7. Topics by search demand (vidIQ, monthly YouTube searches)
 
