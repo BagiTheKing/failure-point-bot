@@ -63,6 +63,10 @@ def ease(t):
     return t * t * (3 - 2 * t)
 
 
+def _smooth(x):
+    return x * x * (3 - 2 * x)
+
+
 class EyebarChain(KitTiming):
     def __init__(self, sheet):
         self.sheet = sheet
@@ -301,9 +305,18 @@ class EyebarChain(KitTiming):
                  ("verdict", 0.6, 2.8))
 
     def b_camera(self, t):
-        k = self.BUILD.p(t, "zoom")
+        """Wide while the bridge is drawn; halfway through the long hold on its
+        labels, in on the Ohio tower and the joint beside it; then the zoom to
+        C13N. A slow push-in all through (owner, 2026-11-05: shots of 5 to 8
+        seconds, nothing standing still), continuous, so no step jumps."""
+        b = self.BUILD
+        k = b.p(t, "zoom")
         jx, jy = self.joint_xy()
-        return (lerp(W / 2, jx + 30, k), lerp(H / 2 + 20, jy + 60, k), lerp(1.0, 3.0, k))
+        mid = (b.end("traffic") + b.start("zoom")) / 2
+        e = _smooth(prog(t, mid, mid + 0.8))
+        cx, cy, z = (lerp(W / 2, (jx + XT0) / 2, e), lerp(H / 2 + 20, jy + 10, e), lerp(1.0, 1.7, e))
+        creep = 1 + 0.004 * min(max(t, 0.0), b.total)
+        return (lerp(cx, jx + 30, k), lerp(cy, jy + 60, k), lerp(z, 3.0, k) * creep)
 
     def b_content(self, f, t, label_alpha=1.0):
         b = self.BUILD
@@ -336,9 +349,19 @@ class EyebarChain(KitTiming):
     def physics(self, t, T=None, lead=True):
         k = self.PHYS.p(t, "lead") if lead else 1
         b = self.PHYS
-        z = b.p(t, "crack") * (1 - b.p(t, "part"))          # in on the eye while the crack grows
         fx, fy = JX - 1.5 * DX, JY - 1.5 * DY                 # the front eye (slot 0 of four)
-        f = Frame(lerp(JX - 60, fx, z), lerp(JY + 20, fy + 40, z), lerp(1.0, 2.2, z))
+        # a framing for each step (owner, 2026-11-05: shots of 5 to 8 seconds):
+        # the joint, the pair of bars, the pin where water collects, the eye as
+        # the crack grows, a step back for "hidden", out again as it breaks
+        cam = (JX - 60, JY + 20, 1.0)
+        for beat, to in (("pair", (JX - 30, JY + 10, 1.25)), ("water", (JX, JY - 10, 1.6)),
+                         ("crack", (fx, fy + 40, 2.2)), ("hidden", (fx - 10, fy + 30, 1.8)),
+                         ("fracture", (fx, fy + 40, 2.0)), ("part", (JX - 60, JY + 20, 1.25)),
+                         ("slip", (JX - 60, JY + 20, 1.0))):
+            e = b.p(t, beat)
+            cam = tuple(lerp(a_, b_, e) for a_, b_ in zip(cam, to))
+        creep = 1 + 0.004 * min(max(t, 0.0), b.total)
+        f = Frame(cam[0], cam[1], cam[2] * creep)
         f.grid(1)
         self._physics_body(f, t)
         if k < 1:
