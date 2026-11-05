@@ -38,6 +38,9 @@ on:
       frames_run:
         description: "Run whose 3D frames to use (blank = the re-cut run's)"
         default: ""
+      rerender:
+        description: "Re-cut: render these 3D frames again, FIRST-LAST, over the reused ones (blank = none)"
+        default: ""
       report:
         description: "The investigation report's PDF, for its pictures (public domain; blank = none)"
         default: ""
@@ -217,9 +220,61 @@ jobs:
           path: raw/
           retention-days: 90
 
+  # a re-cut that fixes one 3D shot: those frames only, in five parts, laid
+  # over the reused run's frames at assembly (Silver Bridge, 2026-11-05: a
+  # camera that skimmed the cars' roofs, 190 frames of 4,000)
+  patch3d:
+    if: inputs.reuse_run != '' && inputs.rerender != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [0, 1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install bpy pillow
+      - uses: actions/download-artifact@v4
+        with:
+          name: prep
+          path: prep
+          run-id: ${{ inputs.reuse_run }}
+          github-token: ${{ github.token }}
+      - name: Render this part of the frames
+        working-directory: src
+        env:
+          RANGE: ${{ inputs.rerender }}
+        run: |
+          A=${RANGE%-*}; B=${RANGE#*-}
+          PER=$(( (B - A + 5) / 5 ))
+          FIRST=$(( A + ${{ matrix.part }} * PER )); LAST=$(( FIRST + PER - 1 ))
+          [ $LAST -gt $B ] && LAST=$B
+          mkdir -p ../raw
+          if [ $FIRST -le $B ]; then
+            python -m kits.render3d ../prep/timed_sheet.json ../raw --first $FIRST --last $LAST --samples ${{ inputs.samples }}
+          fi
+      - name: Ship as JPEG
+        run: |
+          python - <<'PY'
+          import glob, os
+          from PIL import Image
+          for p in glob.glob("raw/*.png"):
+              Image.open(p).convert("RGB").save(p[:-4] + ".jpg", quality=94)
+              os.remove(p)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: patch3d-${{ matrix.part }}
+          path: raw/
+          retention-days: 90
+          if-no-files-found: ignore
+
   assemble:
-    needs: [prepare, render3d, recut]
-    if: always() && (needs.render3d.result == 'success' || needs.recut.result == 'success')
+    needs: [prepare, render3d, recut, patch3d]
+    if: always() && (needs.render3d.result == 'success' || needs.recut.result == 'success') && needs.patch3d.result != 'failure' && needs.patch3d.result != 'cancelled'
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
@@ -251,6 +306,19 @@ jobs:
           merge-multiple: true
           run-id: ${{ inputs.frames_run || inputs.reuse_run || github.run_id }}
           github-token: ${{ github.token }}
+      - name: The 3D frames rendered again, over the reused ones
+        if: inputs.rerender != ''
+        uses: actions/download-artifact@v4
+        with:
+          pattern: patch3d-*
+          path: raw_patch
+          merge-multiple: true
+      - name: Lay them over (their label anchors read last, so they win)
+        if: inputs.rerender != ''
+        run: |
+          for f in raw_patch/anchors_*.json; do [ -e "$f" ] && mv "$f" "raw/anchors_zpatch_$(basename "$f" .json | cut -d_ -f2).json"; done
+          n=$(ls raw_patch | wc -l); cp -f raw_patch/* raw/ 2>/dev/null || true
+          echo "$n frames rendered again"
       - name: The score's tracks (Kevin MacLeod, CC BY, with their credits)
         run: python tools/fetch_music.py --score
       - name: Assemble the episode

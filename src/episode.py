@@ -281,8 +281,12 @@ def gather_photos(sheet, out_dir, limit=16, pool=None, call=None):
             print(f"  photo picking by the writer failed ({type(e).__name__}: {e}): by title")
     picked = picked or assign(sheet, got)
     pins = pinned_photos(sheet, out_dir)
-    pinned = {p.get("url") for v in pins.values() for p in v}
-    picked = {k: [c for c in v if c.get("url") not in pinned] for k, v in picked.items()}   # each in one shot only
+    # each in one shot only: a pin and the article can give the same file
+    # under two addresses (Silver Bridge: the sign and the 2019 aerial came
+    # twice), so the file's name counts as well as its address
+    pinned = {p.get("url") for v in pins.values() for p in v} | {same_picture(p) for v in pins.values() for p in v}
+    picked = {k: [c for c in v if c.get("url") not in pinned and same_picture(c) not in pinned]
+              for k, v in picked.items()}
     for shot, chosen in pins.items():
         picked[shot] = chosen + picked.get(shot, [])
     shots = {k: [{"path": c["path"], "credit": c["credit"], "title": c.get("title", ""),
@@ -290,6 +294,21 @@ def gather_photos(sheet, out_dir, limit=16, pool=None, call=None):
              for k, v in picked.items()}
     json.dump(shots, open(os.path.join(out_dir, "photos.json"), "w"), indent=1, ensure_ascii=False)
     return shots
+
+
+def same_picture(c):
+    """What makes two photos the same picture: the file's name without
+    "File:", its extension or punctuation (else its path)."""
+    t = re.sub(r"^file:|\.(jpe?g|png|tiff?|gif|webp)$", "", (c.get("title") or "").strip().lower())
+    return re.sub(r"[^a-z0-9]+", " ", t).strip() or c.get("path", "")
+
+
+def one_path_per_picture(photos):
+    """Gives every copy of a picture the path of its first copy, so "never a
+    picture twice" (which goes by path) sees through a second download."""
+    first = {}
+    return {k: [{**p, "path": first.setdefault(same_picture(p), p["path"])} for p in v]
+            for k, v in photos.items()}
 
 
 def other_structure(photo_title, story_title):
@@ -481,6 +500,7 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, footage=None):
     """Cuts the episode together and lays the voice under it. footage
     (gather_footage) opens part 1, ahead of the photos."""
     os.makedirs(work, exist_ok=True)
+    photos = one_path_per_picture(photos)
     slots, d = sheet["timing"]["slots"], sheet["timing"]["dissolve"]
     kit = kit_class(sheet["kit"]["variant"])(sheet)
     kit.fit(sheet["timing"]["kit"])

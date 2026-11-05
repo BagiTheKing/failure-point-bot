@@ -180,3 +180,12 @@ def test_the_teaser_uses_real_photos_once():
     assert [c for c, _ in shots] == ["hook_0", "hook_1"]
     assert {"a.jpg", "c.jpg"} <= shown                        # used here, so not shown again later
     assert 5.0 < T < 9.0
+
+
+def test_one_picture_downloaded_twice_is_still_one_picture():
+    from episode import one_path_per_picture, same_picture
+    a = {"title": "File:Silver Bridge Collapse Signage (5070040586).jpg", "path": "pin_aftermath_1.jpg"}
+    b = {"title": "Silver Bridge Collapse Signage (5070040586)", "path": "03.jpg"}
+    assert same_picture(a) == same_picture(b)
+    out = one_path_per_picture({"aftermath": [a], "photo": [b, {"title": "Other", "path": "04.jpg"}]})
+    assert out["photo"][0]["path"] == "pin_aftermath_1.jpg" and out["photo"][1]["path"] == "04.jpg"
