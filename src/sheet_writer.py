@@ -229,8 +229,6 @@ def _template(variant):
         "today": {"title": "COULD IT HAPPEN TODAY?", "lines": ["", "", "<could it happen again now>"]},
         "thumbnail": {"top": "<2 to 3 words, capitals: the failure as one image, e.g. ROOF TORN OFF>",
                       "sub": "<2 to 4 words, capitals, with the key figure, e.g. AT 24,000 FEET>"},
-        "ai_prompt": "<how the collapse looks, physically accurate, plain words, "
-                     "ending with 'Static camera.'>",
         "photo_article": "<the Wikipedia article title of the event>",
         "shots": {clip: {"caption": "<on-screen line, under 90 characters>",
                          "narration": f"<about {words} words>"}
@@ -255,8 +253,7 @@ def prompt(topic, facts_text, variant):
         "warnings people missed. compare: what should have been done. today: "
         "could it happen again, and what changed.\n"
         "- The dramatization shot's narration is what the people there lived, in "
-        "plain words; its ai_prompt describes the collapse as it physically "
-        "happened.\n"
+        "plain words.\n"
         "- Labels under 48 characters, captions under 90.\n"
         "- The narration is read aloud by a synthetic voice: write clock times as a "
         "narrator says them (\"just after seven in the evening\", never \"7:05 p.m.\").\n"
@@ -499,7 +496,6 @@ def assemble(reply, variant, facts_source="", source_name="source"):
     big = r.get("big_3d") or {}
     m3["big_3d"] = {"anchor": k["big_3d_anchor"], "text": big.get("text", ""),
                     "label": big.get("label", ""), "t": [16.8, 19.4]}
-    m3["ai_prompt"] = r.get("ai_prompt", "")
     shots = []
     for part, tool, clip, _ in SHOTS:
         sh = (r.get("shots") or {}).get(clip, {})

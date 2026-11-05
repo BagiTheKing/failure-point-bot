@@ -3,7 +3,7 @@ name: Episode sample
 # Manual. One full 8-10 minute episode from an animation sheet (steps 5b/5c):
 # every shot voiced in am_echo, the kits and the 3D camera timed to the
 # voice, real photos for the archive shots, the 3D model rendered across
-# many runners, its own 3D fall as the collapse (an AI clip on request), all cut
+# many runners, its own 3D fall as the collapse (no AI video: owner, 2026-11-05), all cut
 # together by src/episode.py. Results go to preview-media (episodes/<name>/)
 # and the run's artifacts; nothing is uploaded to YouTube.
 on:
@@ -18,10 +18,6 @@ on:
       samples:
         description: "3D render samples per pixel"
         default: "16"
-      ai:
-        description: "Use an AI collapse clip instead of the 3D fall (uses the day's free quota)"
-        type: boolean
-        default: false
       reuse_run:
         description: "Re-cut: reuse this earlier run's voice and 3D frames (blank = make everything; voice and frames keep 14 days)"
         default: ""
@@ -111,7 +107,7 @@ jobs:
           REPORT_CREDIT: ${{ inputs.report_credit }}
         run: |
           python tools/episode_sample.py prepare prep/sheet.json prep --name "${{ inputs.name }}" \
-            --report "$REPORT" --report-credit "$REPORT_CREDIT" ${{ inputs.keep && '--keep' || '' }} ${{ inputs.ai && '--ai' || '' }}
+            --report "$REPORT" --report-credit "$REPORT_CREDIT" ${{ inputs.keep && '--keep' || '' }}
       - id: plan
         run: |
           echo "shards=$(python -c 'import json;print(json.dumps(json.load(open("prep/shards.json"))["shards"]))')" >> "$GITHUB_OUTPUT"
@@ -257,33 +253,9 @@ jobs:
           github-token: ${{ github.token }}
       - name: The score's tracks (Kevin MacLeod, CC BY, with their credits)
         run: python tools/fetch_music.py --score
-      - name: AI collapse, starting from our own last 3D frame
-        if: inputs.ai
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-          python - <<'PY'
-          import json, os, sys
-          sys.path.insert(0, "src")
-          sheet = json.load(open("prep/timed_sheet.json"))
-          from kits.timemap import ai_start_frame
-          from kits.assemble import find_frame
-          frame = find_frame("raw", ai_start_frame(sheet))
-          prompt = sheet.get("model_3d", {}).get("ai_prompt")
-          if not (os.getenv("HF_TOKEN") and frame and prompt):
-              print("no AI clip: the accurate 3D fall stands in")
-              sys.exit(0)
-          import animate_engine
-          try:
-              ok = animate_engine.animate(frame, prompt, "prep/ai_fall.mp4", 6.0)
-              print("AI clip made from", frame if ok else "nothing (no output)")
-          except Exception as e:
-              print(f"no AI clip ({type(e).__name__}: {str(e)[:200]}): the accurate 3D fall stands in")
-          PY
       - name: Assemble the episode
         run: |
-          A=""; [ -f prep/ai_fall.mp4 ] && A="--ai prep/ai_fall.mp4"
-          python tools/episode_sample.py assemble prep raw $A
+          python tools/episode_sample.py assemble prep raw
           python tools/thumbnails.py prep raw prep/thumbs || echo "no thumbnails"
       - name: The signature preview, before the cold open
         env:

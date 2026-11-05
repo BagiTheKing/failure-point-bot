@@ -10,11 +10,10 @@ Steps 5b and 5c: one full 8-10 minute episode from an animation sheet.
                              with the channel's transitions and lays the
                              voice along them
 
-The 3D model is rendered from the timed sheet (kits/render3d.py), and the AI
-collapse, when asked for, is made from its frame timemap.ai_start_frame(timed
-sheet), between prepare and build. By default the 3D fall itself is the
-collapse (owner, 2026-10-18: it proved better than the AI clip), and the
-dramatization's narration runs over it.
+The 3D model is rendered from the timed sheet (kits/render3d.py). The 3D fall
+itself is the collapse (owner, 2026-10-18: it proved better than the AI clip;
+2026-11-05: no AI video at all), and the dramatization's narration runs over
+it.
 """
 
 import json
@@ -24,7 +23,7 @@ import shutil
 import subprocess
 
 from kits import common, timemap
-from kits.assemble import (DISSOLVE, find_frame, frames_of, render_3d_part, dramatization,
+from kits.assemble import (DISSOLVE, find_frame, frames_of, render_3d_part,
                            held, reel, to_mp4, xfade_join)
 from kits import coldopen
 from kits.blueprint import FPS, render_clip
@@ -32,7 +31,6 @@ from kits.blueprint import Frame
 import narration
 import score
 
-AI_BLEND = 0.27             # the 3D wide shot runs on into the AI clip
 ARCHIVE = ("photo", "photos_disaster", "aftermath", "investigation", "today_photos")
 
 
@@ -51,23 +49,17 @@ def kit_class(variant):
 # 1. The voice, and the slots it sets
 # --------------------------------------------------------------------------
 
-def timing(sheet, slots, ai=False):
+def timing(sheet, slots):
     """Writes the slots into the sheet: the 3D shot lengths (time map), the
     kit clip lengths, each shot's seconds. A clip that dissolves into the
     next runs DISSOLVE longer than its slot, so the slots alone add up to
     the episode and each voice starts with its own shot."""
     d = DISSOLVE
-    if ai:
-        # the fall shot runs from the pull-back to the AI start (canonical
-        # 20 -> 21.8): pull 20-21.4 and two thirds of the hold 21.4-22
-        fall = slots["fall"] + AI_BLEND
-        pull, hold = fall * 1.4 / 1.8, fall * 0.6 / 1.8
-    else:
-        # the 3D fall (owner, 2026-10-18: better than the AI's): the pull-back
-        # and hold fill the fall shot, so the span drops just as the
-        # dramatization's narration begins; the drop slows a little, up to
-        # half again, to carry it
-        pull, hold = slots["fall"] * 1.4 / 2.0, slots["fall"] * 0.6 / 2.0
+    # the 3D fall (owner, 2026-10-18: better than the AI's; 2026-11-05: no AI
+    # video at all): the pull-back and hold fill the fall shot, so the span
+    # drops just as the dramatization's narration begins; the drop slows a
+    # little, up to half again, to carry it
+    pull, hold = slots["fall"] * 1.4 / 2.0, slots["fall"] * 0.6 / 2.0
     sheet.setdefault("model_3d", {})["shot_seconds"] = {
         "establish": slots["establish"] + d,
         "load_path": slots["load_path"],
@@ -76,7 +68,7 @@ def timing(sheet, slots, ai=False):
         "hold": hold,
         "drop": min(9.0, max(6.0, slots["dramatization"])),
     }
-    sheet["timing"] = {"slots": slots, "dissolve": d, "ai": ai,
+    sheet["timing"] = {"slots": slots, "dissolve": d, "ai": False,
                        "kit": {"build": slots["build"] + d, "physics": slots["physics"] + d,
                                "compare": slots["compare"] + d}}
     for sh in sheet["shots"]:
@@ -84,11 +76,11 @@ def timing(sheet, slots, ai=False):
     return sheet
 
 
-def prepare(sheet, out_dir, voice=None, ai=False):
+def prepare(sheet, out_dir, voice=None):
     """Voices the shots and times the sheet. Returns (timed sheet, voiced).
     ai: time the fall for an AI collapse clip instead of the 3D fall."""
     voiced = narration.record(sheet, os.path.join(out_dir, "voice"), voice)
-    sheet = timing(sheet, narration.slots_of(sheet, voiced), ai)
+    sheet = timing(sheet, narration.slots_of(sheet, voiced))
     json.dump(voiced, open(os.path.join(out_dir, "voiced.json"), "w"), indent=1)
     json.dump(sheet, open(os.path.join(out_dir, "timed_sheet.json"), "w"), indent=2, ensure_ascii=False)
     total = sum(sheet["timing"]["slots"].values())
@@ -485,7 +477,7 @@ def _short_credit(credit):
 # 3. The cut
 # --------------------------------------------------------------------------
 
-def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=None):
+def build(sheet, raw3d, photos, voiced, out_mp4, work, footage=None):
     """Cuts the episode together and lays the voice under it. footage
     (gather_footage) opens part 1, ahead of the photos."""
     os.makedirs(work, exist_ok=True)
@@ -613,22 +605,11 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, ai_clip=None, footage=Non
     add2d("physics", lambda t, T: kit.physics(t, T, lead=False), D["physics"], "dissolve",
           [("physics", 0)])
     add2d("clock", common.clock(sheet), slots["clock"], "cut", [("clock", 0)])
-    use_ai = bool(ai_clip and os.path.exists(ai_clip) and sheet["timing"].get("ai"))
-    if use_ai:
-        # the 3D shot stops on the very frame the AI clip was made from
-        add3d("fall", tm.real(20.0), timemap.ai_start_frame(sheet) / FPS, ("dissolve", AI_BLEND),
-              [("fall", 0)])
-
-        def make_ai():
-            files = dramatization(ai_clip, os.path.join(work, "ai"), caps.get("fall", ""),
-                                  frames(slots["dramatization"] + d))
-            return to_mp4(files, os.path.join(work, "ai.mp4"))
-        jobs.append((make_ai, "dissolve", [("dramatization", 0)]))
-    else:
-        # the accurate 3D fall, its settle held while the narration runs
-        add3d("fall", tm.real(20.0), tm.real(28.0), "dissolve",
-              [("fall", 0), ("dramatization", tm.real(22.0) - tm.real(20.0))],
-              fill_to=frames(slots["fall"] + slots["dramatization"] + d))
+    # the accurate 3D fall, its settle held while the narration runs (owner,
+    # 2026-11-05: no AI video at all: the animation carries it)
+    add3d("fall", tm.real(20.0), tm.real(28.0), "dissolve",
+          [("fall", 0), ("dramatization", tm.real(22.0) - tm.real(20.0))],
+          fill_to=frames(slots["fall"] + slots["dramatization"] + d))
     # the disaster as it was seen: the real footage first, then the pictures
     # (no opening shot when it has neither words nor footage: its pictures would
     # only come back from the teaser)
@@ -736,51 +717,6 @@ def teaser(sheet, voiced, clips, photos, pictures, shown):
         shown.add(p["path"])
     if not items:
         return None
-    cuts = [(a, d, items[min(i, len(items) - 1)]) for i, (a, d) in enumerate(zip(starts, durs))]
-    fn = coldopen.cold_open(cuts, lines, T, fade_out=False, opening=False)
-    return fn, T, [(f"hook_{i}", s - narration.PAD_IN) for i, (s, _, _) in enumerate(lines)], rest
-
-
-def hook_lines(sheet, voiced, clips, photos, raw3d, tm, pictures, shown):
-    """The hook lines as the disaster chapter's opening: (fn, length, shots,
-    the footage left for the next shot), or None. Each line has a moving
-    picture: the breakup footage for the first two (the 3D fall if there is
-    none), the 3D close-up of the failed part, then a photo not yet shown."""
-    hook = sheet.get("hook") or {}
-    takes = [voiced[k] for k in sorted((k for k in voiced if k.startswith("hook_")),
-                                       key=lambda k: int(k.split("_")[1]))]
-    if not (hook.get("lines") and takes):
-        return None
-    lines, T = hook_schedule(hook["lines"], takes, start=0.5, gap=0.6, tail=1.0, shortest=0.0)
-    starts = [0.0] + [max(0.0, s - 0.25) for s, _, _ in lines[1:]]
-    durs = [b - a for a, b in zip(starts, starts[1:] + [T])]
-    frames3d = lambda a, b: [p for p in (find_frame(raw3d, n) for n in range(tm.frame(a), tm.frame(b) + 1)) if p]
-    sky = next((c for c in clips if re.search(r"army|gun camera|helicopter", c.get("credit", "") + c.get("title", ""), re.I)),
-               clips[-1] if clips else None)
-    rest = list(clips)
-    items = []
-    if sky:
-        used = int(round(sum(durs[:2]) * FPS))
-        items += [{**sky, "offset": 0}, {**sky, "offset": int(round(durs[0] * FPS))}]
-        rest = [c if c is not sky else {**c, "frames": c["frames"][used:]} for c in clips]
-        rest = [c for c in rest if len(c["frames"]) > FPS]
-    else:
-        fall = frames3d(20.0, 28.0)
-        items += [{"frames": fall, "speed": len(fall) / (FPS * max(1.0, sum(durs[:2])))}] * 2
-        items[1] = {**items[1], "offset": int(durs[0] * FPS * items[1]["speed"])}
-    close = frames3d(15.4, 19.4)
-    pool = [p for k in ("photo", "photos_disaster") if photos.get(k) for p in pictures(k) if p["path"] not in shown]
-    if close:
-        items.append({"frames": close, "speed": max(0.3, len(close) / (FPS * max(1.0, durs[min(2, len(durs) - 1)])))})
-    # the whole orbiter in its re-entry glow, the camera's opening move played
-    # fast: at its own speed it read as a still, and under the wing too dim
-    fly = frames3d(2.0, 7.0)
-    last = durs[-1] if durs else 4.0
-    items.append(pool[0] if pool else ({"frames": fly, "speed": min(3.0, max(1.0, len(fly) / (FPS * last)))}
-                                       if fly else items[-1]))
-    if pool:
-        shown.add(pool[0]["path"])                   # not shown again by the next shot
-    items = [it for it in items if it.get("path") or it.get("frames")] or [{"path": None}]
     cuts = [(a, d, items[min(i, len(items) - 1)]) for i, (a, d) in enumerate(zip(starts, durs))]
     fn = coldopen.cold_open(cuts, lines, T, fade_out=False, opening=False)
     return fn, T, [(f"hook_{i}", s - narration.PAD_IN) for i, (s, _, _) in enumerate(lines)], rest

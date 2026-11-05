@@ -110,36 +110,10 @@ jobs:
           else:
               print("no free photo found")
           PY
-      - name: AI collapse, starting from our own last 3D frame
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          SHEET: src/kits/sheets/${{ inputs.sheet }}
-        run: |
-          python - <<'PY'
-          import json, os, sys
-          sys.path.insert(0, "src")
-          sheet = json.load(open(os.environ["SHEET"]))
-          from kits.timemap import ai_start_frame
-          frame = f"raw/{ai_start_frame(sheet):04d}.png"
-          if not (os.getenv("HF_TOKEN") and frame and os.path.exists(frame)):
-              print("no AI clip: the accurate 3D fall stands in")
-              sys.exit(0)
-          import animate_engine
-          try:
-              ok = animate_engine.animate(frame, sheet["model_3d"].get("ai_prompt") or (
-                  "The upper walkway suddenly breaks loose from its steel rods and falls "
-                  "straight down flat onto the lower walkway, and both crash down to the "
-                  "lobby floor, dust and debris rise, people run. Static camera."),
-                  "out/ai_fall.mp4", 6.0)
-              print("AI clip made from", frame if ok else "nothing (no output)")
-          except Exception as e:
-              print(f"no AI clip ({type(e).__name__}: {str(e)[:200]}): the accurate 3D fall stands in")
-          PY
       - name: Assemble
         run: |
           P=""; [ -f out/photo.jpg ] && P="--photo out/photo.jpg"
-          A=""; [ -f out/ai_fall.mp4 ] && A="--ai out/ai_fall.mp4"
-          python tools/mixed_sample.py src/kits/sheets/${{ inputs.sheet }} raw out $P $A
+          python tools/mixed_sample.py src/kits/sheets/${{ inputs.sheet }} raw out $P
       - uses: actions/upload-artifact@v4
         with:
           name: mixed-sample

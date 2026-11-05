@@ -10,9 +10,8 @@ The same shot windows as every 3D model (kits/common.py SHOTS_3D):
     load_path   7-13    the main span: the members meeting at the failed joint
                         glow as the load flows into it
     connection  13-20   push-in on the gusset plate at the joint; it heats, then bows
-    fall        20-28   pull back to the wide shot and hold: the AI collapse starts
-                        from kits.timemap AI_START_CANON; after T_FALL the accurate
-                        3D fall stands in when there is no AI clip
+    fall        20-28   pull back to the wide shot and hold; after T_FALL the
+                        accurate 3D fall
 
     python -m kits.render3d sheet.json out_dir [--first N --last M] [--samples S]
 """

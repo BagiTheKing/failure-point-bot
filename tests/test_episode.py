@@ -32,14 +32,11 @@ class EpisodeTimingTest(unittest.TestCase):
 
     def test_3d_shots_last_as_long_as_their_slots(self):
         slots = {c: 10.0 + i for i, (_, _, c, _) in enumerate(SW.SHOTS)}
-        s = episode.timing(sheet(), slots, ai=True)
+        s = episode.timing(sheet(), slots)
         tm, d = timemap.of(s), s["timing"]["dissolve"]
         self.assertAlmostEqual(tm.real(7.0), slots["establish"] + d)
         self.assertAlmostEqual(tm.real(20.0) - tm.real(7.0),
                                slots["load_path"] + slots["connection"] + d)
-        # the fall shot ends on the AI clip's first frame
-        fall = timemap.ai_start_frame(s) / FPS - tm.real(20.0)
-        self.assertAlmostEqual(fall, slots["fall"] + episode.AI_BLEND, delta=1.5 / FPS)
         self.assertEqual(s["timing"]["kit"]["physics"], slots["physics"] + d)
 
     def test_3d_fall_drops_as_the_dramatization_begins(self):

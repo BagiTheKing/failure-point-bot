@@ -24,10 +24,10 @@ How to use it:
   re-upload a public video.
 - Old videos are not touched (titles included) once published.
 - Plans are written down first, and analysis is based on numbers.
+- No AI-generated video, ever (owner, 2026-11-05): the animation carries the
+  story. The AI dramatization clip is removed from the pipeline.
 - The "altered or synthetic content" question is left unanswered on upload,
-  like the made-for-kids one (owner, 2026-11-05). The one automatic
-  exception: a video with a realistic AI-generated clip of the real event
-  (the optional AI dramatization), which YouTube's rule says to disclose.
+  like the made-for-kids one (owner, 2026-11-05).
 
 ## 2. The numbers so far (as of 5 Nov 2026)
 

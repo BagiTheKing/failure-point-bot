@@ -108,8 +108,7 @@ def main():
     thumb = os.path.join(d, f"thumb_{a.thumb}.jpg")
     vid = upload_video_to_youtube(os.path.join(d, "episode.mp4"), a.title, text, tags(sheet),
                                   thumbnail_path=thumb if os.path.exists(thumb) else None,
-                                  publish_at=a.publish_at or None,
-                                  synthetic=bool(info.get("ai_clip")))       # a realistic AI clip in the cut
+                                  publish_at=a.publish_at or None)
     json.dump({"video_id": vid, "title": a.title, "publish_at": a.publish_at},
               open(os.path.join(d, "published.json"), "w"))
 

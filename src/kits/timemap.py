@@ -16,7 +16,6 @@ Pure Python (no bpy): the assembler imports it too.
 FPS = 30
 CANON = [("establish", 0.0, 7.0), ("load_path", 7.0, 13.0), ("connection", 13.0, 20.0),
          ("pull", 20.0, 21.4), ("hold", 21.4, 22.0), ("drop", 22.0, 28.0)]
-AI_START_CANON = 21.8          # on the wide shot, held still just before the fall
 T_FALL = 22.0                  # the canonical second the fall begins
 # each model's tall Short cameras (kits/*_3d.py short_camera): canonical seconds they cover
 SHORT = {"hanging_walkways": {"fall": (21.0, 26.0), "close": (11.5, 23.6)},
@@ -75,6 +74,3 @@ def use(sheet):
 def of(sheet):
     return TimeMap((sheet or {}).get("model_3d", {}).get("shot_seconds"))
 
-
-def ai_start_frame(sheet):
-    return of(sheet).frame(AI_START_CANON)

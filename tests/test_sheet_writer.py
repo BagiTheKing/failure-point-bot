@@ -53,8 +53,8 @@ class SheetWriterTest(unittest.TestCase):
         sheet = SW.assemble(reply(), "hanging_walkways", "https://example")
         self.assertEqual(sheet["kit"]["variant"], "hanging_walkways")
         self.assertEqual([s["clip"] for s in sheet["shots"]], [c for _, _, c, _ in SW.SHOTS])
-        from kits.timemap import ai_start_frame
-        self.assertEqual(ai_start_frame(sheet), 655)
+        from kits.timemap import of
+        self.assertEqual(of(sheet).frame(21.8), 655)
         self.assertEqual(sheet["model_3d"]["big_3d"]["anchor"], "nut")
         # only the 3D slots the writer filled get a label
         self.assertEqual({l["anchor"] for l in sheet["model_3d"]["labels_3d"]}, {"upper_deck"})

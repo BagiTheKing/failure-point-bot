@@ -44,29 +44,6 @@ def render_3d_part(sheet, raw, anchors, first_sec, last_sec, out_dir):
     return files
 
 
-def dramatization(clip, out_dir, caption="", n_frames=None):
-    """The AI clip, tagged as a dramatization so nobody takes it for footage.
-    It carries on the 3D shot's caption, so nothing pops at the hand-over.
-    n_frames: run on past the clip's end (a slow push-in on its last frame)
-    while the narration needs it."""
-    files = frames_of(clip, out_dir + "_src", cover=True)
-    if n_frames:
-        files = held(files, n_frames, out_dir + "_src")
-    os.makedirs(out_dir, exist_ok=True)
-    out = []
-    for i, p in enumerate(files):
-        f = Frame()
-        f.img = Image.open(p).convert("RGB").resize((W * SS, H * SS))
-        f.d = ImageDraw.Draw(f.img, "RGBA")
-        common.pill(f, "DRAMATIZATION", W - 40, 36, LINE, 15, "ra", 0.9)
-        if caption:
-            f.caption(caption, 1 - prog(i / FPS, 2.6, 3.0))
-        q = os.path.join(out_dir, f"{i:05d}.png")
-        f.done().save(q)
-        out.append(q)
-    return out
-
-
 def join(segments, out_mp4, work):
     """segments: [(frame files, transition into the next)], the transition
     'cut', 'dissolve' or ('dissolve', seconds)."""

@@ -2,9 +2,9 @@
 A full episode from an animation sheet, in two halves around the 3D render
 (.github/workflows/episode_sample.yml):
 
-    python tools/episode_sample.py prepare SHEET OUT [--ai]   # voice, timing, photos
+    python tools/episode_sample.py prepare SHEET OUT          # voice, timing, photos
     python tools/episode_sample.py recut OUT [--hook "line | line"] [--title T]
-    python tools/episode_sample.py assemble OUT RAW3D [--ai CLIP]
+    python tools/episode_sample.py assemble OUT RAW3D
 
 prepare writes OUT/timed_sheet.json (render the 3D model from it), the voice
 takes, OUT/photos.json and OUT/shards.json (the render matrix). assemble
@@ -129,7 +129,7 @@ def revoice(sheet, later, out):
         elif c in took:
             voiced[c] = took[c]
             slots[c] = narration.slots_of(one, took)[c]
-    sheet = episode.timing(sheet, slots, sheet["timing"].get("ai", False))
+    sheet = episode.timing(sheet, slots)
     if json.dumps(sheet.get("model_3d", {}).get("shot_seconds"), sort_keys=True) != before:
         raise SystemExit("re-voicing changed the 3D timing: the rendered frames would not fit")
     json.dump(voiced, open(os.path.join(out, "voiced.json"), "w"), indent=1)
@@ -163,13 +163,13 @@ def recut(out, hook_text="", title="", name="", report="", report_credit="", kee
     _pictures(sheet, out, name)
 
 
-def prepare(sheet_path, out, ai=False, name="", report="", report_credit=""):
+def prepare(sheet_path, out, name="", report="", report_credit=""):
     import episode
     from kits import timemap
     from kits.blueprint import FPS
     os.makedirs(out, exist_ok=True)
     sheet = json.load(open(sheet_path))
-    sheet, voiced = episode.prepare(sheet, out, ai=ai)
+    sheet, voiced = episode.prepare(sheet, out)
     voiced.update(_hook(sheet, out))
     _report(sheet, report, report_credit)
     json.dump(voiced, open(os.path.join(out, "voiced.json"), "w"), indent=1)
@@ -181,7 +181,7 @@ def prepare(sheet_path, out, ai=False, name="", report="", report_credit=""):
     _pictures(sheet, out, name)
 
 
-def assemble(out, raw3d, ai):
+def assemble(out, raw3d):
     import episode
     sheet = json.load(open(os.path.join(out, "timed_sheet.json")))
     voiced = json.load(open(os.path.join(out, "voiced.json")))
@@ -190,10 +190,9 @@ def assemble(out, raw3d, ai):
     fp = os.path.join(out, "footage.json")
     footage = json.load(open(fp)) if os.path.exists(fp) else []
     info = episode.build(sheet, raw3d, photos, voiced, os.path.join(out, "episode.mp4"),
-                         os.path.join(out, "_work"), ai, footage)
+                         os.path.join(out, "_work"), footage)
     info["credits"] = sorted({p["credit"] for v in photos.values() for p in v if p.get("credit")} |
                              {c["credit"] for c in footage if c.get("credit")})
-    info["ai_clip"] = bool(ai and os.path.exists(ai))
     info["hook"] = sheet.get("hook")
     json.dump(info, open(os.path.join(out, "episode.json"), "w"), indent=1, ensure_ascii=False)
     print("\n".join(info["chapters"]))
@@ -205,7 +204,6 @@ if __name__ == "__main__":
     p = sub.add_parser("prepare")
     p.add_argument("sheet")
     p.add_argument("out")
-    p.add_argument("--ai", action="store_true", help="time the fall for an AI clip")
     p.add_argument("--name", default="", help="footage/<name>/ holds owner-supplied footage")
     p.add_argument("--report", default="", help="the investigation report's PDF (its pictures)")
     p.add_argument("--report-credit", default="")
@@ -221,12 +219,11 @@ if __name__ == "__main__":
     a = sub.add_parser("assemble")
     a.add_argument("out")
     a.add_argument("raw3d")
-    a.add_argument("--ai", default="")
     args = ap.parse_args()
     if args.cmd == "prepare":
-        prepare(args.sheet, args.out, args.ai, args.name, args.report, args.report_credit)
+        prepare(args.sheet, args.out, args.name, args.report, args.report_credit)
     elif args.cmd == "recut":
         recut(args.out, args.hook, args.title, args.name, args.report, args.report_credit, args.keep,
               args.revoice)
     else:
-        assemble(args.out, args.raw3d, args.ai)
+        assemble(args.out, args.raw3d)
