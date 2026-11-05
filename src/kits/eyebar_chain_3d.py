@@ -313,12 +313,40 @@ class Model:
             cam.data.lens = lens
             cam.data.keyframe_insert("lens", frame=s(sec))
 
-        cam_key(0, (420, 820, 150), (-40, 0, 105), 26)                        # establish, from upstream
-        cam_key(6.5, (160, 760, 140), (-160, 0, 110), 26)
-        cam_key(8.0, (-560, 260, 140), (-470, CHAIN_Y, 120), 32)               # along the Ohio side span chain
-        cam_key(12.8, (-470, 120, 170), (j.x - 10, CHAIN_Y, j.z), 38)
-        cam_key(15.0, j + Vector((16, 26, 9)), j, 40)                           # C13N, from above and ahead
-        cam_key(19.8, j + Vector((9, 15, 5)), j + Vector((0, 0, -0.5)), 45)       # so both bars of each link show
+        # owner, 2026-11-05: shots of 5 to 8 seconds, not one 20-second move
+        # (Sabin Civil Engineering cuts every 4 to 6 s; Teton lost a third of
+        # its viewers over two long holds). Each angle moves steadily on its
+        # own, and the camera jumps to the next in one frame: a clean cut,
+        # rendered in the same pass.
+        def key_frame(f, loc, look, lens):
+            cam.location = loc
+            cam.keyframe_insert("location", frame=f)
+            target.location = look
+            target.keyframe_insert("location", frame=f)
+            cam.data.lens = lens
+            cam.data.keyframe_insert("lens", frame=f)
+
+        def shot(t0, t1, loc0, loc1, look0, look1, lens0, lens1=None):
+            key_frame(s(t0), loc0, look0, lens0)
+            key_frame(max(s(t0) + 1, s(t1) - 1), loc1, look1, lens1 or lens0)
+
+        J = lambda x, y, z: j + Vector((x, y, z))
+        prefs = bpy.context.preferences.edit
+        was, prefs.keyframe_new_interpolation_type = prefs.keyframe_new_interpolation_type, "LINEAR"
+        # the establishing shots: the whole bridge, the Ohio tower from the water, the roadway
+        shot(0.0, 2.3, (420, 820, 150), (330, 790, 146), (-40, 0, 105), (-90, 0, 105), 26)
+        shot(2.3, 4.6, (-230, -300, 30), (-275, -285, 38), (-350, 0, 140), (-350, 0, 150), 22)
+        shot(4.6, 7.0, (140, 0, 77), (40, 0, 77), (-350, 0, 100), (-350, 0, 100), 30)
+        # the load path down to the joint: the chain, the hangers from below, the approach
+        shot(7.0, 9.2, (-580, 280, 145), (-545, 250, 140), (-470, CHAIN_Y, 120), (-460, CHAIN_Y, 118), 32)
+        shot(9.2, 11.2, (-520, -45, 52), (-470, -45, 55), (-440, CHAIN_Y, 92), (-410, CHAIN_Y, 94), 26)
+        shot(11.2, 13.0, (-505, 165, 190), (-470, 120, 170), (j.x - 30, CHAIN_Y, j.z), (j.x - 10, CHAIN_Y, j.z),
+             36, 38)
+        # C13N: from above and ahead, then side-on at the eye of eyebar 330, where the crack is
+        shot(13.0, 15.5, J(24, 36, 13), J(16, 26, 9), j, j, 40)
+        shot(15.5, 17.8, J(7, 24, -4), J(3, 20, -3), J(0, 1, -1.0), J(0, 1, -1.0), 44)
+        key_frame(s(17.8), J(9, 15, 5), J(0, 0, -0.5), 45)        # pulled back: both bars of each link show
+        prefs.keyframe_new_interpolation_type = was
         cam_key(T_FALL - 0.3, j + Vector((11, 18, 6)), j, 42)
         cam_key(T_FALL + 1.2, (-520, 520, 210), (-300, 0, 90), 30)            # the Ohio side goes
         cam_key(SECONDS, (380, 900, 190), (-40, 0, 50), 24)                   # the whole bridge
@@ -450,7 +478,7 @@ def setup_render(sc, samples, size=(1280, 720)):
     views = [i.identifier for i in sc.view_settings.bl_rna.properties["view_transform"].enum_items]
     sc.view_settings.view_transform = "AgX" if "AgX" in views else "Filmic"
     if look.enabled():
-        look.finish(sc)
+        look.finish(sc, motion_blur=False)       # the in-render cuts stay clean, and the frames cheaper
 
 
 def render(sheet, out_dir, first=1, last=None, samples=16, still=0, short=None, size=None):
