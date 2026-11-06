@@ -102,7 +102,7 @@ time to fix"), to fix in the pipeline before the next video:
 
 Fixed during this build: a picture downloaded twice under two names was
 shown twice (now matched by file name); a 3D camera skimmed car roofs
-(checked by stills before a render now); a re-cut can render a range of
+(caught in review; there is no automatic check for it yet); a re-cut can render a range of
 3D frames again (rerender).
 
 ## 6. Decided for the next long video
