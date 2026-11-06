@@ -219,10 +219,10 @@
         "videos/foZj6XFlEKc/3_xray.jpg",
         "videos/foZj6XFlEKc/4_drawing.jpg"
       ],
-      "status": "waiting",
-      "current": null,
-      "since": null,
-      "views_at_start": null,
+      "status": "testing",
+      "current": 0,
+      "since": "2026-11-06T19:24:42.566234+00:00",
+      "views_at_start": 7,
       "results": [],
       "registered": "2026-11-06T13:50:14.065441+00:00"
     }
