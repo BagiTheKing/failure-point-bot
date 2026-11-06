@@ -40,6 +40,7 @@ Long videos:
 | Aloha 243 | 25 Oct | old | 36 | 65 (11 d) | 1.9% | 751 | 30% |
 | Columbia | 29 Oct | new: 3D at 0:15 (re-uploaded) | about 5 | 8 (7 d) | 4.2% | 24 | ? |
 | Teton Dam | 1 Nov | new: 3D at 0:15 | 48 | 48 (3.5 d) | 6.5% | 356 | 30.6% (2:06 of 6:52) |
+| Silver Bridge | 6 Nov | new: teaser 0:15–0:33, 3D from 0:33; search-first title | ? | ? | ? | ? | ? |
 
 Teton retention: 68% at 0:20, 56% at 0:30, 40% at 1:00, 32% from 1:15
 to 1:55, 23% from 2:35 to the end. Traffic: suggested 56%, browse 29%,
@@ -90,6 +91,19 @@ Shorts:
 |---|---|---|---|---|
 | E1 | Teton long | Thumbnail rotation, 3 days each: "A LEAK DID THIS." → "7 AM: A LEAK. NOON: GONE." → 3D model | views a day per thumbnail | due about 11 Nov |
 | E2 | Teton Short | No close-up; breach first; 20 s | stayed to watch vs Columbia's 53%; the curve at 0:04 to 0:09 | owner's screenshots |
+
+| E3 | Silver Bridge long (foZj6XFlEKc) | Teaser of real photos before the 3D; search-first title "Silver Bridge Collapse (1967): The Crack That Killed 46"; postcard photo thumbnail "ONE CRACK. 46 DEAD." | retention at 0:30 and 1:00 against Teton (56%, 40%); search share against Teton's 10%; CTR against 6.5% | owner's screenshots |
+
+Known faults in the Silver Bridge cut, posted as is (owner, 6 Nov: "no
+time to fix"), to fix in the pipeline before the next video:
+- Aftermath: two photos over 49 s. Today: one photo over 29 s.
+- The ending: a slow minute of timeline, then 36 s of text only.
+- The owner has more to correct (list to come).
+
+Fixed during this build: a picture downloaded twice under two names was
+shown twice (now matched by file name); a 3D camera skimmed car roofs
+(checked by stills before a render now); a re-cut can render a range of
+3D frames again (rerender).
 
 ## 6. Decided for the next long video
 
