@@ -55,6 +55,7 @@ Shorts:
 | Aloha | 1,487 | 54.2% | close-up lost 6.5 points a second |
 | Columbia | 1,688 | 53% | close-up lost about 9 points a second; avg 0:15 of 0:24 |
 | Teton | 1,304 (6 d; 1.1K of them in the first hours) | 51.9% | no close-up; avg 0:13 of 0:20 (63.4%); a cliff from 0:04.5 to 0:07, about 18 points a second, as the 3D cut to a dark 2D drawing itself from nothing over "open joints… the core's silt… no filter"; 0 subscribers; 96% Shorts feed, 93% new viewers |
+| Silver Bridge (9jel8N8tNNc, 8 Nov 22:16 UTC) | ? | ? | first Short made to 6b: "ONE CRACK. 46 DEAD." big over the colour fall; zoomed 2D already drawn, filling the screen, a red ring on the crack; HOLDS / FAILS; 17.6 s; loops |
 
 ## 3. What works
 
@@ -100,6 +101,7 @@ Shorts:
 | E2 | Teton Short | No close-up; breach first; 20 s | stayed to watch vs Columbia's 53%; the curve at 0:04 to 0:09 | Lost: 51.9% stayed (Columbia 53%). The close-up's drop moved to the 2D: the cut from the fall to an explanation costs most, whatever the explanation is drawn with |
 
 | E3 | Silver Bridge long (foZj6XFlEKc) | Teaser of real photos before the 3D; search-first title "Silver Bridge Collapse (1967): The Crack That Killed 46"; postcard photo thumbnail "ONE CRACK. 46 DEAD." | retention at 0:30 and 1:00 against Teton (56%, 40%); search share against Teton's 10%; CTR against 6.5% | owner's screenshots |
+| E4 | Silver Bridge Short (9jel8N8tNNc) | The 6b rules: no dark cut, the break shown, plain words, a loop | stayed to watch vs Teton's 51.9%; the curve at 0:04.5 to 0:07 (the cut to the 2D); replays past 100% | owner's screenshots, about 14 Nov |
 
 Known faults in the Silver Bridge cut, posted as is (owner, 6 Nov: "no
 time to fix"), to fix in the pipeline before the next video:
@@ -146,6 +148,10 @@ shown twice (now matched by file name); a 3D camera skimmed car roofs
   on average).
 - The last line leads back into the first frame, for replays.
 - Owner: set "Related video" on each Short to its long video in Studio.
+- A zoomed 2D side fills the screen down to the bottom; a part the size of
+  the real thing (the 1/8-inch crack) gets a ring closing in on it rather
+  than being drawn bigger than it was (first used on the Silver Bridge
+  Short, E4).
 
 ## 7. Topics by search demand (vidIQ, monthly YouTube searches)
 
