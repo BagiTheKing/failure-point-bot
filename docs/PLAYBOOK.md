@@ -54,7 +54,7 @@ Shorts:
 | Hyatt | 1,317 | 70.5% | |
 | Aloha | 1,487 | 54.2% | close-up lost 6.5 points a second |
 | Columbia | 1,688 | 53% | close-up lost about 9 points a second; avg 0:15 of 0:24 |
-| Teton | 1,249 in 1.5 days | ? | no close-up; 17 likes, 5 comments |
+| Teton | 1,304 (6 d; 1.1K of them in the first hours) | 51.9% | no close-up; avg 0:13 of 0:20 (63.4%); a cliff from 0:04.5 to 0:07, about 18 points a second, as the 3D cut to a dark 2D drawing itself from nothing over "open joints… the core's silt… no filter"; 0 subscribers; 96% Shorts feed, 93% new viewers |
 
 ## 3. What works
 
@@ -70,6 +70,13 @@ Shorts:
   (Teton flat at 23% from 2:35).
 
 ## 4. What does not work
+
+- Shorts: every turn from the event to an explanation is a cliff (Aloha
+  6.5, Columbia about 9, Teton about 18 points a second), and the worst
+  is a cut to a nearly empty dark screen with technical words. Five
+  Shorts in a row stopped at 1,200 to 1,700 views: the feed's first test
+  batch, then nothing. Half the viewers swipe in the first second
+  (stayed to watch 52 to 54% since Aloha; Hyatt 70.5%).
 
 - A slow 3D close-up in a Short: the worst drop every time (Aloha 6.5,
   Columbia about 9 points a second). Cut from Shorts since Teton.
@@ -90,7 +97,7 @@ Shorts:
 | # | Video | Change | Decided by | Result |
 |---|---|---|---|---|
 | E1 | Teton long | Thumbnail rotation, 3 days each: "A LEAK DID THIS." → "7 AM: A LEAK. NOON: GONE." → 3D model | views a day per thumbnail | due about 11 Nov |
-| E2 | Teton Short | No close-up; breach first; 20 s | stayed to watch vs Columbia's 53%; the curve at 0:04 to 0:09 | owner's screenshots |
+| E2 | Teton Short | No close-up; breach first; 20 s | stayed to watch vs Columbia's 53%; the curve at 0:04 to 0:09 | Lost: 51.9% stayed (Columbia 53%). The close-up's drop moved to the 2D: the cut from the fall to an explanation costs most, whatever the explanation is drawn with |
 
 | E3 | Silver Bridge long (foZj6XFlEKc) | Teaser of real photos before the 3D; search-first title "Silver Bridge Collapse (1967): The Crack That Killed 46"; postcard photo thumbnail "ONE CRACK. 46 DEAD." | retention at 0:30 and 1:00 against Teton (56%, 40%); search share against Teton's 10%; CTR against 6.5% | owner's screenshots |
 
@@ -127,6 +134,18 @@ shown twice (now matched by file name); a 3D camera skimmed car roofs
   position, painted and rusted steel, rippled river, valley hills, 1960s
   cars, depth of field. Tested on Silver Bridge stills on 5 Nov; a short
   moving test comes before any episode.
+
+## 6b. Decided for the next Short (from E2)
+
+- Frame 1 is the fall in full colour, mid-motion, with one short line in
+  big type; no grey model, no small two-line header.
+- No cut to a dark or half-empty screen: the 2D starts already drawn and
+  shows the break happening, not the theory.
+- Plain words only ("one steel link cracked"), no part names a viewer has
+  to learn. Every shot 4 s or less; about 15 s in all (viewers stay 13 s
+  on average).
+- The last line leads back into the first frame, for replays.
+- Owner: set "Related video" on each Short to its long video in Studio.
 
 ## 7. Topics by search demand (vidIQ, monthly YouTube searches)
 
