@@ -73,6 +73,10 @@ STACK_TAIL = 2.2            # after the stack's words: the fall and the verdict
 PANEL_H = SW * 9 // 16      # a 2D side, whole, full width
 STACK_Y = (300, 300 + PANEL_H + 92)          # the two sides; the words between them
 CAP_Y = {"stack": 300 + PANEL_H + 46, "photo": 1360}
+# a zoomed stack fills the screen down to the bottom (owner, 2026-11-08: no dark
+# or empty screen); the sides are cut from the 2D, so a taller one only crops more
+ZPANEL_H = (SH - 300 - 92 - 40) // 2
+ZSTACK_Y = (300, 300 + ZPANEL_H + 92)
 CAP_DEFAULT = 1250          # the words: clear of YouTube's title and buttons below
 MUSIC = ("Volatile Reaction - Kevin MacLeod.mp3", "Man Down - Kevin MacLeod.mp3")
 MUSIC_LEVEL = 0.3
@@ -402,8 +406,10 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                         "groan": score.groan}[moment["sound"]]
                 sfx.append((when(moment["at"][0]) + moment["at"][1], kind() * moment.get("level", 0.4)))
             dvb = sheet.get("design_vs_built", {})
-            tags = [(dvb.get("designed", {}).get("title", "AS DESIGNED"), (36, STACK_Y[0] + 44), CYAN),
-                    (dvb.get("built", {}).get("title", "AS BUILT"), (36, STACK_Y[1] + 44), RED)]
+            zoom = sc.get("zoom")
+            ys, ph = (ZSTACK_Y, ZPANEL_H) if zoom else (STACK_Y, PANEL_H)
+            tags = [(dvb.get("designed", {}).get("title", "AS DESIGNED"), (36, ys[0] + 44), CYAN),
+                    (dvb.get("built", {}).get("title", "AS BUILT"), (36, ys[1] + 44), RED)]
 
             def args(plan, t):
                 out = {}
@@ -420,11 +426,10 @@ def build(sheet, frames3d, script, out_dir, photo=None):
             # the Teton Short lost 18 points a second on a dark, half-empty
             # drawing); the kit's own words at the top fall outside, so the
             # stamp and the verdict are drawn here, big, on each side
-            zoom = sc.get("zoom")
             if zoom:                                     # the push in moves the whole picture throughout
                 drawing[i].append((t0, t1))
 
-            def stack(t, t0=t0, t1=t1, plans=plans, tags=tags, zoom=zoom):
+            def stack(t, t0=t0, t1=t1, plans=plans, tags=tags, zoom=zoom, ys=ys, ph=ph):
                 a_top, a_bot = args(plans["needed"], t), args(plans["built"], t)
                 if zoom:
                     words_ = [(a_top.pop("verdict", 0.0), "HOLDS", (60, 220, 130)),
@@ -438,19 +443,19 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                 else:
                     # the kit frames the drawing (the whole plane, owner 2026-10-26); a slight push in
                     z, cx, cy = 1.0 + 0.04 * _ramp(t, t0, 12.0), 0.5, 0.5
-                img.paste(_cover(top, SW, PANEL_H, z, cx, cy), (0, STACK_Y[0]))
-                img.paste(_cover(bot, SW, PANEL_H, z, cx, cy), (0, STACK_Y[1]))
+                img.paste(_cover(top, SW, ph, z, cx, cy), (0, ys[0]))
+                img.paste(_cover(bot, SW, ph, z, cx, cy), (0, ys[1]))
                 d = ImageDraw.Draw(img, "RGBA")
-                for y in STACK_Y:
+                for y in ys:
                     d.line([(0, y), (SW, y)], fill=(40, 70, 110), width=2)
-                    d.line([(0, y + PANEL_H), (SW, y + PANEL_H)], fill=(40, 70, 110), width=2)
+                    d.line([(0, y + ph), (SW, y + ph)], fill=(40, 70, 110), width=2)
                 if zoom:
-                    for (a_, word, col), y in zip(words_, STACK_Y):
+                    for (a_, word, col), y in zip(words_, ys):
                         if a_ > 0:
                             _text(d, word, SW - 200, y + 110, 110, col + (int(255 * min(1.0, a_)),), stroke=8)
                     k, text, _ = stamp_
                     if k > 0 and text:
-                        _text(d, text, SW / 2, STACK_Y[1] + PANEL_H - 70, int(84 * (1.5 - 0.5 * min(1.0, k))),
+                        _text(d, text, SW / 2, ys[1] + ph - 70, int(84 * (1.5 - 0.5 * min(1.0, k))),
                               RED + (int(255 * min(1.0, k)),), stroke=8)      # it stays: the reason beside FAILS
                 return img, {"tags": tags}
             pictures.append(stack)
@@ -511,7 +516,8 @@ def build(sheet, frames3d, script, out_dir, photo=None):
     for i, sc in enumerate(scenes):
         t0, t1 = span(i)
         f0, f1 = int(round(t0 * FPS)), (int(round(t1 * FPS)) if i + 1 < len(scenes) else n_total)
-        cap_y = CAP_Y.get(sc["show"], CAP_DEFAULT)
+        cap_y = (ZSTACK_Y[0] + ZPANEL_H + 46 if sc["show"] == "stack" and sc.get("zoom")
+                 else CAP_Y.get(sc["show"], CAP_DEFAULT))
         hook = sc.get("hook") or script.get("hook", "")
         big = bool(script.get("hook_big")) and i == 0     # the opening: the hook big over the fall
         last = prev_last

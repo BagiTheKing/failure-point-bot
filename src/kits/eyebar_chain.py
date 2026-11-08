@@ -201,7 +201,7 @@ class EyebarChain(KitTiming):
 
     # -------------------------------------------------------------- the joint, up close
     def joint(self, f, bars=2, crack=0.0, fracture=0.0, part=0.0, slip=0.0, water=0.0, years="",
-              t=0.0, needed=False):
+              t=0.0, needed=False, mark=0.0):
         """The pin and its eyebars, seen a little from above so the bars of a
         link stand side by side along the pin (as in the NTSB's drawing of
         joint C13N): the link from the west (two bars, or `bars`), the link
@@ -242,7 +242,7 @@ class EyebarChain(KitTiming):
             self._bar(f, (sx + dx, sy + dy), (cx + dx, cy + dy), col, eye_at_start=False,
                       broken=fracture if bar == 0 else 0.0, part=part if bar == 0 else 0.0, pin=(cx, cy))
             if bar == 0 and part <= 0 and not needed:
-                self._crack(f, cx, cy, crack, fracture)
+                self._crack(f, cx, cy, crack, fracture, mark)
         # the pin's front face and its nut
         f.d.ellipse([f.P(front[0] - R_PIN, front[1] - R_PIN), f.P(front[0] + R_PIN, front[1] + R_PIN)],
                     fill=(28, 38, 58), outline=LINE, width=SS * 3)
@@ -259,12 +259,18 @@ class EyebarChain(KitTiming):
         if years:
             f.text(years, W - 60, 120, 54, AMBER, "InterDisplay-Black.otf", anchor="rs", screen=True)
 
-    def _crack(self, f, cx, cy, crack, fracture):
-        """From the pinhole surface into the lower limb of the eye, square to the bar."""
+    def _crack(self, f, cx, cy, crack, fracture, mark=0.0):
+        """From the pinhole surface into the lower limb of the eye, square to the bar.
+        mark 0..1 closes a red ring in on it: the crack stays its true size
+        (about 1/8 inch) and the ring shows a phone where it is."""
         if crack <= 0:
             return
         n = math.radians(90 + 12)
         x0, y0 = cx + R_PIN * math.cos(n), cy + R_PIN * math.sin(n)
+        if mark > 0 and fracture <= 0:
+            r = 26 + 160 * (1 - ease(min(1.0, mark)))
+            f.d.ellipse([f.P(x0 - r, y0 - r), f.P(x0 + r, y0 + r)], outline=RED + (int(255 * min(1.0, mark)),),
+                        width=SS * 4)
         ln = (R_EYE - R_PIN) * (0.05 + 0.15 * crack) + (R_EYE - R_PIN) * 0.8 * fracture   # small, then through
         x1, y1 = x0 + ln * math.cos(n), y0 + ln * math.sin(n)
         f.poly([(x0, y0), (x1, y1)], RED, 3 + 2 * crack)
@@ -440,7 +446,7 @@ class EyebarChain(KitTiming):
         return img
 
     def side(self, built, joint=1.0, load=0.0, crack=0.0, fracture=0.0, part=0.0, slip=0.0, water=0.0,
-             verdict=0.0, stamp=0.0, stamp_text="", years="", t=0.0):
+             verdict=0.0, stamp=0.0, stamp_text="", years="", t=0.0, mark=0.0):
         """One side of the comparison on its own, for a Short (what it
         needed above, as built below): the joint up close, more bars to the
         link (one breaks, the others carry it) or two (one breaks, its
@@ -450,7 +456,7 @@ class EyebarChain(KitTiming):
         if joint > 0:
             self.joint(f, 2 if built else 4, crack=crack, fracture=fracture, part=part,
                        slip=slip if built else 0.0, water=water, years=years if built else "", t=t,
-                       needed=not built)
+                       needed=not built, mark=mark)
         if load > 0:
             col = (RED if built and slip > 0.3 else GREEN) if part > 0 else AMBER
             for k in range(3):
