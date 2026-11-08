@@ -1,107 +1,87 @@
 {
- "seconds": 39.53,
- "top": "ONE HIDDEN CRACK.|THE WHOLE BRIDGE FELL.",
+ "seconds": 17.62,
+ "top": "ONE CRACK.|46 DEAD.",
  "script": {
-  "hook": "ONE HIDDEN CRACK.|THE WHOLE BRIDGE FELL.",
+  "hook": "ONE CRACK.|46 DEAD.",
+  "hook_big": true,
+  "end": "loop",
   "toll": {
    "value": "46",
    "label": "PEOPLE KILLED"
   },
-  "photo_article": "Silver Bridge",
-  "photo_search": "Silver Bridge collapse Point Pleasant",
-  "photo_credit": "Photo: the Silver Bridge, Point Pleasant, W.Va. (Digital Public Library of America, via Wikimedia Commons) — no known restrictions",
   "scenes": [
    {
     "show": "fall",
-    "say": "December 15, 1967. The Silver Bridge over the Ohio River collapses, with thirty-seven vehicles on it."
-   },
-   {
-    "show": "close",
-    "say": "One joint held its north chain together: a pin through the eyes of two steel eyebars. At that pin, a crack had grown for forty years, to about an eighth of an inch. Then the eye broke, and its sister bar slid off the pin.",
-    "cue": "broke",
-    "label": {
-     "text": "JOINT C13N",
-     "at": "joint",
-     "from": "joint",
-     "to": "slid"
-    }
+    "lead": 0.5,
+    "say": "1967. The Silver Bridge falls into the Ohio River."
    },
    {
     "show": "stack",
-    "say": "No inspection could have found it: it was hidden inside the joint. And each link had only two bars. With three or more, one break might not have dropped the chain. With two, it was inevitable.",
+    "tail": 1.2,
+    "say": "One bar in its chain had a hidden crack. Each link had just two bars. One snapped, the other slid off, and the chain let go.",
     "sides": {
      "needed": {
       "joint": [
        "start",
-       0,
-       1.0
+       -3,
+       0.3
       ],
-      "load": [
+      "crack": [
        "start",
-       0.6,
-       0.8
+       0.2,
+       1.6
       ],
-      "water": [
-       "hidden",
+      "fracture": [
+       "snapped",
        0,
-       0.8
+       0.4
       ],
       "part": [
-       "three",
-       0.2,
-       1.0
+       "snapped",
+       0.1,
+       0.5
       ],
       "verdict": [
        "end",
-       1.3,
+       0.3,
        0.4
       ]
      },
      "built": {
       "joint": [
        "start",
-       0,
-       1.0
-      ],
-      "load": [
-       "start",
-       0.6,
-       0.8
-      ],
-      "water": [
-       "hidden",
-       0,
-       0.8
+       -3,
+       0.3
       ],
       "crack": [
-       "hidden",
+       "start",
        0.2,
-       2.4
+       1.6
       ],
       "stamp": [
        "two",
        0,
        0.35
       ],
-      "stamp_text": "TWO BARS PER LINK",
+      "stamp_text": "ONLY TWO BARS",
       "fracture": [
-       "inevitable",
-       -0.7,
-       0.5
+       "snapped",
+       0,
+       0.4
       ],
       "part": [
-       "inevitable",
-       -0.3,
-       0.8
+       "snapped",
+       0.1,
+       0.5
       ],
       "slip": [
-       "inevitable",
-       0.3,
-       1.0
+       "slid",
+       0,
+       0.8
       ],
       "verdict": [
        "end",
-       1.3,
+       0.3,
        0.4
       ]
      }
@@ -117,34 +97,95 @@
      },
      {
       "at": [
-       "inevitable",
-       -0.6
-      ],
-      "sound": "groan",
-      "level": 0.4
-     },
-     {
-      "at": [
-       "end",
-       0.3
+       "snapped",
+       0
       ],
       "sound": "crash",
       "level": 0.45
+     },
+     {
+      "at": [
+       "slid",
+       0
+      ],
+      "sound": "groan",
+      "level": 0.4
      }
+    ],
+    "zoom": [
+     1.7,
+     0.5,
+     0.56
     ]
    },
    {
     "show": "photo",
-    "photo": "photo.jpg",
-    "say": "Forty-six people died. Thirty-one of the thirty-seven vehicles on the bridge fell with it.",
-    "toll": "forty-six"
+    "toll": "forty",
+    "say": "Forty-six people died. It all began with one crack."
    }
-  ],
-  "comment": "No inspection of the time could have found that crack. What should a design do about a part nobody can inspect?"
+  ]
  },
  "music_credits": [
   "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
   "\"Man Down\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
  ],
- "parts": []
+ "parts": [],
+ "stillness": {
+  "step": 0.5,
+  "motion": [
+   100.0,
+   19.4,
+   20.23,
+   20.51,
+   15.71,
+   12.1,
+   8.95,
+   6.89,
+   5.03,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   100.0,
+   52.62,
+   9.46,
+   9.61,
+   9.55,
+   9.22,
+   9.08,
+   9.04
+  ],
+  "still": []
+ },
+ "scenes": [
+  {
+   "show": "fall",
+   "from": 0.0,
+   "to": 4.95
+  },
+  {
+   "show": "stack",
+   "from": 4.95,
+   "to": 13.27
+  },
+  {
+   "show": "photo",
+   "from": 13.27,
+   "to": 17.62
+  }
+ ]
 }
