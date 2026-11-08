@@ -192,8 +192,21 @@ def _words(d, caption, y):
         x += fnt.getlength(w.upper() + " ")
 
 
-def _overlay(img, hook, caption, cap_y, tags=(), toll=None, label=None):
-    """The hook's band, the scene's tags, a label on a part, the words, the toll."""
+def _big_hook(d, hook, y=560):
+    """The hook in big type over the opening picture, no band (owner,
+    2026-11-08: half the viewers swiped in the first second of a grey frame
+    with two small lines on top)."""
+    lines = [x.strip() for x in hook.split("|") if x.strip()][:2]
+    size = 150
+    while size > 90 and max(_font("InterDisplay-Black.otf", size).getlength(x) for x in lines) > SW - 80:
+        size -= 6
+    for i, line in enumerate(lines):
+        _text(d, line, SW / 2, y + i * int(size * 1.08), size, WHITE if i == 0 else RED, stroke=10)
+
+
+def _overlay(img, hook, caption, cap_y, tags=(), toll=None, label=None, big=False):
+    """The hook's band, the scene's tags, a label on a part, the words, the toll.
+    big: the hook large over the picture instead of in the band."""
     d = ImageDraw.Draw(img, "RGBA")
     if label:
         text, (x, y), a = label
@@ -207,15 +220,19 @@ def _overlay(img, hook, caption, cap_y, tags=(), toll=None, label=None):
                             fill=(4, 10, 20, int(200 * a)))
         d.text((tx, ty), text, font=f, fill=WHITE + (int(255 * a),), anchor="lm")
     for text, (x, y), col in tags:
-        f = _font("Inter-Bold.otf", 30)
+        f = _font("Inter-Bold.otf", 40)
         w = f.getlength(text)
-        d.rounded_rectangle([x, y - 26, x + w + 36, y + 26], 26, fill=(4, 10, 20, 190))
+        d.rounded_rectangle([x, y - 32, x + w + 40, y + 32], 30, fill=(4, 10, 20, 200))
         d.text((x + 18, y), text, font=f, fill=col, anchor="lm")
-    d.rectangle([0, 0, SW, HOOK_H], fill=(4, 10, 20, 255))
-    d.rectangle([0, HOOK_H - 4, SW, HOOK_H], fill=RED + (255,))
-    _brand(d)
-    for i, line in enumerate([x.strip() for x in hook.split("|") if x.strip()][:2]):
-        _text(d, line, SW / 2, 160 + i * 84, 76, WHITE if i == 0 else RED)
+    if big:
+        _brand(d)
+        _big_hook(d, hook)
+    else:
+        d.rectangle([0, 0, SW, HOOK_H], fill=(4, 10, 20, 255))
+        d.rectangle([0, HOOK_H - 4, SW, HOOK_H], fill=RED + (255,))
+        _brand(d)
+        for i, line in enumerate([x.strip() for x in hook.split("|") if x.strip()][:2]):
+            _text(d, line, SW / 2, 160 + i * 84, 76, WHITE if i == 0 else RED)
     if toll:
         value, what, count, card = toll
         fade = int(255 * (1 - min(1.0, card * 3)))             # the count gives way to the card
@@ -399,18 +416,42 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                         out[key] = p[1]
                 return out
 
-            def stack(t, t0=t0, plans=plans, tags=tags):
-                top = kit.side(False, **args(plans["needed"], t))
-                bot = kit.side(True, **args(plans["built"], t))
+            # "zoom": [z, cx, cy]: in close on the part that fails (owner, 2026-11-08:
+            # the Teton Short lost 18 points a second on a dark, half-empty
+            # drawing); the kit's own words at the top fall outside, so the
+            # stamp and the verdict are drawn here, big, on each side
+            zoom = sc.get("zoom")
+            if zoom:                                     # the push in moves the whole picture throughout
+                drawing[i].append((t0, t1))
+
+            def stack(t, t0=t0, t1=t1, plans=plans, tags=tags, zoom=zoom):
+                a_top, a_bot = args(plans["needed"], t), args(plans["built"], t)
+                if zoom:
+                    words_ = [(a_top.pop("verdict", 0.0), "HOLDS", (60, 220, 130)),
+                              (a_bot.pop("verdict", 0.0), "FAILS", RED)]
+                    stamp_ = (a_bot.pop("stamp", 0.0), a_bot.pop("stamp_text", ""), a_bot.get("slip", 0.0))
+                top = kit.side(False, **a_top)
+                bot = kit.side(True, **a_bot)
                 img = _grid_canvas()
-                # the kit frames the drawing (the whole plane, owner 2026-10-26); a slight push in
-                z = 1.0 + 0.04 * _ramp(t, t0, 12.0)
-                img.paste(_cover(top, SW, PANEL_H, z), (0, STACK_Y[0]))
-                img.paste(_cover(bot, SW, PANEL_H, z), (0, STACK_Y[1]))
-                d = ImageDraw.Draw(img)
+                if zoom:                                         # a steady push in: never a still frame
+                    z, cx, cy = zoom[0] * (1.0 + 0.2 * _ramp(t, t0, max(1.0, t1 - t0))), zoom[1], zoom[2]
+                else:
+                    # the kit frames the drawing (the whole plane, owner 2026-10-26); a slight push in
+                    z, cx, cy = 1.0 + 0.04 * _ramp(t, t0, 12.0), 0.5, 0.5
+                img.paste(_cover(top, SW, PANEL_H, z, cx, cy), (0, STACK_Y[0]))
+                img.paste(_cover(bot, SW, PANEL_H, z, cx, cy), (0, STACK_Y[1]))
+                d = ImageDraw.Draw(img, "RGBA")
                 for y in STACK_Y:
                     d.line([(0, y), (SW, y)], fill=(40, 70, 110), width=2)
                     d.line([(0, y + PANEL_H), (SW, y + PANEL_H)], fill=(40, 70, 110), width=2)
+                if zoom:
+                    for (a_, word, col), y in zip(words_, STACK_Y):
+                        if a_ > 0:
+                            _text(d, word, SW - 200, y + 110, 110, col + (int(255 * min(1.0, a_)),), stroke=8)
+                    k, text, _ = stamp_
+                    if k > 0 and text:
+                        _text(d, text, SW / 2, STACK_Y[1] + PANEL_H - 70, int(84 * (1.5 - 0.5 * min(1.0, k))),
+                              RED + (int(255 * min(1.0, k)),), stroke=8)      # it stays: the reason beside FAILS
                 return img, {"tags": tags}
             pictures.append(stack)
         elif sc["show"] == "photo":
@@ -472,6 +513,7 @@ def build(sheet, frames3d, script, out_dir, photo=None):
         f0, f1 = int(round(t0 * FPS)), (int(round(t1 * FPS)) if i + 1 < len(scenes) else n_total)
         cap_y = CAP_Y.get(sc["show"], CAP_DEFAULT)
         hook = sc.get("hook") or script.get("hook", "")
+        big = bool(script.get("hook_big")) and i == 0     # the opening: the hook big over the fall
         last = prev_last
         for n in range(f0, f1):
             t = n / FPS
@@ -479,13 +521,13 @@ def build(sheet, frames3d, script, out_dir, photo=None):
             toll_on = extras.get("toll") and extras["toll"][3] > 0
             g = next((g for g in groups if g[0][1] - 0.05 <= t < g[-1][2] + 0.15), None)
             img = _overlay(base.copy(), hook, (g, t) if g and not toll_on else None, cap_y,
-                           extras.get("tags", ()), extras.get("toll"), extras.get("label"))
+                           extras.get("tags", ()), extras.get("toll"), extras.get("label"), big)
             if extras.get("cta"):                                # a looping Short's pointer to the full story
                 d = ImageDraw.Draw(img, "RGBA")
                 _text(d, "FULL STORY ON THE CHANNEL", SW / 2, 1560, 44,
                       (200, 215, 235, int(255 * extras["cta"])), "Inter-Bold.otf")
             clean = img if not g or toll_on else _overlay(
-                base.copy(), hook, None, cap_y, extras.get("tags", ()), extras.get("toll"), extras.get("label"))
+                base.copy(), hook, None, cap_y, extras.get("tags", ()), extras.get("toll"), extras.get("label"), big)
             k = (n - f0) / (DISSOLVE * FPS)
             if prev_last is not None and k < 1:                  # one scene dissolves into the next
                 img = Image.blend(prev_last, img, k)
