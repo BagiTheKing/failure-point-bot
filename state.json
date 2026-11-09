@@ -212,15 +212,21 @@
         "videos/zcW0NBygU_s/3_model.jpg"
       ],
       "status": "testing",
-      "current": 1,
-      "since": "2026-11-05T19:57:15.555594+00:00",
-      "views_at_start": 48,
+      "current": 2,
+      "since": "2026-11-09T22:21:50.201867+00:00",
+      "views_at_start": 60,
       "results": [
         {
           "file": "videos/zcW0NBygU_s/1_photo_A.jpg",
           "views": 48,
           "days": 3.87,
           "per_day": 12.39
+        },
+        {
+          "file": "videos/zcW0NBygU_s/2_photo.jpg",
+          "views": 12,
+          "days": 4.1,
+          "per_day": 2.93
         }
       ],
       "registered": "2026-11-01T22:39:56.075251+00:00"
@@ -233,10 +239,17 @@
         "videos/foZj6XFlEKc/4_drawing.jpg"
       ],
       "status": "testing",
-      "current": 0,
-      "since": "2026-11-06T19:24:42.566234+00:00",
-      "views_at_start": 7,
-      "results": [],
+      "current": 1,
+      "since": "2026-11-09T22:21:50.201867+00:00",
+      "views_at_start": 22,
+      "results": [
+        {
+          "file": "videos/foZj6XFlEKc/1_photo.jpg",
+          "views": 15,
+          "days": 3.12,
+          "per_day": 4.8
+        }
+      ],
       "registered": "2026-11-06T13:50:14.065441+00:00"
     }
   },
