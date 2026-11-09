@@ -153,6 +153,45 @@ shown twice (now matched by file name); a 3D camera skimmed car roofs
   than being drawn bigger than it was (first used on the Silver Bridge
   Short, E4).
 
+## 6c. Decided from the Sabin comparison (9 Nov)
+
+Sabin Civil Engineering's "Silver Bridge" (_GoQmBhdr98, 6.96M subscribers,
+1.18M views) against ours (foZj6XFlEKc), the same story. Their side from the
+transcript and a scene log (exact for the first minute; the owner could not
+send the file: too large); ours frame by frame, one frame every 2 s.
+
+| | Sabin | Ours |
+|---|---|---|
+| First 24 s | 6 moving 3D shots: crack, second bar, tower twists, spans and cars fall; the disaster on screen at 0:05 | preview flash 3 s, "stay to the end" 5 s, black 2 s, title 4 s, two still photos; animation from 0:32 |
+| Shot length | 4 to 6 s, start to end | about 6 s to 1:02, then 38 to 57 s per 2D drawing, 24 s per photo, 37 s of text at the end (about 35 s a shot after 2:20) |
+| The collapse | step by step for 1.5 min (joint twists, force imbalance, tower tilts, desk model, second tower), then cars and splashes | 3:14 to 3:46: a clock 11 s, the joint 8 s, a distant fall 12 s with no splash, no cars falling |
+| Aftermath | animated rescue: boats, helicopters, divers, sonar, cranes | two still photos, 24 s each |
+| Sound | a sound for every scene: rain, thunder, snaps, splashes, rotors | music under the voice |
+| People | presenter with desk models (about 15%) | none |
+| Accuracy | "under 20 seconds", heavier cars as the cause, wrong side in the animation (commenters) | C13N, the 1/8-inch crack, about a minute (NTSB) |
+| Real material | none | photos, the marker |
+
+What it decides, for every long video from now on:
+- The disaster is on screen in the first 5 seconds, moving. No "stay to the
+  end" card, no black, no title card before it (Silver Bridge lost 3 of 18
+  viewers from 0:12 to 0:22, right there).
+- No shot over about 8 seconds, anywhere. A 2D drawing is cut into steps
+  with their own framing (wide, close on the part, the label); a photo is
+  held 6 to 8 s with movement; the ending is pictures, not a text card.
+- The collapse is the centrepiece: shown close, step by step, with cars
+  and splashes, not one distant 12-second shot.
+- A sound for each scene (rain, strain, snap, splash) as well as the music.
+- A question before each answer ("Where would water collect?"), as now,
+  every 30 to 60 seconds.
+- Keep what they lack: the investigation's facts and real material.
+- Thumbnails: curiosity, not wreckage. Sabin's shows a 1927 car next to a
+  1967 car ("When cars get heavier…"); our postcard got 2.5% CTR against
+  Teton's 6.5%. A video that is never clicked cannot hold anyone.
+- Proposed by the owner (9 Nov), not yet decided: three long videos a
+  week (Mon, Wed, Fri) with each Short the next day, Sunday off. Needs the
+  upload gate cut from 48 h to 24 h, and new kits only where a disaster
+  cannot reuse one.
+
 ## 7. Topics by search demand (vidIQ, monthly YouTube searches)
 
 | Topic | Searches a month | Competition (lower is easier) |
@@ -162,6 +201,18 @@ shown twice (now matched by file name); a 3D camera skimmed car roofs
 | Tacoma Narrows Bridge | about 31K (growing 668%) | 56 |
 | Banqiao Dam disaster | about 14K | 31 |
 | Silver Bridge collapse | about 10K | 39 |
+
+Next long video, proposed 9 Nov: **Tacoma Narrows Bridge (1940)**. The most
+demand that keeps growing, and the only topic here with real film of the
+failure itself (Elliott and Monroe's 1940 film, widely described as public
+domain via the Prelinger Archives; each clip's licence is checked on its
+archive page before use). No one died but a dog, so the film can open the
+video and the thumbnail without any photo of the dead. The suspension towers
+and deck can be built from the Silver Bridge model; the twisting (flutter)
+2D is new. Vajont is next in line ("The dam held. Two thousand died.": the
+curiosity thumbnail), but it needs a new arch dam and landslide model, and
+each Italian photo's licence checked. Challenger is left out: its film is
+the crew's last moments.
 
 ## 8. Data we still lack
 
