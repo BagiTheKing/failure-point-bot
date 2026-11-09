@@ -735,12 +735,17 @@ def spray_material(name, colour=(0.86, 0.88, 0.88), alpha=0.85):
     at = nt.nodes.new("ShaderNodeAttribute")
     at.attribute_type = "INSTANCER"
     at.attribute_name = "fade"
+    # alpha * (1 - fade): fully gone by the end of each drop's life
     inv = nt.nodes.new("ShaderNodeMath")
     inv.operation = "SUBTRACT"
-    inv.inputs[0].default_value = alpha
+    inv.inputs[0].default_value = 1.0
     nt.links.new(at.outputs["Fac"], inv.inputs[1])
+    sc_ = nt.nodes.new("ShaderNodeMath")
+    sc_.operation = "MULTIPLY"
+    sc_.inputs[1].default_value = alpha
+    nt.links.new(inv.outputs[0], sc_.inputs[0])
     clamp = nt.nodes.new("ShaderNodeClamp")
-    nt.links.new(inv.outputs[0], clamp.inputs["Value"])
+    nt.links.new(sc_.outputs[0], clamp.inputs["Value"])
     out = clamp.outputs[0]
     if name == "foam":
         # foam: broken into patches, thinning out to nothing at the ring's edge
@@ -1208,6 +1213,22 @@ class Model:
                 set_input(o, mod, ids["Twist"], twist_of(f), f)
                 set_input(o, mod, ids["Heave"], heave_of(f), f)
 
+    def place_car(self, x, y, frames, twist_of, heave_of, waves=1.0, slide=None):
+        """The abandoned car at (x, y) on the road, riding the deck: keyed
+        each frame with the deck's roll and rise where it stands. slide(f)
+        gives a sideways creep in feet (it slid on the tilting road)."""
+        car = sedan_1930s("car")
+        car.rotation_mode = "XYZ"
+        for f in frames:
+            yy = y + (slide(f) if slide else 0.0)
+            ny, nz, th = deck_transform(x, yy, ROAD_Z, twist_of(f), heave_of(f), waves)
+            car.location = (x, ny, nz)
+            car.rotation_euler = (th, 0.0, 0.0)
+            car.keyframe_insert("location", frame=f)
+            car.keyframe_insert("rotation_euler", frame=f)
+        self.car = car
+        return car
+
     def collapse(self, stages, twist_of, heave_of, end_frame, fps=FPS, seed=5):
         """The main span tears away and falls. stages: [(x0, x1, t_start,
         t_spread, piece_ft)], model seconds: the deck between x0 and x1
@@ -1222,6 +1243,7 @@ class Model:
         from mathutils import Matrix
         rnd = random.Random(seed)
         self.hits = []
+        self.breaks = []
         movers = {o.name: (mod, ids) for o, mod, ids in self.movers}
         segs = sorted(self.segments, key=lambda t: t[1])
         for x0, x1, t0, spread, piece_ft in stages:
@@ -1247,6 +1269,8 @@ class Model:
                     pivot_x, side = None, 0          # the first piece drops nearly flat
                 tw, hv = twist_of(fb), heave_of(fb)
                 th_rate = (twist_of(fb + 1) - tw) * fps * twist_mode(pcx)
+                for ex in (px0, px1):                     # both torn ends shed debris
+                    self.breaks.append(((ex, 0.0, AXIS_Z), tb + 1.0 / fps, 40.0))
                 t_h = rnd.uniform(0.45, 0.8)
                 phi_h = math.radians(rnd.uniform(20, 38)) * (1 if side else 0)
                 w_h = 2 * phi_h / t_h                 # its swing rate at release
@@ -1314,7 +1338,37 @@ class Model:
                             o.keyframe_insert("hide_render", frame=f)
                     if len(sunk) == len(pc):
                         break
+        self.debris()
         self.splashes()
+
+    def debris(self):
+        """Concrete and steel shed from the torn ends as each piece lets go:
+        chunks thrown a little outward, then falling under gravity."""
+        if not getattr(self, "breaks", None):
+            return
+        me = bpy.data.meshes.new("breaks")
+        me.from_pydata([b[0] for b in self.breaks], [], [])
+        me.update()
+        a = me.attributes.new("t_hit", "FLOAT", "POINT")
+        a.data.foreach_set("value", [b[1] for b in self.breaks])
+        w = me.attributes.new("width", "FLOAT", "POINT")
+        w.data.foreach_set("value", [b[2] for b in self.breaks])
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, -9000))
+        chunk = bpy.context.object
+        chunk.name = "chunk"
+        for v in chunk.data.vertices:          # an irregular lump, not a cube
+            v.co.x *= 1.0 + 0.6 * (v.co.y > 0)
+            v.co.z *= 0.6
+        chunk.data.materials.append(self.m_conc)
+        chunk.hide_render = True
+        grp = splash_group("debris", 120, 22.0, 1.0, 0.15, 6.0, 0.9, rise=0.5)
+        o = bpy.data.objects.new("debris", me)
+        self.sc.collection.objects.link(o)
+        mod = o.modifiers.new("debris", "NODES")
+        mod.node_group = grp
+        ident = [it.identifier for it in grp.interface.items_tree
+                 if getattr(it, "in_out", None) == "INPUT" and it.name == "Drop"][0]
+        set_input(o, mod, ident, chunk)
 
     def splashes(self):
         """One vertex per hit, carrying its time and width, fed to three
@@ -1388,6 +1442,9 @@ def setup_render(sc, samples=32, size=(1280, 720)):
     sc.cycles.samples = samples
     sc.cycles.use_denoising = True
     sc.cycles.max_bounces = 4
+    # layered spray and mist: enough transparent bounces that stacked drops
+    # never run out and render black
+    sc.cycles.transparent_max_bounces = 48
     sc.render.use_persistent_data = True
     sc.render.image_settings.file_format = "PNG"
     views = [i.identifier for i in sc.view_settings.bl_rna.properties["view_transform"].enum_items]
