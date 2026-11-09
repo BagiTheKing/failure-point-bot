@@ -192,6 +192,52 @@ What it decides, for every long video from now on:
   upload gate cut from 48 h to 24 h, and new kits only where a disaster
   cannot reuse one.
 
+## 6d. The 3D against Sabin, frame by frame (9 Nov)
+
+The owner sent Sabin's Silver Bridge video (10:25). Compared one frame every
+2 s against our published Silver Bridge (foZj6XFlEKc), 3D only (the owner:
+"the 3D model animation ONLY"). Side-by-side stills: wide, joint, deck and
+cars, fall, water.
+
+| | Sabin | Ours (Silver Bridge) |
+|---|---|---|
+| Parts close up | eyebar, pin, cap, nut, bevelled edges, cast texture | flat boxes and discs, no bevels; the crack is a glowing slot |
+| Cars | modelled 1920s to 1960s cars, wheels, glass, chrome, many on the deck | coloured boxes |
+| The fall | 0:05 to 0:24 and 5:20 to 5:50: deck hinges off the tower, cars tumble out, tower tips, white splashes, 6+ angles | 3:34 to 3:48: two distant shots, parts slide flat onto a mirror river, no splash, cars do not fall |
+| Water | waves, foam, splashes, underwater shots | a mirror |
+| Land | green banks, trees, city, clouds | sand-coloured ramps, empty |
+| Cameras | 4 to 6 s, low under the deck, at the joint, following falling cars | about 6 s at the start, then an 8 s static close-up and a 14 s distant fall |
+| Light | bright, saturated, clear | dusk, flat, dark |
+| Where we are ahead | | the facts (the investigation's numbers, real places) |
+
+What Sabin's does that we did not have, as code: physics-looking falls
+(gravity, tumbling, hinging), splashes, modelled cars, detail on every close
+part, more angles. Their render is not photoreal (clean, game-like); the
+gap is motion and detail, not the renderer.
+
+The Tacoma Narrows model (src/kits/narrows_3d.py, started 9 Nov) is built to
+close that gap, part by part:
+- Steel: riveted plate (rivet rows in the bump), bevelled edges, stiffeners
+  on the 8 ft plate girders, cable bands with bolts, wire-rope texture. New
+  paint, no rust (the bridge was four months old).
+- Motion: one geometry-nodes group moves deck, hangers and cables together
+  from two numbers a frame (twist, heave) through the bridge's mode shapes:
+  the deck rolls about its axis, hangers lean and stay straight, cables rise
+  and fall. No per-part hand keys.
+- The fall: the deck tears into pieces of 100 to 200 ft, each keeps its
+  twisted shape, hinges down from the edge still holding, lets go and falls
+  under real gravity (about 3.5 s from 195 ft), tilted, and goes under.
+- Water: Puget Sound in a 42 mph wind (crossed wave bands, chop, whitecaps);
+  each piece throws a splash where it lands: sheets of water up to about
+  120 ft, mist that hangs for 6 s, a foam ring. Worked out from the time
+  since the hit (no simulation), so any frame renders alone, in any shard.
+- World: steep bluffs under fir forest (about 100,000 instanced trees), an
+  overcast November sky.
+- The abandoned car: a late-1930s sedan (rounded body, fenders, running
+  boards, chrome, glass) in place of box cars.
+- Local renders: Blender 5.2 (pip bpy) runs in the session; half-size
+  frames take 8 to 15 s at 12 to 16 samples on 4 cores.
+
 ## 7. Topics by search demand (vidIQ, monthly YouTube searches)
 
 | Topic | Searches a month | Competition (lower is easier) |
