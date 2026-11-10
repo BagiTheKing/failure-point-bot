@@ -38,7 +38,7 @@ import os
 import random
 
 import bpy
-from mathutils import Vector
+from mathutils import Euler, Vector
 
 from kits import look
 
@@ -271,7 +271,7 @@ def wire_rope(name):
 
 def roadway(name):
     """1940 concrete pavement: pale, weathered in patches, joints across it
-    every 20 ft, a centre line."""
+    every 20 ft, one solid white centre line."""
     m = bpy.data.materials.new(name)
     nt, b = _p(m)
     tc = nt.nodes.new("ShaderNodeTexCoord")
@@ -303,10 +303,11 @@ def roadway(name):
     dgt.operation = "GREATER_THAN"
     dgt.inputs[1].default_value = 4.0
     nt.links.new(dash.outputs[0], dgt.inputs[0])
+    # the 1940 film shows one solid white centre line, not a dashed one
     paint = nt.nodes.new("ShaderNodeMath")
     paint.operation = "MULTIPLY"
     nt.links.new(line.outputs[0], paint.inputs[0])
-    nt.links.new(dgt.outputs[0], paint.inputs[1])
+    paint.inputs[1].default_value = 1.0
     mix = nt.nodes.new("ShaderNodeMix")
     mix.data_type = "RGBA"
     nt.links.new(paint.outputs[0], mix.inputs[0])
@@ -548,7 +549,7 @@ def motion_group():
     io = g.interface
     io.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
     io.new_socket("Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
-    for nm in ("Twist", "Heave", "Waves", "OffX", "OffY", "OffZ", "Snap"):
+    for nm in ("Twist", "Heave", "Waves", "OffX", "OffY", "OffZ", "Snap", "SideSag"):
         io.new_socket(nm, in_out="INPUT", socket_type="NodeSocketFloat")
     gi = g.nodes.new("NodeGroupInput")
     go = g.nodes.new("NodeGroupOutput")
@@ -583,6 +584,12 @@ def motion_group():
     rig = E(attr.outputs["Attribute"])
     ny = Y + dyh + (dyr - dyh) * rig
     nz = Z + dzh + (dzr - dzh) * rig + H
+    # the side spans sag once the main span is gone (its pull on the towers
+    # gone, the towers lean back toward the shore and the side cables slacken)
+    ax_ = X.abs()
+    inside_side = (1.0 - ax_.lt(HALF)) * ax_.lt(ANCHOR_X)
+    smode = ((ax_ - HALF) * (math.pi / SIDE)).sin() * inside_side
+    nz = nz - E(gi.outputs["SideSag"]) * smode
     # a parted segment's hangers: snapped at the cable, they fold down
     # onto the falling deck and swing out (Snap 0 to 1)
     snap = E(gi.outputs["Snap"]) * (1.0 - rig)
@@ -637,8 +644,9 @@ def chrome(name="chrome"):
     return plain(name, (0.8, 0.8, 0.82), 0.12, 1.0)
 
 
-def sedan_1930s(name, paint=(0.035, 0.05, 0.045)):
-    """A late-1930s sedan, about 16 ft long, its origin on the road under
+def sedan_1930s(name, paint=(0.26, 0.265, 0.25)):
+    """A late-1930s sedan as in the 1940 film (Coatsworth's: pale, a rounded
+    roof and trunk), about 16 ft long, its origin on the road under
     its middle, nose toward +x: a rounded body (a smoothed cage of
     cross-sections with a crease at the beltline), the glasshouse above it,
     separate sweeping fenders, running boards, chrome grille, bumpers and
@@ -673,7 +681,7 @@ def sedan_1930s(name, paint=(0.035, 0.05, 0.045)):
     me.from_pydata(verts, [], faces)
     me.update()
     me.materials.append(look.car_paint(name + "_paint", paint))
-    me.materials.append(plain("car_glass", (0.16, 0.18, 0.2), 0.03, 0.3))
+    me.materials.append(plain("car_glass", (0.035, 0.04, 0.045), 0.04, 0.2))
     for p, mi in zip(me.polygons, mats):
         p.material_index = mi
         p.use_smooth = True
@@ -715,6 +723,72 @@ def sedan_1930s(name, paint=(0.035, 0.05, 0.045)):
                    smooth=False, bevel=0.04)
     det.parent = body
     return body
+
+
+def delivery_truck_1930s(name, paint=(0.10, 0.11, 0.10)):
+    """A 1930s delivery truck (the Rapid Transfer Company's, which tipped
+    over on the deck), about 20 ft long, origin on the road under its middle,
+    nose toward +x: a rounded hood and cab in front of a tall box body,
+    fenders over the front wheels, twin rear wheels."""
+    # hood and cab: a smoothed cage like the sedan's
+    st = [(2.0, 3.0, 1.6, 7.2, 0.86), (4.6, 3.0, 1.6, 7.0, 0.84), (5.6, 2.6, 1.8, 4.6, 0.9),
+          (8.6, 1.9, 2.0, 4.3, 0.86), (9.6, 1.6, 2.2, 3.8, 0.8)]
+    verts, faces, mats = [], [], []
+    for x, hw, zb, zt, tum in st:
+        zm = zb + 0.6 * (zt - zb)
+        for y, z in ((-hw, zb), (-hw, zm), (-hw * tum, zt), (hw * tum, zt), (hw, zm), (hw, zb)):
+            verts.append((x, y, z))
+    n = 6
+    for i in range(len(st) - 1):
+        for k in range(n):
+            a, b = i * n + k, i * n + (k + 1) % n
+            faces.append((a, b, b + n, a + n))
+            mats.append(1 if (i == 1 and k in (1, 2, 3)) else 0)
+    faces.append(tuple(range(n))[::-1])
+    mats.append(0)
+    last = (len(st) - 1) * n
+    faces.append(tuple(last + k for k in range(n)))
+    mats.append(0)
+    me = bpy.data.meshes.new(name)
+    me.from_pydata(verts, [], faces)
+    me.update()
+    me.materials.append(look.car_paint(name + "_paint", paint))
+    me.materials.append(plain("car_glass", (0.035, 0.04, 0.045), 0.04, 0.2))
+    for p, mi in zip(me.polygons, mats):
+        p.material_index = mi
+        p.use_smooth = True
+    cab = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(cab)
+    sub = cab.modifiers.new("smooth", "SUBSURF")
+    sub.levels = sub.render_levels = 2
+    mb = MeshBuilder()
+    mb.box(-10.0, 1.8, -3.4, 3.4, 1.9, 9.6, 2)                          # the box body
+    for zz in (2.3, 9.0):
+        mb.box(-10.15, 1.95, -3.5, 3.5, zz, zz + 0.3, 1)                 # rub rails
+    mb.box(-10.2, 9.0, -1.4, 1.4, 1.0, 1.9, 1)                           # chassis frame
+    for wx, twin in ((7.0, False), (-6.6, True)):
+        for sy in (-1, 1):
+            for k in ((0.0, 0.85) if twin else (0.0,)):
+                wy = sy * (2.7 + k)
+                mb.cylinder((wx, wy, 1.5), 1.5, 0.8, axis="y", n=18, mi=3)
+                mb.cylinder((wx, wy + sy * 0.42, 1.5), 0.65, 0.08, axis="y", n=18, mi=1)
+        if not twin:
+            for sy in (-1, 1):
+                wy = sy * 2.7
+                pts = [(wx + 2.1 * math.cos(math.pi * (0.05 + 0.9 * j / 12)), 1.5 + 1.9 * math.sin(math.pi * (0.05 + 0.9 * j / 12)))
+                       for j in range(13)]
+                pts = [(wx + 3.0, 1.7)] + pts[1:]
+                pts.sort(key=lambda q: -q[0])
+                w0, w1 = sorted((wy - sy * 0.1, wy + sy * 1.0))
+                mb.shell([(x, 0, z) for x, z in pts], w0, w1, 0.16, mi=0)
+    mb.box(9.7, 10.0, -1.3, 1.3, 2.3, 3.8, 1)                            # radiator shell
+    for sy in (-1, 1):
+        mb.cylinder((9.4, sy * 2.3, 3.7), 0.42, 0.5, axis="x", n=14, mi=1)  # headlamps
+    mb.box(10.1, 10.5, -3.0, 3.0, 1.2, 1.6, 1)                           # bumper
+    det = mb.build(name + "_parts", [me.materials[0], chrome(), plain("truck_box", (0.30, 0.31, 0.29), 0.7),
+                                    plain("tyre", (0.025, 0.025, 0.025), 0.85)], smooth=False, bevel=0.05)
+    det.parent = cab
+    return cab
 
 
 # ------------------------------------------------------------- the water
@@ -780,7 +854,8 @@ def spray_material(name, colour=(0.86, 0.88, 0.88), alpha=0.85):
     return m
 
 
-def splash_group(name, count, speed, spread, drag, life, size, rise=1.0, ring=False, gravity=1.0, tumble=3.14):
+def splash_group(name, count, speed, spread, drag, life, size, rise=1.0, ring=False, gravity=1.0, tumble=3.14,
+                 drift=0.0):
     """Geometry nodes, no simulation: every impact point (a vertex with
     "t_hit" in seconds and "width" in feet) throws `count` drops whose
     positions are worked out from the time since the hit (ballistic with
@@ -830,7 +905,7 @@ def splash_group(name, count, speed, spread, drag, life, size, rise=1.0, ring=Fa
     g.links.new(ek.s, expn.inputs[0])
     fall = (1.0 - E(expn.outputs[0])) * (1.0 / k)
     off_x = (rnd(6, -0.5, 0.5) * E(wd.outputs["Attribute"])) + ang.cos() * vh * fall
-    off_y = ang.sin() * vh * fall + rnd(7, -6.0, 6.0)
+    off_y = ang.sin() * vh * fall + rnd(7, -6.0, 6.0) + a * drift      # carried by the wind
     off_z = vz * fall - a * a * (G * gravity / 2.0)
     pos = g.nodes.new("GeometryNodeInputPosition")
     sep = g.nodes.new("ShaderNodeSeparateXYZ")
@@ -925,14 +1000,13 @@ class Model:
                 mb.box(tx - 7.5, tx + 7.5, gy - 6, gy + 6, TOWER_TOP - 4, TOWER_TOP, 0)       # cap
                 # the saddle the cable rests in
                 mb.box(tx - 6, tx + 6, gy - 2.2, gy + 2.2, TOWER_TOP, TOWER_TOP + 3.5, 1)
-            # struts between the legs: one under the deck, three above, X bracing between them
-            levels = [G_BOT - 6, 262.0, 330.0, 398.0, TOWER_TOP - 8]
-            for z in levels:
-                mb.beam((tx, -GIRDER_Y + 4, z), (tx, GIRDER_Y - 4, z), 5.0, 7.0, 0, 1.0, up_hint=(0, 0, 1))
-            for z0, z1 in zip(levels[1:-1], levels[2:]):
-                for a, b_ in ((-1, 1), (1, -1)):
-                    mb.beam((tx, a * (GIRDER_Y - 4), z0 + 3), (tx, b_ * (GIRDER_Y - 4), z1 - 3), 3.0, 2.2, 0, 1.0,
-                            up_hint=(1, 0, 0))
+            # as in the 1940 film: no diagonal bracing; solid plate struts between
+            # the legs: a deep one at the top, one at about two-thirds height,
+            # one under the deck. Each strut is a riveted panel with a rim.
+            for z0, z1 in ((TOWER_TOP - 30.0, TOWER_TOP - 6.0), (318.0, 336.0), (G_BOT - 14.0, G_BOT - 4.0)):
+                mb.box(tx - 2.2, tx + 2.2, -GIRDER_Y + 4.0, GIRDER_Y - 4.0, z0, z1, 0)
+                for zz in (z0, z1 - 1.2):
+                    mb.box(tx - 3.0, tx + 3.0, -GIRDER_Y + 4.0, GIRDER_Y - 4.0, zz, zz + 1.2, 0)
             o = mb.build(f"tower_{'w' if tx < 0 else 'e'}", [self.m_paint, self.m_dark], bevel=0.25)
             # the pier: a concrete caisson out of the water with a fender-shaped nose
             pm = MeshBuilder()
@@ -1052,7 +1126,8 @@ class Model:
             self._deck_piece(mb, a, b_)
             a2, b2 = sorted((sx * ANCHOR_X, sx * (ANCHOR_X + 900)))
             self._deck_piece(mb, a2, b2, hangers=False)
-            mb.build(f"side_{'w' if sx < 0 else 'e'}", mats)
+            o = mb.build(f"side_{'w' if sx < 0 else 'e'}", mats)
+            self.movers.append((o,) + add_motion(o))
 
     def world(self):
         sc = self.sc
@@ -1213,21 +1288,28 @@ class Model:
                 set_input(o, mod, ids["Twist"], twist_of(f), f)
                 set_input(o, mod, ids["Heave"], heave_of(f), f)
 
-    def place_car(self, x, y, frames, twist_of, heave_of, waves=1.0, slide=None):
-        """The abandoned car at (x, y) on the road, riding the deck: keyed
-        each frame with the deck's roll and rise where it stands. slide(f)
-        gives a sideways creep in feet (it slid on the tilting road)."""
+    def place_vehicles(self, frames, twist_of, heave_of, waves=1.0, car_x=-560.0, truck_x=-610.0):
+        """The two vehicles of 7 November, as the 1940 film shows them:
+        Coatsworth's pale sedan stopped against the curb, and beside it, in
+        the other lane, the Rapid Transfer Company's delivery truck lying on
+        its side. Both ride the deck (keyed each frame with its roll and
+        rise where they stand); collapse() carries them down with the piece
+        they stand on."""
         car = sedan_1930s("car")
-        car.rotation_mode = "XYZ"
-        for f in frames:
-            yy = y + (slide(f) if slide else 0.0)
-            ny, nz, th = deck_transform(x, yy, ROAD_Z, twist_of(f), heave_of(f), waves)
-            car.location = (x, ny, nz)
-            car.rotation_euler = (th, 0.0, 0.0)
-            car.keyframe_insert("location", frame=f)
-            car.keyframe_insert("rotation_euler", frame=f)
-        self.car = car
-        return car
+        truck = delivery_truck_1930s("truck")
+        # (object, x, y, height of its origin over the road, its own turn)
+        self.riders = [(car, car_x, -9.5, 0.0, (0.0, 0.0, 0.0)),
+                       (truck, truck_x, 4.0, 3.4, (math.radians(-88), 0.0, math.radians(-12)))]
+        for o, x, y, h, rot in self.riders:
+            o.rotation_mode = "XYZ"
+            for f in frames:
+                ny, nz, th = deck_transform(x, y, ROAD_Z + h, twist_of(f), heave_of(f), waves)
+                o.location = (x, ny, nz)
+                o.rotation_euler = (th + rot[0], rot[1], rot[2])
+                o.keyframe_insert("location", frame=f)
+                o.keyframe_insert("rotation_euler", frame=f)
+        self.car, self.truck = car, truck
+        return car, truck
 
     def collapse(self, stages, twist_of, heave_of, end_frame, fps=FPS, seed=5):
         """The main span tears away and falls. stages: [(x0, x1, t_start,
@@ -1246,7 +1328,11 @@ class Model:
         self.breaks = []
         movers = {o.name: (mod, ids) for o, mod, ids in self.movers}
         segs = sorted(self.segments, key=lambda t: t[1])
-        for x0, x1, t0, spread, piece_ft in stages:
+        riders = list(getattr(self, "riders", []))
+        last_break = 0.0
+        for stage in stages:
+            x0, x1, t0, spread, piece_ft = stage[:5]
+            hang = stage[5] if len(stage) > 5 else False
             inside = [sg for sg in segs if x0 <= (sg[1] + sg[2]) / 2 <= x1]
             # cut into pieces of varied length (whole segments)
             pieces, i = [], 0
@@ -1265,6 +1351,10 @@ class Model:
                 # it hinges on the edge toward the nearer tower (still attached)
                 pivot_x = px0 if pcx < 0 else px1
                 side = -1 if pcx < 0 else 1           # the free end is toward the middle
+                # the last piece by a tower may stay hanging from it (the film: a
+                # stub of deck hung down from the tower into the water)
+                hangs = hang and abs(abs(pivot_x) - HALF) < 1.0
+                last_break = max(last_break, tb)
                 if abs(pcx - mid) < 60:
                     pivot_x, side = None, 0          # the first piece drops nearly flat
                 tw, hv = twist_of(fb), heave_of(fb)
@@ -1282,6 +1372,11 @@ class Model:
 
                 def pose(tau):
                     """(rotation matrix, translation) of the piece at tau s after the break."""
+                    if hangs:
+                        # swings down on its hinge and settles, rocking, about 70 degrees down
+                        cap = math.radians(70)
+                        phi = cap * (1 - math.exp(-tau / 0.7) * math.cos(2.2 * tau))
+                        return Matrix.Rotation(-side * phi, 4, "Y"), Vector((0, 0, 0)), phi
                     if tau <= t_h or not side:
                         phi = phi_h * (tau / t_h) ** 2 if side else 0.0
                         R = Matrix.Rotation(-side * phi, 4, "Y") if side else Matrix.Identity(4)
@@ -1308,6 +1403,21 @@ class Model:
                     o.hide_render = False
                     o.keyframe_insert("hide_render", frame=fb - 1)
                 hit_t, hit_z, sunk = {}, {}, {}
+                # vehicles standing on this piece go with it
+                on = []
+                for r in riders:
+                    o_, x_, y_, h_, rot_ = r
+                    if px0 <= x_ <= px1:
+                        ny_, nz_, th_ = deck_transform(x_, y_, ROAD_Z + h_, tw, hv, 1.0)
+                        rest = Vector((x_, ny_, nz_))
+                        base = Euler((th_ + rot_[0], rot_[1], rot_[2]), "XYZ").to_matrix()
+                        on.append((o_, rest, base))
+                        riders.remove(r)
+                        # visible until it goes under (one "hidden" key alone would
+                        # hide it on every frame)
+                        o_.hide_render = False
+                        o_.keyframe_insert("hide_render", frame=max(1, fb - 1))
+                self.hanger_stubs(pc, fb, rnd)
                 for f in range(fb, end_frame + 1):
                     tau = (f - fb) / fps
                     R, T, _ = pose(tau)
@@ -1336,10 +1446,70 @@ class Model:
                             sunk[o.name] = True
                             o.hide_render = True
                             o.keyframe_insert("hide_render", frame=f)
-                    if len(sunk) == len(pc):
+                    for o_, rest, base in on:
+                        if o_.name in sunk:
+                            continue
+                        loc = P + (R @ (rest - P)) + T
+                        if o_.name in hit_t:
+                            u = tau - hit_t[o_.name]
+                            loc.z = hit_z[o_.name] - 10 * (1 - math.exp(-u / 0.4)) - 4 * u
+                        elif loc.z < 4.0:
+                            hit_t[o_.name], hit_z[o_.name] = tau, loc.z
+                            self.hits.append(((loc.x, loc.y, 0.0), tb + tau + 1.0 / fps, 18.0))
+                        o_.location = loc
+                        o_.rotation_euler = (R.to_3x3() @ base).to_euler("XYZ")
+                        o_.keyframe_insert("location", frame=f)
+                        o_.keyframe_insert("rotation_euler", frame=f)
+                        if loc.z < -30:
+                            sunk[o_.name] = True
+                            for oo in [o_] + list(o_.children):
+                                oo.hide_render = False
+                                oo.keyframe_insert("hide_render", frame=max(1, fb - 1))
+                                oo.hide_render = True
+                                oo.keyframe_insert("hide_render", frame=f)
+                    if len(sunk) == len(pc) + len(on) or (hangs and tau > 6.0):
                         break
+        self.side_sag(last_break + 0.6, end_frame, fps)
         self.debris()
         self.splashes()
+
+    def side_sag(self, t0, end_frame, fps=FPS, depth=28.0):
+        """After the main span is gone the side spans drop and settle,
+        rocking (the film's last shots: the side span sagging in a curve)."""
+        f0 = int(round(t0 * fps)) + 1
+        for o, mod, ids in self.movers:
+            if not (o.name.startswith("side_") or o.name.startswith("cable_")):
+                continue
+            set_input(o, mod, ids["SideSag"], 0.0, f0 - 1)
+            for f in range(f0, end_frame + 1, 2):
+                u = (f - f0) / fps
+                v = depth * (1 - math.exp(-u / 1.2) * math.cos(1.6 * u))
+                set_input(o, mod, ids["SideSag"], v, f)
+
+    def hanger_stubs(self, piece, f_show, rnd):
+        """Where a piece tore away, the snapped hangers hang from the cable,
+        a few feet to sixty feet long, some bent (the film's aftermath)."""
+        mb = MeshBuilder()
+        x0, x1 = piece[0][1], piece[-1][2]
+        x = math.ceil(x0 / HANGER_DX) * HANGER_DX
+        while x < x1:
+            for gy in (-GIRDER_Y, GIRDER_Y):
+                if rnd.random() < 0.8:
+                    top = cable_z(x) - CABLE_R
+                    ln = rnd.uniform(5, 60)
+                    kink = Vector((rnd.uniform(-3, 3), rnd.uniform(-6, 6), 0))
+                    pts = [Vector((x, gy, top)), Vector((x, gy, top - ln * 0.6)) + kink * 0.4,
+                           Vector((x, gy, top - ln)) + kink]
+                    mb.tube(pts, 0.12, 6, 0, 1.0, caps=True)
+            x += HANGER_DX
+        if not mb.v:
+            return
+        o = mb.build(f"stubs_{piece[0][0].name}", [self.m_rope])
+        o.hide_render = True
+        o.keyframe_insert("hide_render", frame=1)
+        o.keyframe_insert("hide_render", frame=max(1, f_show - 1))
+        o.hide_render = False
+        o.keyframe_insert("hide_render", frame=f_show)
 
     def debris(self):
         """Concrete and steel shed from the torn ends as each piece lets go:
@@ -1403,8 +1573,9 @@ class Model:
         for o in (drop, puff, disc):
             o.hide_render = True
         layers = (
-            ("sheets", splash_group("sheets", 1300, 160.0, 0.55, 0.6, 4.5, 0.75, tumble=0.8), drop),
-            ("spray", splash_group("spray", 700, 140.0, 0.6, 1.5, 7.0, 3.2, 1.0, gravity=0.12), puff),
+            ("sheets", splash_group("sheets", 1500, 195.0, 0.55, 0.6, 5.0, 0.8, tumble=0.8, drift=6.0), drop),
+            # the film: a white cloud that rolls up past the deck and drifts off downwind
+            ("spray", splash_group("spray", 1000, 170.0, 0.9, 1.2, 10.0, 4.5, 1.0, gravity=0.07, drift=14.0), puff),
             ("foam", splash_group("foam", 1, 0.0, 0.0, 1.0, 14.0, 22.0, 0.0, ring=True, gravity=0.0), disc),
         )
         for name, grp, inst in layers:

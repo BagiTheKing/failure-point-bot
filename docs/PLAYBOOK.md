@@ -235,6 +235,18 @@ close that gap, part by part:
   overcast November sky.
 - The abandoned car: a late-1930s sedan (rounded body, fenders, running
   boards, chrome, glass) in place of box cars.
+- Matched to the 1940 film (Barney Elliott's, Prelinger Archives,
+  dedicated to the public domain; on preview-media as
+  sources/tacoma/film_1940.mp4), 10 Nov: towers as plain portals (legs and
+  solid plate struts, no X bracing); one solid white centre line;
+  Coatsworth's car pale and rounded, against the curb; the Rapid Transfer
+  Company's delivery truck on its side beside it; the splash a white cloud
+  that rolls up past the deck and drifts downwind; afterwards the side spans
+  sag, snapped hangers dangle from the cables, and the last piece by each
+  tower hangs from it down toward the water.
+- Owner, 10 Nov: the car and the truck fall with the deck (shown, like
+  Sabin's falling cars); the Tacoma long video goes out Friday 13 Nov, the
+  review copy Thursday; nothing on Wednesday.
 - Local renders: Blender 5.2 (pip bpy) runs in the session; half-size
   frames take 8 to 15 s at 12 to 16 samples on 4 cores.
 
