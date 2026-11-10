@@ -43,6 +43,11 @@ W, H, FPS, SR = 1280, 720, 30, 48000
 LEAD = 0.25                  # the voice starts this long into the preview
 BEAT = 1.15                  # one word, one cut: slow enough to read each picture
 PAUSE = 0.8                  # the beat of silence before the episode
+# owner, 2026-11-10 (Tacoma): the real fall first, then the signature, ending on
+# "And the fix." straight into the episode: no "stay to the end" card, no black
+PROMISE = True
+AFTER_OPENING = False
+AT = 0.0
 FONTS = os.path.join(HERE, "..", "fonts")
 RED, WHITE = (255, 75, 58), (255, 255, 255)
 
@@ -70,11 +75,11 @@ def voice(out_dir):
     voice track (mono, SR), when each part starts, and its length."""
     import soundfile as sf
     import narration
-    parts = WORDS + [CLOSE]
+    parts = WORDS + ([CLOSE] if PROMISE else [])
     took = narration.record({"shots": [{"clip": f"p{i}", "narration": t} for i, t in enumerate(parts)]}, out_dir)
     times, clips = {}, []
     t = LEAD
-    for i, key in enumerate(KEYS):
+    for i, key in enumerate(KEYS[:len(parts)]):
         times[key] = t
         v, vsr = sf.read(took[f"p{i}"]["wav"], dtype="float32")
         if vsr != SR:
@@ -91,12 +96,13 @@ def voice(out_dir):
 def _cut_list(times, total_voice):
     """[(key, start, end)] in preview seconds: each picture from just before
     its word to just before the next."""
-    marks = [0.0] + [max(0.0, times[k] - 0.08) for k in KEYS[1:]]
+    keys = [k for k in KEYS if k in times]
+    marks = [0.0] + [max(0.0, times[k] - 0.08) for k in keys[1:]]
     end = LEAD + total_voice + 0.35
     spans = []
-    for i, k in enumerate(KEYS):
+    for i, k in enumerate(keys):
         a = marks[i]
-        b = marks[i + 1] if i + 1 < len(KEYS) else end
+        b = marks[i + 1] if i + 1 < len(keys) else end
         spans.append((k, a, max(a + 0.4, b)))
     return spans, end
 
@@ -189,11 +195,13 @@ def build(prep, episode_dir, out_dir):
     from score import add_sfx, boom, even_loudness, riser, whoosh
     os.makedirs(out_dir, exist_ok=True)
     episode_mp4 = os.path.join(episode_dir, "episode.mp4")
-    src, _ = sources(prep, episode_mp4)
+    global AT
+    src, open_end = sources(prep, episode_mp4)
+    AT = open_end if AFTER_OPENING else 0.0
     voice_track, times, spoken = voice(os.path.join(out_dir, "voice"))
     spans, end = _cut_list(times, spoken)
     words = None
-    total = end + PAUSE
+    total = end + (PAUSE if PROMISE else 0.0)
 
     # sound first: the voice over a tense bed, a whoosh into every cut, a
     # riser under the promise into a soft hit, then the beat of silence
@@ -231,7 +239,7 @@ def build(prep, episode_dir, out_dir):
     sfx = [(times["flaw"] - 0.02, ping() * 0.21), (times["forces"] - 0.02, groan() * 0.135),
            (times["failure"] - 0.02, crash() * 0.2), (times["fix"] - 0.02, lock() * 0.21)]
     sfx += [(max(0.0, a - 0.2), whoosh(20 + i) * 0.18) for i, (_, a, _) in enumerate(spans) if a > 0]
-    sfx.append((stay, riser(max(1.0, end - stay), 7) * 0.22))
+    sfx.append((stay if PROMISE else max(0.0, end - 1.0), riser(max(1.0, end - stay), 7) * 0.22))
     sfx.append((end - 0.05, boom(6) * 0.3))
     add_sfx(mixed, sfx, mixed)
     data, _ = sf.read(mixed, dtype="float32", always_2d=True)
@@ -267,14 +275,14 @@ def build(prep, episode_dir, out_dir):
     brand = Image.new("RGB", (W, H), (4, 10, 20))
     d = ImageDraw.Draw(brand)
     d.text((W / 2, H / 2), "THE POINT OF FAILURE", font=_font("Inter-Bold.otf", 30), fill=(170, 186, 210), anchor="mm")
-    for j in range(int(round(PAUSE * FPS))):
+    for j in range(int(round(PAUSE * FPS)) if PROMISE else 0):
         k = min(1, j / (PAUSE * FPS * 0.4))
         img = Image.blend(Image.new("RGB", (W, H)), brand, k * (1 - max(0, j / (PAUSE * FPS) - 0.7) / 0.3))
         enc.stdin.write(img.tobytes())
         count += 1
     enc.stdin.close()
     enc.wait()
-    info = {"seconds": round(count / FPS, 2), "at": 0.0, "sources": src,
+    info = {"seconds": round(count / FPS, 2), "at": AT, "sources": src,
             "spans": spans, "music_credits": credits}
     json.dump(info, open(os.path.join(out_dir, "preview.json"), "w"), indent=1)
     print(f"preview: {info['seconds']} s, before the cold open")
@@ -336,7 +344,12 @@ if __name__ == "__main__":
     ap.add_argument("episode_dir")
     ap.add_argument("out")
     ap.add_argument("--splice", action="store_true")
+    ap.add_argument("--after-opening", action="store_true",
+                    help="set it after the episode's opening (the real fall), not before it")
+    ap.add_argument("--no-promise", action="store_true",
+                    help="end on 'And the fix.': no 'stay to the end' card, no black beat")
     a = ap.parse_args()
+    AFTER_OPENING, PROMISE = a.after_opening, not a.no_promise
     info = build(a.prep, a.episode_dir, a.out)
     if a.splice:
         splice(a.episode_dir, a.out, info)

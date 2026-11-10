@@ -48,9 +48,9 @@ on:
         description: "Its credit line (agency, report, year)"
         default: ""
       signature:
-        description: "Put the signature preview (flaw, forces, failure, fix; 'stay to the end') before the episode (off since 10 Nov: the disaster first)"
+        description: "The signature (flaw, forces, failure, fix) after the opening fall, ending on 'And the fix.' (owner, 10 Nov)"
         type: boolean
-        default: false
+        default: true
 
 permissions:
   contents: write
@@ -330,15 +330,17 @@ jobs:
           python tools/episode_sample.py assemble prep raw
           python tools/thumbnails.py prep raw prep/thumbs || echo "no thumbnails"
       - name: The signature preview, before the cold open
-        # off by default (owner, 2026-11-09): Silver Bridge lost 3 of 18 viewers
-        # on its "stay to the end" card, black and title before the story
+        # Silver Bridge lost 3 of 18 viewers on its "stay to the end" card, black
+        # and title before the story; the signature now follows the fall
         if: inputs.signature
         env:
           KOKORO_VOICE: am_echo
         run: |
           # "The flaw. The forces. The failure. And the fix." (tools/preview.py)
           mkdir -p prep/_ep && cp prep/episode.mp4 prep/episode.json prep/_ep/
-          if python -u tools/preview.py prep prep/_ep prep/_pv --splice; then
+          # after the opening (the real fall and its first lines), no "stay to the
+          # end" card, no black beat (owner, 2026-11-10: the fall first, then this)
+          if python -u tools/preview.py prep prep/_ep prep/_pv --splice --after-opening --no-promise; then
             cp prep/_pv/episode.mp4 prep/_pv/episode.json prep/
           else
             echo "no preview: the episode goes out without it"

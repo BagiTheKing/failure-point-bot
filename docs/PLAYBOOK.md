@@ -292,6 +292,11 @@ close that gap, part by part:
   title over the film at 0:12, no card, black or burst; the car and the
   truck go down with their piece (3:21-3:24), nothing left in the air; the
   spray a cloud; the side-span shot clear. Sent to the owner.
+- Owner, 10 Nov, on v2: the earlier intro was better; "mix them up". Chosen:
+  the real fall with its first line first, then the signature (the flaw, the
+  forces, the failure, the fix) with its voice and music, ending on "And the
+  fix." straight into the episode; no "stay to the end" card, no black beat
+  (tools/preview.py --after-opening --no-promise; on by default).
 - Not changed yet: the automatic 8-second check on 2D and photos, and
   per-scene sound.
 
