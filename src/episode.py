@@ -635,7 +635,9 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, footage=None):
     tz = teaser(sheet, voiced, clips, photos, pictures, shown, opening=not intro, fall_frames=fall_frames)
     if tz:
         fn, teaser_T, tz_shots, clips = tz
-        add2d("teaser", fn, teaser_T, "dissolve", tz_shots)
+        # a straight cut out of the opening: the signature goes in at this
+        # boundary, and a dissolve's tail would come back after it (Tacoma, 10 Nov)
+        add2d("teaser", fn, teaser_T, "cut" if not intro else "dissolve", tz_shots)
     e1 = tm.real(7.0)
     add3d("establish", 0, e1, "dissolve", [("establish", 0)])
     add2d("build", kit.build, D["build"], "dissolve", [("build", 0)])
