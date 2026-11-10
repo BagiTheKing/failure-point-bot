@@ -271,6 +271,13 @@ close that gap, part by part:
 - Thumbnails, 4 options sent to the owner: the 3D road tilting with the car
   ("A BRIDGE DID THIS"), the real film ("THIS IS REAL FILM · 1940"), 25 FT /
   8 FT ("ONE OF THESE FELL"), 10:59 / 11:00.
+- Review copy, 10 Nov (run 42758500264, a re-cut of 42732404342; 90 render
+  shards, about 4 h, none failed): 6:45 on preview-media, episodes/tacoma.
+  The first cut lost most of the collapse (cut to its 26 s of narration) and
+  held stills for 38 s in the aftermath; fixed in episode.py (the whole
+  collapse kept; the aftermath takes the film clips the opening did not).
+  Still weak: the spray puffs read as balls up close; one aftermath angle has
+  trees across the foreground; the opening card, black and title unchanged.
 - Not changed for this video (the owner narrowed the work to the 3D and the
   new video): the cold open's card and title before the story, the
   8-second check on 2D and photos, per-scene sound.
