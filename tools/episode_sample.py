@@ -175,8 +175,12 @@ def prepare(sheet_path, out, name="", report="", report_credit=""):
     json.dump(voiced, open(os.path.join(out, "voiced.json"), "w"), indent=1)
     json.dump(sheet, open(os.path.join(out, "timed_sheet.json"), "w"), indent=2, ensure_ascii=False)
     frames = int(math.ceil(timemap.of(sheet).total * FPS)) + 1
-    shards = list(range(int(math.ceil(frames / FRAMES_PER_SHARD))))
-    json.dump({"frames": frames, "per": FRAMES_PER_SHARD, "shards": shards},
+    # a model with a long collapse (splashes cost about 2 minutes a frame on
+    # four cores, Tacoma Narrows, 10 Nov 2026) gets half as many frames a shard,
+    # so no shard nears the 3-hour limit
+    per = FRAMES_PER_SHARD // 2 if timemap.of(sheet).end > 28.0 else FRAMES_PER_SHARD
+    shards = list(range(int(math.ceil(frames / per))))
+    json.dump({"frames": frames, "per": per, "shards": shards},
               open(os.path.join(out, "shards.json"), "w"))
     _pictures(sheet, out, name)
 

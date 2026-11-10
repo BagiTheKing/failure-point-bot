@@ -1,0 +1,313 @@
+{
+ "story": "Tacoma Narrows Bridge collapse",
+ "sources": {
+  "source": "https://en.wikipedia.org/wiki/Tacoma_Narrows_Bridge_(1940)",
+  "film": "https://commons.wikimedia.org/wiki/File:Tacoma_Narrows_Bridge_destruction.ogv"
+ },
+ "kit": {
+  "family": "structure",
+  "variant": "flutter",
+  "bridge": "the Tacoma Narrows Bridge",
+  "labels": {
+   "west": "GIG HARBOR",
+   "east": "TACOMA",
+   "span": "main span: 2,800 ft",
+   "tower": "the third-longest span in the world in 1940",
+   "width": "only 39 ft wide: two lanes",
+   "girder": "solid plate girder: 8 ft deep",
+   "planned": "first planned: an open truss 25 ft deep",
+   "ratio": "8 FT WHERE 25 FT WAS PLANNED",
+   "wind": "a steady wind: it cannot pass through the girder",
+   "eddies": "it must go over and under the deck, and it swirls",
+   "waves": "halves of the span rose and fell: \"Galloping Gertie\"",
+   "twist": "7 November 1940: the deck begins to twist",
+   "node": "the centre line stays still",
+   "halves": "one half turns one way, the other half the other",
+   "grows": "each twist lets the wind push it further",
+   "loop": "flutter: the motion feeds itself",
+   "snap": "the hangers fail, one after another"
+  }
+ },
+ "model_3d": {
+  "labels_3d": [
+   {
+    "anchor": "bridge",
+    "text": "Tacoma Narrows Bridge: 2,800 ft main span",
+    "color": "cyan",
+    "t": [
+     1.0,
+     3.4
+    ],
+    "at": [
+     140,
+     140
+    ]
+   },
+   {
+    "anchor": "girder",
+    "text": "A solid plate girder, 8 ft deep",
+    "color": "amber",
+    "t": [
+     7.6,
+     9.8
+    ],
+    "at": [
+     760,
+     150
+    ]
+   },
+   {
+    "anchor": "car",
+    "text": "Two vehicles left on the deck",
+    "color": "red",
+    "t": [
+     13.6,
+     16.2
+    ],
+    "at": [
+     760,
+     150
+    ]
+   }
+  ],
+  "big_3d": {
+   "anchor": "girder",
+   "text": "8 FT",
+   "label": "WHERE 25 FT TRUSSES WERE PLANNED",
+   "t": [
+    10.4,
+    12.8
+   ]
+  }
+ },
+ "disaster": {
+  "place_date": "TACOMA NARROWS, WASHINGTON · 7 NOVEMBER 1940 · ABOUT 11 AM",
+  "place": "Tacoma Narrows, Washington",
+  "caption": "The main span of the Tacoma Narrows Bridge falls into Puget Sound",
+  "photo_article": "Tacoma Narrows Bridge",
+  "report": {
+   "credit": "Wikipedia: Tacoma Narrows Bridge (1940), and the sources it cites",
+   "url": "https://en.wikipedia.org/wiki/Tacoma_Narrows_Bridge_(1940)"
+  }
+ },
+ "hook": {
+  "title": "THE TACOMA NARROWS COLLAPSE",
+  "lines": [
+   "November 7, 1940. A steady wind, not a storm. A bridge four months old twists itself apart.",
+   "Its deck was stiffened by a wall of steel only eight feet deep.",
+   "And every twist let the wind push it further."
+  ],
+  "sub": "TACOMA NARROWS, WASHINGTON · 7 NOVEMBER 1940"
+ },
+ "design_vs_built": {
+  "designed": {
+   "title": "WHAT IT NEEDED",
+   "detail": "An open truss, 25 ft deep",
+   "load": "the wind passes through: the deck stays put"
+  },
+  "built": {
+   "title": "WHAT IT HAD",
+   "detail": "Two solid plate girders, 8 ft deep",
+   "load": "the wind catches it: each swing grows"
+  },
+  "multiplier": "8 FT, NOT 25",
+  "multiplier_label": "THE GIRDERS AGAINST THE TRUSS PLANNED",
+  "source": "source"
+ },
+ "numbers": [
+  {
+   "value": "2,800 FT",
+   "label": "MAIN SPAN",
+   "source": "source"
+  },
+  {
+   "value": "39 FT",
+   "label": "WIDE: TWO LANES",
+   "source": "source"
+  },
+  {
+   "value": "42 MPH",
+   "label": "A STEADY WIND",
+   "source": "source"
+  }
+ ],
+ "clock": {
+  "from_seconds": 50,
+  "label_before": "10:59:{s:02d}",
+  "label_next": "11:00:{s:02d}",
+  "label_at": "11:00:00",
+  "day": "AM (APPROX.) · THURSDAY 7 NOVEMBER 1940",
+  "event": "THE MIDDLE OF THE MAIN SPAN FALLS"
+ },
+ "timeline": [
+  {
+   "date": "1938",
+   "title": "A warning, during construction",
+   "sub": "Steinman predicts its failure",
+   "kind": "warning",
+   "source": "source"
+  },
+  {
+   "date": "1 JULY 1940",
+   "title": "The bridge opens",
+   "sub": "Already moving in the wind: \"Galloping Gertie\"",
+   "kind": "event",
+   "source": "source"
+  },
+  {
+   "date": "1940",
+   "title": "Attempts to calm it fail",
+   "sub": "Tie-downs snap; buffers put out of action",
+   "kind": "warning",
+   "source": "source"
+  },
+  {
+   "date": "2 NOVEMBER 1940",
+   "title": "Wind-tunnel fixes proposed",
+   "sub": "Holes in the girders, or deflector vanes",
+   "kind": "warning",
+   "source": "source"
+  },
+  {
+   "date": "7 NOVEMBER 1940",
+   "title": "The main span falls",
+   "sub": "About 11 a.m., in a 42 mph wind",
+   "kind": "failure",
+   "source": "source"
+  },
+  {
+   "date": "14 OCTOBER 1950",
+   "title": "A new bridge opens",
+   "sub": "On the old tower pedestals and anchorages",
+   "kind": "event",
+   "source": "source"
+  }
+ ],
+ "today": {
+  "title": "COULD IT HAPPEN TODAY?",
+  "lines": [
+   "The collapse began the study of bridge aerodynamics.",
+   "Every long-span bridge since has been designed with it.",
+   "A structure that moves in the wind is telling you something."
+  ],
+  "source": "source"
+ },
+ "thumbnail": {
+  "top": "IT TWISTED",
+  "sub": "UNTIL IT FELL"
+ },
+ "shots": [
+  {
+   "part": 1,
+   "tool": "archive",
+   "clip": "photo",
+   "caption": "The Tacoma Narrows Bridge, 1940",
+   "narration": ""
+  },
+  {
+   "part": 1,
+   "tool": "archive",
+   "clip": "photos_disaster",
+   "caption": "7 November 1940: the film of the collapse",
+   "narration": ""
+  },
+  {
+   "part": 2,
+   "tool": "3d",
+   "clip": "establish",
+   "caption": "2,800 ft main span, 39 ft wide",
+   "narration": "On the first of July, 1940, a suspension bridge opened across the Tacoma Narrows, in Washington State. Its main span, 2,800 feet, was the third-longest in the world, behind only the Golden Gate and the George Washington bridges. Yet it carried just two lanes, and was only 39 feet wide. Even before it opened, halves of its centre span rose and fell by several feet in the wind. The men who built it called it Galloping Gertie. So why did it move?"
+  },
+  {
+   "part": 2,
+   "tool": "2d",
+   "clip": "build",
+   "caption": "Two solid girders, 8 ft deep, where 25 ft trusses were planned",
+   "narration": "The answer was in how its deck was stiffened. The state's engineers had planned a set of open trusses, 25 feet deep, beneath the roadway. Leon Moisseiff, a noted New York bridge engineer and a consultant on the Golden Gate Bridge, proposed something slimmer and cheaper: two solid plate girders, only eight feet deep, one along each edge of the deck. He relied on the most advanced theory of the decade, which showed that the main cables would take up much of the wind's sideways push. His design won, because the other was considered too expensive, and the bridge was finished in nineteen months for 6.4 million dollars. But a deck that shallow and that narrow was flexible. Now ask yourself: what does a solid wall do to the wind that an open truss lets through?"
+  },
+  {
+   "part": 3,
+   "tool": "3d",
+   "clip": "load_path",
+   "caption": "A wall of steel the length of the bridge",
+   "narration": "Here is the difference. An open truss is mostly air: the wind passes between its members. A solid plate girder is a wall, eight feet high, the whole length of the bridge. The wind has to go over and under the deck, and it swirls. Cables tying the girders down to concrete blocks on the shore snapped. Stays at mid-span did not help. Could anything have?"
+  },
+  {
+   "part": 3,
+   "tool": "3d",
+   "clip": "connection",
+   "caption": "7 November 1940: a steady wind",
+   "narration": "A professor at the University of Washington, Frederick Burt Farquharson, tested models of the bridge in a wind tunnel. On the second of November he proposed holes through the girders, or vanes along the deck. Neither was fitted. Five days later, the wind blew steadily, at about 42 miles an hour."
+  },
+  {
+   "part": 3,
+   "tool": "2d",
+   "clip": "physics",
+   "caption": "Flutter: each twist lets the wind push harder",
+   "narration": "That morning the deck did something no one had seen a bridge do. It began to twist. When the left side of the roadway went down, the right side rose, and the two halves of the main span turned in opposite directions, while the centre line of the road stayed still. The twist came about twelve times a minute. Many textbooks call this resonance, as if the wind pushed in time with the bridge, like a child on a swing. Engineers who studied it later found otherwise: the wind's own eddies came about once a second, nowhere near the twist. Instead, each twist changed the way the wind struck the deck, and the wind pushed it further. The motion fed itself. This is called aeroelastic flutter. Above a steady wind of about 35 miles an hour, the twist could not settle down; it could only grow. And it grew, until it went beyond the strength of the hangers, the cables the deck hung from. As some failed, their load passed to the ones beside them, and those broke in turn."
+  },
+  {
+   "part": 4,
+   "tool": "2d",
+   "clip": "clock",
+   "caption": "About 11 a.m.",
+   "narration": "About eleven o'clock in the morning, on Thursday, the seventh of November, 1940."
+  },
+  {
+   "part": 4,
+   "tool": "3d",
+   "clip": "fall",
+   "caption": "The middle of the main span tears away",
+   "narration": "The middle of the main span tore away first, and fell into the Narrows."
+  },
+  {
+   "part": 4,
+   "tool": "ai_video",
+   "clip": "dramatization",
+   "caption": "Then the rest of the main span",
+   "narration": "Then the rest of the main span went, piece by piece, toward the towers. The side spans sagged, and the towers were pulled twelve feet toward the shore. Leonard Coatsworth's car, left on the deck, went down with it."
+  },
+  {
+   "part": 4,
+   "tool": "archive",
+   "clip": "aftermath",
+   "caption": "Filmed by Barney Elliott and Harbine Monroe",
+   "narration": "Two men from a Tacoma camera shop, Barney Elliott and Harbine Monroe, filmed it. Earlier that morning the swaying had tipped over a delivery truck, and the car of Leonard Coatsworth, an editor at the News Tribune, had begun to slide. The drivers left on foot. Coatsworth crawled much of the way to the towers on his hands and knees. His daughter's dog, Tubby, was left in the car. A newspaper photographer, Howard Clifford, walked out to save him, but had to turn back when the span began to break apart in the centre. No person died; Tubby was the only life lost. One more thing about the film: one camera ran at sixteen frames a second, and most copies play it at twenty-four, so in them the bridge moves about half again faster than it did."
+  },
+  {
+   "part": 5,
+   "tool": "2d",
+   "clip": "timeline",
+   "caption": "Moving from the day it was built",
+   "narration": "Were there warnings? There were. In 1938, while it was being built, David Steinman, another leading bridge engineer, predicted at a meeting of the American Society of Civil Engineers, with its designer in the audience, that it would fail. From the day the deck went up, it moved. The tie-down cables snapped. Hydraulic buffers between the towers and the deck were put out of action when sand-blasting before painting damaged their seals. The wind-tunnel fixes came five days too late. Afterwards a board for the Federal Works Agency, Othmar Ammann, Theodore von Karman and Glenn Woodruff, studied the collapse. Without drawing a final conclusion, it weighed three causes: vibrations the wind set off in the structure itself, eddies coming at regular intervals, and random gusts."
+  },
+  {
+   "part": 5,
+   "tool": "archive",
+   "clip": "investigation",
+   "caption": "The wreck on the floor of the Narrows",
+   "narration": ""
+  },
+  {
+   "part": 6,
+   "tool": "2d",
+   "clip": "compare",
+   "caption": "An open truss against a solid girder, in the same wind",
+   "narration": "So how should it have worked? Put an open truss and a solid girder in the same wind. The truss lets the wind pass between its members, and the deck stays put. The solid girder catches it, and once the deck starts to twist, every swing lets the wind push it further. The collapse changed how long bridges are built. They are made rigid, with ways to damp their motion, and some have a slot down the middle of the deck, to relieve the difference in pressure above and below it. In the 1960s came box girders shaped like an aircraft wing."
+  },
+  {
+   "part": 7,
+   "tool": "archive",
+   "clip": "today_photos",
+   "caption": "The Tacoma Narrows today",
+   "narration": "Ten years after the collapse, in October 1950, a new bridge opened in the same place, on the old bridge's tower pedestals and cable anchorages. In 2007 a second suspension bridge opened beside it. And the old main span is still there, on the floor of the Narrows, about 180 feet down: an artificial reef, listed on the National Register of Historic Places."
+  },
+  {
+   "part": 7,
+   "tool": "2d",
+   "clip": "today",
+   "caption": "After Tacoma: bridges designed for the wind",
+   "narration": "Could it happen today? Othmar Ammann, who sat on the board of inquiry, wrote that bridge engineering is not, as popularly assumed, an exact science: every structure that projects into new fields of magnitude involves new problems, for which neither theory nor practical experience can furnish an adequate guide. The Tacoma Narrows was that kind of structure. Every long-span bridge since has been designed with what it taught. So, the next time you cross a bridge on a windy day: does it move?"
+  }
+ ]
+}

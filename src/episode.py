@@ -39,10 +39,12 @@ def kit_class(variant):
     from kits.hanging_walkway import HangingWalkways
     from kits.earth_dam import EarthDam
     from kits.eyebar_chain import EyebarChain
+    from kits.flutter import FlutterBridge
     from kits.orbiter import Orbiter
     from kits.truss_bridge import TrussBridge
     return {"hanging_walkways": HangingWalkways, "truss_bridge": TrussBridge, "fuselage": Fuselage,
-            "orbiter": Orbiter, "earth_dam": EarthDam, "eyebar_chain": EyebarChain}[variant]
+            "orbiter": Orbiter, "earth_dam": EarthDam, "eyebar_chain": EyebarChain,
+            "flutter": FlutterBridge}[variant]
 
 
 # --------------------------------------------------------------------------
@@ -60,13 +62,18 @@ def timing(sheet, slots):
     # drops just as the dramatization's narration begins; the drop slows a
     # little, up to half again, to carry it
     pull, hold = slots["fall"] * 1.4 / 2.0, slots["fall"] * 0.6 / 2.0
+    # a model with a long canonical drop (the collapse as the centrepiece) keeps
+    # all of it, at its own pace, however short the words over it
+    canon = dict((n, b - a) for n, a, b in timemap.canon_of(sheet))
+    drop = (max(canon["drop"], slots["dramatization"]) if canon["drop"] > 9.0
+            else min(9.0, max(6.0, slots["dramatization"])))
     sheet.setdefault("model_3d", {})["shot_seconds"] = {
         "establish": slots["establish"] + d,
         "load_path": slots["load_path"],
         "connection": slots["connection"] + d,
         "pull": pull,
         "hold": hold,
-        "drop": min(9.0, max(6.0, slots["dramatization"])),
+        "drop": drop,
     }
     sheet["timing"] = {"slots": slots, "dissolve": d, "ai": False,
                        "kit": {"build": slots["build"] + d, "physics": slots["physics"] + d,
@@ -558,7 +565,7 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, footage=None):
         return [{"path": p, "credit": ""} for p in out if p]
 
     def stand_in(name):                    # no free photo: our own 3D frames stand in
-        return {"aftermath": stills_3d(24.5, 26.5, 28.0), "investigation": stills_3d(17.0, 15.0),
+        return {"aftermath": stills_3d(tm.end - 3.5, tm.end - 1.5, tm.end), "investigation": stills_3d(17.0, 15.0),
                 "today_photos": stills_3d(1.0, 4.0)}.get(name) or stills_3d(2.0, 5.0)
 
     def pictures(name):
@@ -627,7 +634,7 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, footage=None):
     add2d("clock", common.clock(sheet), slots["clock"], "cut", [("clock", 0)])
     # the accurate 3D fall, its settle held while the narration runs (owner,
     # 2026-11-05: no AI video at all: the animation carries it)
-    add3d("fall", tm.real(20.0), tm.real(28.0), "dissolve",
+    add3d("fall", tm.real(20.0), tm.real(tm.end), "dissolve",
           [("fall", 0), ("dramatization", tm.real(22.0) - tm.real(20.0))],
           fill_to=frames(slots["fall"] + slots["dramatization"] + d))
     # the disaster as it was seen: the real footage first, then the pictures
@@ -757,7 +764,7 @@ def intro_plan(sheet, voiced, photos, clips, raw3d, tm, pictures, fade_out=False
     # sat on a still of the 3D shuttle from 0:15 to 0:22)
     lines, T = [], coldopen.TITLE_END + 0.4
     frames3d = lambda a, b: [p for p in (find_frame(raw3d, n) for n in range(tm.frame(a), tm.frame(b) + 1)) if p]
-    fall = frames3d(21.6, 28.0)
+    fall = frames3d(21.6, min(tm.end, 30.0))
     close = frames3d(15.4, 19.4)
     after = pictures("aftermath") if photos.get("aftermath") else []
     # the disaster's own chapter keeps its last few pictures: none of them is

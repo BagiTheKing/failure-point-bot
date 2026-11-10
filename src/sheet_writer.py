@@ -159,6 +159,32 @@ KITS = {
             "side span and moving east); no invented last words or scenes in vehicles.",
         ],
     },
+    "flutter": {
+        "what": ("A long, narrow suspension bridge stiffened by shallow solid plate girders instead of a "
+                 "deep open truss. The wind cannot pass through the girders; the deck rises and falls in "
+                 "waves, then twists about its centre line, and the wind feeds each twist (aeroelastic "
+                 "flutter) until the hangers fail and the main span falls."),
+        "params": {"bridge": "the bridge's name, e.g. the Tacoma Narrows Bridge"},
+        "labels": ["west", "east", "span", "tower", "width", "girder", "planned", "ratio", "wind", "eddies",
+                   "waves", "twist", "node", "halves", "grows", "loop", "snap"],
+        "labels_3d": [("bridge", [2.0, 6.0], [140, 140], "cyan"),
+                      ("tower", [2.6, 6.0], [760, 140], "amber"),
+                      ("girder", [9.0, 12.4], [820, 150], "amber"),
+                      ("quarter", [15.4, 19.4], [760, 150], "red")],
+        "multiplier": "the one figure behind the failure, e.g. the girder's depth against the truss planned",
+        "big_3d_anchor": "girder",
+        "title_hint": "THE ... BRIDGE COLLAPSE",
+        "model_3d": {},
+        "rules": [
+            "The failure was aeroelastic flutter, not simple resonance: never say the wind 'matched' the "
+            "bridge's frequency; say the wind fed the twist so each swing grew.",
+            "The 8 ft plate girders were the designer's choice over the state's 25 ft trusses, to save "
+            "money; the design was lawful and followed the leading theory of the day: say so, blame no one.",
+            "No person died. A dog, Tubby, was left in the car and died: say it plainly, once, without drama.",
+            "The 1940 film's oscillation runs about 50% fast in most copies (16 fps shown at 24): never time "
+            "the motion from it.",
+        ],
+    },
     "truss_bridge": {
         "what": ("A steel truss bridge over one or more spans; one joint (a gusset "
                  "plate where beams meet) is weaker than the forces through it and "
@@ -482,7 +508,7 @@ def assemble(reply, variant, facts_source="", source_name="source"):
         kit["rod_lines"], kit["failed_line"] = int(kit["rod_lines"]), int(kit["failed_line"])
     elif variant == "earth_dam":
         kit["family"] = "water"
-    elif variant == "eyebar_chain":
+    elif variant in ("eyebar_chain", "flutter"):
         pass
     elif variant == "orbiter":
         kit["family"] = "spaceflight"

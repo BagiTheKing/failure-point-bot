@@ -31,9 +31,11 @@ from kits.fuselage import Fuselage  # noqa: E402
 from kits.orbiter import Orbiter  # noqa: E402
 from kits.earth_dam import EarthDam  # noqa: E402
 from kits.eyebar_chain import EyebarChain  # noqa: E402
+from kits.flutter import FlutterBridge  # noqa: E402
 
 KITS = {"hanging_walkways": HangingWalkways, "truss_bridge": TrussBridge, "fuselage": Fuselage,
-        "orbiter": Orbiter, "earth_dam": EarthDam, "eyebar_chain": EyebarChain}
+        "orbiter": Orbiter, "earth_dam": EarthDam, "eyebar_chain": EyebarChain,
+        "flutter": FlutterBridge}
 
 def main():
     ap = argparse.ArgumentParser()

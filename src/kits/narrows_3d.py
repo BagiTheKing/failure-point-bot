@@ -821,6 +821,25 @@ def spray_material(name, colour=(0.86, 0.88, 0.88), alpha=0.85):
     clamp = nt.nodes.new("ShaderNodeClamp")
     nt.links.new(sc_.outputs[0], clamp.inputs["Value"])
     out = clamp.outputs[0]
+    if name != "foam":
+        # solid in the middle, soft only at the rim: a ray stops at the first
+        # puff it meets instead of passing through hundreds (a splash frame
+        # took 11 minutes with see-through puffs, about 30 s without)
+        lw = nt.nodes.new("ShaderNodeLayerWeight")
+        lw.inputs["Blend"].default_value = 0.5
+        rim = nt.nodes.new("ShaderNodeMapRange")
+        rim.inputs["From Min"].default_value = 0.55
+        rim.inputs["From Max"].default_value = 0.95
+        rim.inputs["To Min"].default_value = 1.0
+        rim.inputs["To Max"].default_value = 0.0
+        nt.links.new(lw.outputs["Facing"], rim.inputs["Value"])
+        life = nt.nodes.new("ShaderNodeMath")
+        life.operation = "MULTIPLY"
+        nt.links.new(inv.outputs[0], life.inputs[0])
+        nt.links.new(rim.outputs["Result"], life.inputs[1])
+        clamp2 = nt.nodes.new("ShaderNodeClamp")
+        nt.links.new(life.outputs[0], clamp2.inputs["Value"])
+        out = clamp2.outputs[0]
     if name == "foam":
         # foam: broken into patches, thinning out to nothing at the ring's edge
         tc = nt.nodes.new("ShaderNodeTexCoord")
@@ -1311,7 +1330,7 @@ class Model:
         self.car, self.truck = car, truck
         return car, truck
 
-    def collapse(self, stages, twist_of, heave_of, end_frame, fps=FPS, seed=5):
+    def collapse(self, stages, twist_of, heave_of, end_frame, fps=FPS, seed=5, frame_of=None):
         """The main span tears away and falls. stages: [(x0, x1, t_start,
         t_spread, piece_ft)], model seconds: the deck between x0 and x1
         parts into pieces about piece_ft long, the middle piece first and
@@ -1347,20 +1366,21 @@ class Model:
                 px0, px1 = pc[0][1], pc[-1][2]
                 pcx = (px0 + px1) / 2
                 tb = t0 + spread * abs(pcx - mid) / half + rnd.uniform(0.0, 0.25)
-                fb = int(round(tb * fps)) + 1
+                fb = frame_of(tb) if frame_of else int(round(tb * fps)) + 1
+                tb_real = (fb - 1) / fps                # seconds on the render's own clock
                 # it hinges on the edge toward the nearer tower (still attached)
                 pivot_x = px0 if pcx < 0 else px1
                 side = -1 if pcx < 0 else 1           # the free end is toward the middle
                 # the last piece by a tower may stay hanging from it (the film: a
                 # stub of deck hung down from the tower into the water)
                 hangs = hang and abs(abs(pivot_x) - HALF) < 1.0
-                last_break = max(last_break, tb)
+                last_break = max(last_break, tb_real)
                 if abs(pcx - mid) < 60:
                     pivot_x, side = None, 0          # the first piece drops nearly flat
                 tw, hv = twist_of(fb), heave_of(fb)
                 th_rate = (twist_of(fb + 1) - tw) * fps * twist_mode(pcx)
                 for ex in (px0, px1):                     # both torn ends shed debris
-                    self.breaks.append(((ex, 0.0, AXIS_Z), tb + 1.0 / fps, 40.0))
+                    self.breaks.append(((ex, 0.0, AXIS_Z), tb_real + 1.0 / fps, 40.0))
                 t_h = rnd.uniform(0.45, 0.8)
                 phi_h = math.radians(rnd.uniform(20, 38)) * (1 if side else 0)
                 w_h = 2 * phi_h / t_h                 # its swing rate at release
@@ -1437,7 +1457,7 @@ class Model:
                         elif loc.z < 6.0:
                             hit_t[o.name] = tau
                             hit_z[o.name] = loc.z
-                            self.hits.append(((loc.x, loc.y, 0.0), tb + tau + 1.0 / fps, sx1 - sx0))
+                            self.hits.append(((loc.x, loc.y, 0.0), tb_real + tau + 1.0 / fps, sx1 - sx0))
                         o.location = loc
                         o.rotation_euler = R.to_euler("XYZ")
                         o.keyframe_insert("location", frame=f)
@@ -1455,7 +1475,7 @@ class Model:
                             loc.z = hit_z[o_.name] - 10 * (1 - math.exp(-u / 0.4)) - 4 * u
                         elif loc.z < 4.0:
                             hit_t[o_.name], hit_z[o_.name] = tau, loc.z
-                            self.hits.append(((loc.x, loc.y, 0.0), tb + tau + 1.0 / fps, 18.0))
+                            self.hits.append(((loc.x, loc.y, 0.0), tb_real + tau + 1.0 / fps, 18.0))
                         o_.location = loc
                         o_.rotation_euler = (R.to_3x3() @ base).to_euler("XYZ")
                         o_.keyframe_insert("location", frame=f)
@@ -1573,9 +1593,9 @@ class Model:
         for o in (drop, puff, disc):
             o.hide_render = True
         layers = (
-            ("sheets", splash_group("sheets", 1500, 195.0, 0.55, 0.6, 5.0, 0.8, tumble=0.8, drift=6.0), drop),
+            ("sheets", splash_group("sheets", 900, 195.0, 0.55, 0.6, 5.0, 0.95, tumble=0.8, drift=6.0), drop),
             # the film: a white cloud that rolls up past the deck and drifts off downwind
-            ("spray", splash_group("spray", 1000, 170.0, 0.9, 1.2, 10.0, 4.5, 1.0, gravity=0.07, drift=14.0), puff),
+            ("spray", splash_group("spray", 380, 170.0, 0.9, 1.2, 10.0, 7.5, 1.0, gravity=0.07, drift=14.0), puff),
             ("foam", splash_group("foam", 1, 0.0, 0.0, 1.0, 14.0, 22.0, 0.0, ring=True, gravity=0.0), disc),
         )
         for name, grp, inst in layers:
@@ -1615,9 +1635,294 @@ def setup_render(sc, samples=32, size=(1280, 720)):
     sc.cycles.max_bounces = 4
     # layered spray and mist: enough transparent bounces that stacked drops
     # never run out and render black
-    sc.cycles.transparent_max_bounces = 48
+    sc.cycles.transparent_max_bounces = 24
     sc.render.use_persistent_data = True
     sc.render.image_settings.file_format = "PNG"
     views = [i.identifier for i in sc.view_settings.bl_rna.properties["view_transform"].enum_items]
     sc.view_settings.view_transform = "AgX" if "AgX" in views else "Filmic"
     look.finish(sc, motion_blur=False)
+
+
+# ======================================================================
+# The episode: one canonical timeline (kits/timemap.py, variant "flutter")
+# ======================================================================
+#
+#     establish   0-7     the bridge in service, its deck rising and falling
+#                         in waves ("Galloping Gertie"): from the water, then
+#                         along the road
+#     load_path   7-13    the solid plate girder, close, and under the deck
+#     connection  13-20   7 November 1940: the twist begins and grows; on the
+#                         road behind the abandoned car and truck, then from
+#                         the Tacoma shore, where the film was shot
+#     pull, hold  20-22   the twist at its worst, from under the deck
+#     drop        22-70   the collapse, the centrepiece, in shots of 4 s from
+#                         a dozen angles: the hangers let go, the middle of the
+#                         span falls, the splash; the rest goes, car and truck
+#                         with it; a stub hangs from the tower; the side spans
+#                         sag; snapped hangers; the empty span
+#
+# The motion runs on the canonical clock (the twist at its true 0.2 Hz); the
+# fall on the render's own clock (real gravity, whatever the time map).
+
+T_WAVES_END = 13.0            # the waves of the summer give way to the twist
+T_TWIST_FULL = 21.0           # the twist at its worst
+T_BREAK1 = 26.0               # the middle of the main span lets go
+T_BREAK2 = 43.0               # the rest of it (seven minutes later in fact; told across a cut)
+TWIST_MAX = math.radians(28)  # the roll at the quarter points
+
+
+def frame_of(sec):
+    from kits import timemap
+    return timemap.CURRENT.frame(sec)
+
+
+def canon_of_frame(f):
+    from kits import timemap
+    return timemap.CURRENT.canon((f - 1) / FPS)
+
+
+def _twist_amp(t):
+    """The roll amplitude (radians) at canonical second t: none in the summer,
+    growing from 7 November's first twisting to its worst."""
+    if t < T_WAVES_END - 1.0:
+        return 0.0
+    grow = min(1.0, max(0.0, (t - (T_WAVES_END - 1.0)) / (T_TWIST_FULL - T_WAVES_END + 1.0)))
+    return TWIST_MAX * (0.12 + 0.88 * grow ** 1.4)
+
+
+def twist_at_frame(f):
+    """The roll at frame f: its amplitude follows the story (canonical
+    clock), its swing the real one (12 cycles a minute on the screen,
+    however long the narration holds a shot)."""
+    return _twist_amp(canon_of_frame(f)) * math.sin(2 * math.pi * 0.2 * (f - 1) / FPS)
+
+
+def heave_at_frame(f):
+    """The summer's waves (feet), fading as the twist takes over."""
+    t = canon_of_frame(f)
+    fade = 1.0 - min(1.0, max(0.0, (t - (T_WAVES_END - 2.0)) / 3.0))
+    return 4.5 * fade * math.sin(2 * math.pi * 0.22 * (f - 1) / FPS)
+
+
+def _cable_z_at(x):
+    return cable_z(x)
+
+
+# Camera angles for each part of the story: (from, to, look from, look to,
+# lens). A part gets as many shots of about 4.6 s as its narration needs,
+# taking these angles in turn (owner, 2026-11-09: no shot over about 8 s).
+POOLS = {
+    "establish": [   # the bridge in service, its deck rising and falling in waves
+        ((1500, -2600, 50), (1350, -2450, 70), (-200, 0, 230), (-300, 0, 220), 30),
+        ((-1100, 6, 203), (-980, 6, 204), (600, 0, 200), (700, 0, 200), 26),
+        ((-2400, 2100, 820), (-2250, 1950, 780), (0, 0, 200), (100, 0, 200), 35),
+        ((-1350, -70, 40), (-1340, -60, 60), (-1400, 0, 420), (-1250, 0, 360), 20),
+        ((1900, -260, 300), (1860, -240, 296), (0, 0, 200), (-60, 0, 200), 40),
+        ((-1405, -30, 440), (-1395, -30, 438), (0, 0, 200), (-100, 0, 200), 28),
+    ],
+    "load_path": [   # the solid girder
+        ((-760, -48, 186), (-700, -44, 188), (-640, -19.5, 192), (-600, -19.5, 192), 30),
+        ((-930, -8, 176), (-880, -8, 176), (-400, 0, 187), (-350, 0, 187), 22),
+        ((-500, -170, 120), (-470, -160, 125), (-420, -19.5, 192), (-400, -19.5, 192), 35),
+        ((-300, -17, 199.5), (-270, -17, 199.5), (200, -19, 198), (230, -19, 198), 30),
+        ((-612, -42, 236), (-604, -40, 234), (-600, -19.5, 240), (-600, -19.5, 238), 40),
+    ],
+    "connection": [  # 7 November: the twist begins and grows
+        ((-470, -14, 205), (-482, -14, 205), (-650, -4, 199), (-660, -4, 199), 30),
+        ((1750, -650, 240), (1720, -630, 236), (-200, 0, 195), (-230, 0, 195), 48),
+        ((-700, -600, 40), (-690, -590, 45), (-700, 0, 190), (-700, 0, 192), 32),
+        ((-1380, 20, 250), (-1380, 20, 252), (-500, 0, 195), (-520, 0, 195), 30),
+        ((-560, -90, 262), (-540, -84, 256), (-570, -2, 198), (-570, -2, 198), 30),
+    ],
+    "pull": [        # the twist at its worst
+        ((-760, -150, 120), (-740, -150, 124), (-680, 0, 192), (-680, 0, 192), 20),
+        ((1600, -560, 230), (1580, -545, 228), (-400, 0, 195), (-420, 0, 195), 50),
+    ],
+}
+
+# the collapse: its own 48 s at a shot every 4 s (canonical seconds, kept 1:1)
+DROP_SHOTS = [
+    (22.0, 26.0, (-60, 10, 204), (-90, 10, 204), (250, 0, 205), (250, 0, 205), 28),       # the road at midspan
+    (26.0, 30.0, (60, -60, 230), (50, -64, 232), (0, -19.5, 215), (0, -19.5, 205), 30),    # the hangers let go
+    (30.0, 34.0, (-260, -430, 55), (-250, -420, 50), (-20, 0, 120), (-20, 0, 80), 22),     # the middle falls
+    (34.0, 38.0, (-200, -760, 18), (-185, -740, 20), (0, 0, 60), (0, 0, 70), 26),         # the splash, at the water
+    (38.0, 42.0, (-200, -1300, 380), (-150, -1260, 370), (-150, 0, 170), (-120, 0, 170), 36),   # the gap from above
+    (42.0, 46.0, (-470, 10, 203), (-480, 10, 203), (-650, -4, 199), (-650, -4, 195), 30),   # the road west, car and truck
+    (46.0, 50.0, (-1250, -700, 70), (-1240, -690, 72), (-650, 0, 130), (-650, 0, 100), 28),  # they go
+    (50.0, 54.0, (-900, -900, 15), (-890, -890, 18), (-700, 0, 50), (-700, 0, 60), 24),     # the splash, west
+    (54.0, 58.0, (-1300, -420, 140), (-1290, -410, 138), (-1330, 0, 150), (-1320, 0, 140), 24),   # the stub at the tower
+    (58.0, 62.0, (-1750, -1400, 90), (-1730, -1370, 92), (-1950, 0, 175), (-1950, 0, 170), 32),   # the side span sags
+    (62.0, 66.0, (-200, -120, 250), (-180, -110, 250), (0, -19.5, 230), (0, -19.5, 225), 32),     # snapped hangers
+    (66.0, 70.0, (1400, -3200, 40), (1300, -3150, 45), (0, 0, 190), (0, 0, 190), 26),    # the empty span
+]
+
+
+def shot_list():
+    """[(first frame, last frame, from, to, look from, look to, lens)] for
+    the whole timeline under the current time map."""
+    from kits import timemap
+    tm = timemap.CURRENT
+    out = []
+    parts = [("establish", 0.0, 7.0), ("load_path", 7.0, 13.0), ("connection", 13.0, 20.0), ("pull", 20.0, 22.0)]
+    for name, a, b in parts:
+        ra, rb = tm.real(a), tm.real(b)
+        n = max(1, int(round((rb - ra) / 4.6)))
+        pool = POOLS[name]
+        for i in range(n):
+            s0, s1 = ra + (rb - ra) * i / n, ra + (rb - ra) * (i + 1) / n
+            l0, l1, k0, k1, lens = pool[i % len(pool)]
+            out.append((int(round(s0 * FPS)) + 1, int(round(s1 * FPS)), l0, l1, k0, k1, lens))
+    for a, b, l0, l1, k0, k1, lens in DROP_SHOTS:
+        out.append((tm.frame(a), tm.frame(b) - 1, l0, l1, k0, k1, lens))
+    return out
+
+
+def _cam_at_frame(shots, f):
+    for fa, fb, l0, l1, k0, k1, lens in shots:
+        if fa <= f <= fb:
+            u = (f - fa) / max(1, fb - fa)
+            return Vector(l0).lerp(Vector(l1), u), Vector(k0).lerp(Vector(k1), u), lens
+    fa, fb, l0, l1, k0, k1, lens = shots[-1]
+    return Vector(l1), Vector(k1), lens
+
+
+def _project(loc, look, lens, p, aspect=16 / 9):
+    """Where world point p falls on screen (x, y from the top-left, 0..1, and
+    depth), for a camera at loc looking at look (36 mm sensor width)."""
+    d = (look - loc).normalized()
+    right = d.cross(Vector((0, 0, 1))).normalized()
+    up = right.cross(d)
+    v = Vector(p) - loc
+    z = v.dot(d)
+    if z <= 0.1:
+        return [0.0, 0.0, -1.0]
+    f = lens / 36.0
+    x = 0.5 + f * v.dot(right) / z
+    y = 0.5 - f * aspect * v.dot(up) / z
+    return [round(x, 4), round(y, 4), round(z, 1)]
+
+
+def _episode_animate(self):
+    """Motion, the fall and the cameras for the episode's whole timeline."""
+    from kits import timemap
+    sc = self.sc
+    tm = timemap.CURRENT
+    last = tm.frame(tm.end)
+    frames = range(1, last + 1)
+    tw, hv = twist_at_frame, heave_at_frame
+    self.key_motion(frames, tw, hv, waves=2.0)
+    self.place_vehicles(frames, tw, hv, car_x=-560.0, truck_x=-610.0)
+    # the middle 600 ft first; then the rest, the last piece by each tower left hanging
+    self.collapse([(-300, 300, T_BREAK1, 0.8, 150),
+                   (-1400, -300, T_BREAK2, 2.2, 150, True),
+                   (300, 1400, T_BREAK2 + 0.4, 2.2, 150, True)],
+                  tw, hv, last, fps=FPS, frame_of=frame_of)
+    # the cameras
+    bpy.ops.object.camera_add()
+    cam = bpy.context.object
+    sc.camera = cam
+    self.cam = cam
+    cam.data.clip_start, cam.data.clip_end = 0.5, 60000
+    cam.data.sensor_fit = "HORIZONTAL"
+    cam.data.sensor_width = 36.0
+    target = bpy.data.objects.new("target", None)
+    sc.collection.objects.link(target)
+    c = cam.constraints.new("TRACK_TO")
+    c.target, c.track_axis, c.up_axis = target, "TRACK_NEGATIVE_Z", "UP_Y"
+    look.lens(cam, target, fstop=5.6)
+    self.shots = shot_list()
+    for fa, fb, l0, l1, k0, k1, lens in self.shots:
+        fb = max(fa + 1, fb)
+        for f, loc_, look_ in ((fa, l0, k0), (fb, l1, k1)):
+            cam.location = loc_
+            target.location = look_
+            cam.data.lens = lens
+            cam.keyframe_insert("location", frame=f)
+            target.keyframe_insert("location", frame=f)
+            cam.data.keyframe_insert("lens", frame=f)
+    for o in (cam, target, cam.data):
+        _linear(o)
+    sc.frame_start, sc.frame_end = 1, last
+    self.last = last
+
+
+def _linear(o):
+    """Steady camera moves: every key linear (a cut is two keys a frame apart)."""
+    ad = o.animation_data
+    if not ad or not ad.action:
+        return
+    curves = getattr(ad.action, "fcurves", None)
+    if curves is None:                          # Blender 5: layered actions
+        curves = [fc for layer in ad.action.layers for strip in layer.strips
+                  for bag in strip.channelbags for fc in bag.fcurves]
+    for fc in curves:
+        for k in fc.keyframe_points:
+            k.interpolation = "LINEAR"
+
+
+def _episode_anchors(self, first, last):
+    """Each labelled part's place on screen, every frame, from the camera
+    path itself (no scene evaluation: the forest and the motion make that
+    slow)."""
+    pts = {"bridge": (0, -GIRDER_Y, ROAD_Z), "tower": (HALF, -GIRDER_Y, TOWER_TOP - 20),
+           "girder": (-640, -GIRDER_Y, ROAD_Z - 2), "quarter": (-700, -GIRDER_Y, ROAD_Z),
+           "car": (-560, -9.5, ROAD_Z + 3)}
+    out = {}
+    shots = getattr(self, "shots", None) or shot_list()
+    for f in range(first, last + 1):
+        loc, at, lens = _cam_at_frame(shots, f)
+        out[f] = {k: _project(loc, at, lens, p) for k, p in pts.items()}
+    return out
+
+
+def _episode_short_camera(self, mode):
+    """A tall camera for a Short: "fall", the middle of the span going into
+    the water; "close", on the road behind the car as the twist grows."""
+    from kits import timemap
+    cam = self.cam
+    target = bpy.data.objects["target"]
+    for o in (cam, cam.data, target):
+        o.animation_data_clear()
+    a, b = timemap.SHORT["flutter"][mode]
+    keys = ({"fall": [(a, (-200, -420, 70), (0, 0, 150), 24), (b, (-190, -400, 40), (0, 0, 40), 22)],
+             "close": [(a, (-480, -16, 205), (-650, -4, 199), 26), (b, (-488, -16, 205), (-660, -4, 197), 26)]}
+            [mode])
+    for sec, loc_, look_, lens in keys:
+        f = timemap.CURRENT.frame(sec)
+        cam.location, target.location, cam.data.lens = loc_, look_, lens
+        cam.keyframe_insert("location", frame=f)
+        target.keyframe_insert("location", frame=f)
+        cam.data.keyframe_insert("lens", frame=f)
+    self.sc.frame_start, self.sc.frame_end = timemap.CURRENT.frame(a), timemap.CURRENT.frame(b)
+
+
+Model.animate = _episode_animate
+Model.anchors = _episode_anchors
+Model.short_camera = _episode_short_camera
+
+
+def render(sheet, out_dir, first=1, last=None, samples=16, still=0, short=None, size=None):
+    """Renders the episode's frames (first..last, 1-based) or one still;
+    writes the label anchors beside them."""
+    import json
+    from kits import timemap
+    timemap.use({"kit": {"variant": "flutter"}} if short else sheet)
+    m = Model(sheet)
+    m.build()
+    m.animate()
+    if short:
+        m.short_camera(short)
+        first = max(first, m.sc.frame_start)
+    setup_render(m.sc, samples, size or ((1080, 1920) if short else (1280, 720)))
+    m.sc.render.use_motion_blur = True          # the falls and the spray; cuts are rare frames
+    last = min(last or m.sc.frame_end, m.sc.frame_end)
+    os.makedirs(out_dir, exist_ok=True)
+    if still:
+        m.sc.frame_set(still)
+        m.sc.render.filepath = os.path.join(out_dir, f"still_{still:04d}.png")
+        bpy.ops.render.render(write_still=True)
+        return
+    json.dump(m.anchors(first, last), open(os.path.join(out_dir, f"anchors_{first:04d}.json"), "w"))
+    m.sc.frame_start, m.sc.frame_end = first, last
+    m.sc.render.filepath = os.path.join(out_dir, "")
+    bpy.ops.render.render(animation=True)
