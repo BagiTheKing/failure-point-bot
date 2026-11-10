@@ -1,13 +1,13 @@
 {
- "seconds": 405.46666666666664,
+ "seconds": 390.46666666666664,
  "chapters": [
   "0:00 The structure and its weak point",
-  "1:37 The physics",
-  "3:03 Second by second",
-  "4:02 The disaster, for real",
-  "4:44 How it should have worked",
-  "5:14 The warnings and the investigation",
-  "5:55 Could it happen today?"
+  "1:22 The physics",
+  "2:48 Second by second",
+  "3:47 The disaster, for real",
+  "4:29 How it should have worked",
+  "4:59 The warnings and the investigation",
+  "5:40 Could it happen today?"
  ],
  "music_credits": [
   "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
@@ -27,6 +27,7 @@
   "Narrows Bridge 2247 — Chris Light — CC BY-SA 4.0 (via Wikimedia Commons)",
   "Tacoma Narrows Bridge (117561801) — Sounderbruce — CC BY-SA 3.0 (via Wikimedia Commons)",
   "Tacoma Narrows Bridge 2009 — Lderendi — Public domain (via Wikimedia Commons)",
+  "Tacoma Narrows Bridge aerial — Dicklyon — CC BY-SA 4.0 (via Wikimedia Commons)",
   "Tacoma Narrows Bridge-2 — Chris connelly — CC BY 2.0 (via Wikimedia Commons)",
   "Tacoma Narrows aerial — Dicklyon — CC BY-SA 4.0 (via Wikimedia Commons)",
   "Tacoma Narrows — Rattlhed at English Wikipedia — Public domain (via Wikimedia Commons)"
@@ -39,44 +40,5 @@
    "And every twist let the wind push it further."
   ],
   "sub": "TACOMA NARROWS, WASHINGTON · 7 NOVEMBER 1940"
- },
- "preview": {
-  "seconds": 11.0,
-  "at": 0.0,
-  "sources": {
-   "flaw": 120.20062500000002,
-   "forces": 168.85999999999999,
-   "failure": 184.43462499999998,
-   "fix": 300.177625,
-   "stay": 19.766625
-  },
-  "spans": [
-   [
-    "flaw",
-    0.0,
-    1.3199999999999998
-   ],
-   [
-    "forces",
-    1.3199999999999998,
-    2.558333333333333
-   ],
-   [
-    "failure",
-    2.558333333333333,
-    3.708333333333333
-   ],
-   [
-    "fix",
-    3.708333333333333,
-    4.880583333333333
-   ],
-   [
-    "stay",
-    4.880583333333333,
-    10.19975
-   ]
-  ],
-  "music_credits": []
  }
 }
