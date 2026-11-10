@@ -297,6 +297,11 @@ close that gap, part by part:
   forces, the failure, the fix) with its voice and music, ending on "And the
   fix." straight into the episode; no "stay to the end" card, no black beat
   (tools/preview.py --after-opening --no-promise; on by default).
+- Review copy v3, 10 Nov (run 42835105463, a re-cut): 6:37. 0:00-0:15.5
+  the real fall and its lines, the title over the film; 0:15.6-0:20.8 the
+  signature; then the 3D. A first try put the signature where the opening's
+  dissolve began, so half a second of film came back after it: the opening
+  now ends on a straight cut.
 - Not changed yet: the automatic 8-second check on 2D and photos, and
   per-scene sound.
 
