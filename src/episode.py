@@ -565,6 +565,9 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, footage=None):
         return [{"path": p, "credit": ""} for p in out if p]
 
     def stand_in(name):                    # no free photo: our own 3D frames stand in
+        if name == "aftermath" and tm.end > 28.0:
+            # a long collapse: one frame from each of its angles, not three of one
+            return stills_3d(*[a + 2.5 for a in range(30, int(tm.end), 4)])
         return {"aftermath": stills_3d(tm.end - 3.5, tm.end - 1.5, tm.end), "investigation": stills_3d(17.0, 15.0),
                 "today_photos": stills_3d(1.0, 4.0)}.get(name) or stills_3d(2.0, 5.0)
 
@@ -588,6 +591,10 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, footage=None):
         seconds = slots[name] + (d if trans != "cut" else 0)
         if lead_clips:                       # with footage: no stand-in, never a picture twice
             pics = [p for p in pictures(name) if p["path"] not in shown] if photos.get(name) else []
+            if not pics and tm.end > 28.0:
+                # unless the footage is shorter than the words: then the long
+                # collapse's other angles follow it rather than its last frame held
+                pics = pictures(name)
         else:                                # never a picture the cold open or the teaser showed
             pics = [p for p in pictures(name) if p["path"] not in shown] or pictures(name)
         add2d(name, reel(list(lead_clips) + pics, seconds, caps.get(name, "")),
@@ -636,15 +643,20 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, footage=None):
     # 2026-11-05: no AI video at all: the animation carries it)
     add3d("fall", tm.real(20.0), tm.real(tm.end), "dissolve",
           [("fall", 0), ("dramatization", tm.real(22.0) - tm.real(20.0))],
-          fill_to=frames(slots["fall"] + slots["dramatization"] + d))
+          # all of it: a long collapse (the centrepiece) is never cut to its words
+          fill_to=max(frames(slots["fall"] + slots["dramatization"] + d),
+                      frames(tm.real(tm.end) - tm.real(20.0))))
     # the disaster as it was seen: the real footage first, then the pictures
     # (no opening shot when it has neither words nor footage: its pictures would
     # only come back from the teaser)
+    # the opening shot is short: it takes the first clip; the aftermath, which
+    # has the words about the film, takes the others (Tacoma, 10 Nov: three
+    # clips went unused and the aftermath fell back to stills)
     if texts.get("photo") or clips:
-        archive("photo", "dissolve", clips)
+        archive("photo", "dissolve", clips[:1])
     if not intro and texts.get("photos_disaster"):
         archive("photos_disaster", "dissolve")
-    archive("aftermath", "dissolve")
+    archive("aftermath", "dissolve", clips[1:])
     # what happened against what should have, then how it came to happen
     add2d("compare", kit.compare, D["compare"], "dissolve", [("compare", 0)])
     add2d("timeline", common.timeline(sheet, timeline_reveal(sheet, words.get("timeline"))),

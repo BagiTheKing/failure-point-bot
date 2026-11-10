@@ -11,6 +11,7 @@ Blocks every kit shares, filled from the animation sheet:
                 parts' screen positions recorded at render time
 """
 
+import math
 import re
 
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
@@ -199,11 +200,24 @@ def timeline(sheet, reveal=None):
         last_t, last_p = knots[-1]
         return last_p + (1.0 - last_p) * prog(t, last_t + 0.5, last_t + 2.0)
 
+    def camera(t, T, p, x0, x1, y):
+        """In close on the line where it has reached; once every date is out,
+        back along them; out wide at the end (owner, 2026-11-09: no picture
+        standing still; Tacoma's timeline held one frame for ~25 s)."""
+        z = 1.0 + 0.4 * (1 - prog(t, T - 3.0, T - 0.8)) * prog(t, 0.0, 1.5)
+        t_full = (max(reveal) + 1.5) if reveal else T - 1.6
+        if t < t_full:
+            x = lerp(x0, x1, p)
+        else:
+            x = lerp(x1, x0, ease(prog(t, t_full, max(t_full + 0.1, T - 3.0))))
+        half = W / 2 / z
+        return Frame(min(max(x, half), W - half), y + 20, z)
+
     def clip(t, T):
-        f = Frame()
-        f.grid(0.6)
         x0, x1, y = 120, 1160, 360
         p = progress(t, T)
+        f = camera(t, T, p, x0, x1, y)
+        f.grid(0.6)
         f.poly([(x0, y), (x1, y)], GRID_MAJOR, 6)
         f.poly([(x0, y), (x1, y)], CYAN, 6, p)
         # neighbours on the same side of the line sit two steps apart
@@ -234,7 +248,9 @@ def today(sheet):
     d = sheet["today"]
 
     def clip(t, T):
-        f = Frame()
+        # a slow push in all through: a card of words never stands still
+        h = prog(t, 0.0, max(1.0, T))
+        f = Frame(W / 2 + 60 * math.sin(0.35 * t), H / 2 - 50 * h, 1.0 + 0.32 * h)
         f.grid(0.6)
         f.text(d["title"], W / 2, 200, 40, CYAN, "InterDisplay-Black.otf", anchor="mm",
                alpha=prog(t, 0.2, 0.8))

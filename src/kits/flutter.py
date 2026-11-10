@@ -249,7 +249,11 @@ class FlutterBridge(KitTiming):
         cx, cy, z = lerp(W / 2, (XT0 + W / 2) / 2, e), lerp(H / 2 + 30, DECK_Y - 60, e), lerp(1.0, 1.5, e)
         k = b.p(t, "zoom")
         creep = 1 + 0.004 * min(max(t, 0.0), b.total)
-        return lerp(cx, CX, k), lerp(cy, CY + 40, k), lerp(z, 1.0, k) * creep
+        # through the long hold on the cut: a slow push in toward the girder and a
+        # drift across (the Tacoma review copy held this frame for ~20 s)
+        h = ease(prog(t, b.end("zoom"), b.total))
+        dx = 70 * h + 30 * math.sin(0.5 * t)
+        return lerp(cx, CX + dx, k), lerp(cy, CY + 40 - 30 * h, k), lerp(z, 1.0 + 0.45 * h, k) * creep
 
     def b_content(self, f, t, label_alpha=1.0):
         b = self.BUILD
@@ -268,7 +272,8 @@ class FlutterBridge(KitTiming):
         if out > 0:
             # the cut fades in as the elevation fades out: never an empty frame
             ca = max(b.p(t, "cut"), ease(out))
-            self.section(f, alpha=ca)
+            # it rocks a little in the wind already, the way the summer's waves moved it
+            self.section(f, angle=math.radians(1.5) * math.sin(2 * math.pi * 0.2 * t), alpha=ca)
             L = self.labels
             ga = ca * label_alpha
             f.label(L.get("girder", "solid plate girder: 8 ft deep"), CX + HALF_W, CY + G_D * 0.2, 1000, 230, ga, AMBER)
