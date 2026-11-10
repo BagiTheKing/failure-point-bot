@@ -1,13 +1,13 @@
 {
- "seconds": 390.46666666666664,
+ "seconds": 395.76666666666665,
  "chapters": [
   "0:00 The structure and its weak point",
-  "1:22 The physics",
-  "2:48 Second by second",
-  "3:47 The disaster, for real",
-  "4:29 How it should have worked",
-  "4:59 The warnings and the investigation",
-  "5:40 Could it happen today?"
+  "1:27 The physics",
+  "2:53 Second by second",
+  "3:52 The disaster, for real",
+  "4:34 How it should have worked",
+  "5:04 The warnings and the investigation",
+  "5:45 Could it happen today?"
  ],
  "music_credits": [
   "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
@@ -40,5 +40,39 @@
    "And every twist let the wind push it further."
   ],
   "sub": "TACOMA NARROWS, WASHINGTON · 7 NOVEMBER 1940"
+ },
+ "preview": {
+  "seconds": 5.3,
+  "at": 14.766625,
+  "sources": {
+   "flaw": 116.20062500000002,
+   "forces": 164.85999999999999,
+   "failure": 180.43462499999998,
+   "fix": 296.177625,
+   "stay": 15.766625
+  },
+  "spans": [
+   [
+    "flaw",
+    0.0,
+    1.3199999999999998
+   ],
+   [
+    "forces",
+    1.3199999999999998,
+    2.558333333333333
+   ],
+   [
+    "failure",
+    2.558333333333333,
+    3.708333333333333
+   ],
+   [
+    "fix",
+    3.708333333333333,
+    5.310583333333333
+   ]
+  ],
+  "music_credits": []
  }
 }
