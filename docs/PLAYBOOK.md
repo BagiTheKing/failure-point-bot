@@ -278,9 +278,17 @@ close that gap, part by part:
   collapse kept; the aftermath takes the film clips the opening did not).
   Still weak: the spray puffs read as balls up close; one aftermath angle has
   trees across the foreground; the opening card, black and title unchanged.
-- Not changed for this video (the owner narrowed the work to the 3D and the
-  new video): the cold open's card and title before the story, the
-  8-second check on 2D and photos, per-scene sound.
+- Owner, 10 Nov, after the review copy: fix the opening, the spray, the
+  trees, and a car left in the sky while the deck was down. The car was the
+  truck: the collapse took riders off the list it was looping over, so the
+  second vehicle was never carried down (fixed: it loops over a copy). The
+  spray puffs are lumpy and soft-edged, smaller and more of them; the
+  side-span shot is taken from over the water. The opening: no signature
+  preview (episode_sample input "signature", off), no burst, no title card;
+  frame 1 is the real fall (else our 3D fall) with the first hook line
+  large, and the title rides over the film on the last line.
+- Not changed yet: the automatic 8-second check on 2D and photos, and
+  per-scene sound.
 
 ## 7. Topics by search demand (vidIQ, monthly YouTube searches)
 

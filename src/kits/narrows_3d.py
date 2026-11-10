@@ -828,8 +828,8 @@ def spray_material(name, colour=(0.86, 0.88, 0.88), alpha=0.85):
         lw = nt.nodes.new("ShaderNodeLayerWeight")
         lw.inputs["Blend"].default_value = 0.5
         rim = nt.nodes.new("ShaderNodeMapRange")
-        rim.inputs["From Min"].default_value = 0.55
-        rim.inputs["From Max"].default_value = 0.95
+        rim.inputs["From Min"].default_value = 0.30
+        rim.inputs["From Max"].default_value = 0.85
         rim.inputs["To Min"].default_value = 1.0
         rim.inputs["To Max"].default_value = 0.0
         nt.links.new(lw.outputs["Facing"], rim.inputs["Value"])
@@ -1425,7 +1425,7 @@ class Model:
                 hit_t, hit_z, sunk = {}, {}, {}
                 # vehicles standing on this piece go with it
                 on = []
-                for r in riders:
+                for r in list(riders):            # a copy: riders are taken off it as they board
                     o_, x_, y_, h_, rot_ = r
                     if px0 <= x_ <= px1:
                         ny_, nz_, th_ = deck_transform(x_, y_, ROAD_Z + h_, tw, hv, 1.0)
@@ -1582,9 +1582,19 @@ class Model:
             v.co.z *= 2.4                     # a streak of water, not a ball
         drop.name = "drop"
         drop.data.materials.append(drop_mat)
-        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=1.0, location=(0, 0, -9000))
+        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3, radius=1.0, location=(0, 0, -9000))
         puff = bpy.context.object
         puff.name = "puff"
+        # a lumpy, torn puff of spray, not a ball (the review copy's read as balls)
+        lump = random.Random(17)
+        for v in puff.data.vertices:
+            n = v.co.normalized()
+            k = 0.62 + 0.55 * (0.5 + 0.5 * math.sin(3.1 * n.x + 1.7) * math.sin(2.3 * n.y + 0.4) *
+                               math.sin(2.9 * n.z + 2.2)) + lump.uniform(-0.08, 0.08)
+            v.co = n * k
+            v.co.z *= 0.8
+        for p_ in puff.data.polygons:
+            p_.use_smooth = True
         puff.data.materials.append(mist_mat)
         bpy.ops.mesh.primitive_circle_add(vertices=24, radius=1.0, fill_type="NGON", location=(0, 0, -9000))
         disc = bpy.context.object
@@ -1595,7 +1605,7 @@ class Model:
         layers = (
             ("sheets", splash_group("sheets", 900, 195.0, 0.55, 0.6, 5.0, 0.95, tumble=0.8, drift=6.0), drop),
             # the film: a white cloud that rolls up past the deck and drifts off downwind
-            ("spray", splash_group("spray", 380, 170.0, 0.9, 1.2, 10.0, 7.5, 1.0, gravity=0.07, drift=14.0), puff),
+            ("spray", splash_group("spray", 620, 170.0, 0.9, 1.2, 10.0, 5.5, 1.0, gravity=0.07, drift=14.0), puff),
             ("foam", splash_group("foam", 1, 0.0, 0.0, 1.0, 14.0, 22.0, 0.0, ring=True, gravity=0.0), disc),
         )
         for name, grp, inst in layers:
@@ -1751,7 +1761,7 @@ DROP_SHOTS = [
     (46.0, 50.0, (-1250, -700, 70), (-1240, -690, 72), (-650, 0, 130), (-650, 0, 100), 28),  # they go
     (50.0, 54.0, (-900, -900, 15), (-890, -890, 18), (-700, 0, 50), (-700, 0, 60), 24),     # the splash, west
     (54.0, 58.0, (-1300, -420, 140), (-1290, -410, 138), (-1330, 0, 150), (-1320, 0, 140), 24),   # the stub at the tower
-    (58.0, 62.0, (-1750, -1400, 90), (-1730, -1370, 92), (-1950, 0, 175), (-1950, 0, 170), 32),   # the side span sags
+    (58.0, 62.0, (-850, -1150, 70), (-830, -1120, 74), (-1950, 0, 185), (-1950, 0, 180), 40),    # the side span sags
     (62.0, 66.0, (-200, -120, 250), (-180, -110, 250), (0, -19.5, 230), (0, -19.5, 225), 32),     # snapped hangers
     (66.0, 70.0, (1400, -3200, 40), (1300, -3150, 45), (0, 0, 190), (0, 0, 190), 26),    # the empty span
 ]

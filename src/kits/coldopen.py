@@ -184,10 +184,15 @@ def _glitch(img, k):
     return Image.merge("RGB", (ImageChops.offset(r, off, 0), g, ImageChops.offset(b, -off, 0)))
 
 
-def cold_open(cuts, lines, T, title="", sub="", fx=None, fade_out=True, opening=True):
+def cold_open(cuts, lines, T, title="", sub="", fx=None, fade_out=True, opening=True, first_big=False,
+              ride_title=""):
     """cuts: layout(). lines: [(start, end, text)] when each hook line is
     spoken, shown on screen while it is said. fx: events(). opening=False:
-    the hook lines alone, later in the episode (no burst, no title)."""
+    the hook lines alone (no burst, no title card). first_big: the first
+    line large, the opening frame's one big line (owner, 2026-11-09: the
+    disaster on screen and moving in the first 5 s, no card before it).
+    ride_title: the episode's title over the moving picture during the last
+    line, never on a card of its own."""
     fx = fx or {}
 
     def clip(t, T_):
@@ -212,11 +217,32 @@ def cold_open(cuts, lines, T, title="", sub="", fx=None, fade_out=True, opening=
         f.img, f.d = img, ImageDraw.Draw(img, "RGBA")
         if opening:
             title_card(f, title, sub, t)
-        for s, e, text in lines:
-            if s - 0.15 <= t <= e + 0.4:
+        for i, (s, e, text) in enumerate(lines):
+            if i == 0 and first_big and t <= e + 0.4:
+                # from the very first frame, large, over the moving picture, in
+                # two lines if it is long
+                al = 1 - prog(t, e + 0.15, e + 0.4)
+                words = text.split()
+                rows = [text]
+                if len(text) > 42:
+                    cut = min(range(1, len(words)), key=lambda k: abs(len(" ".join(words[:k])) - len(text) / 2))
+                    rows = [" ".join(words[:cut]), " ".join(words[cut:])]
+                size = min(fit(r, 52, "InterDisplay-Black.otf", W - 140) for r in rows)
+                for j, r in enumerate(rows):
+                    f.text(r, W / 2, H - 175 + j * (size + 14) - (size + 14) * (len(rows) - 1) / 2, size, LINE,
+                           "InterDisplay-Black.otf", anchor="mm", alpha=al)
+            elif s - 0.15 <= t <= e + 0.4:
                 al = prog(t, s - 0.15, s + 0.1) * (1 - prog(t, e + 0.15, e + 0.4))
                 size = fit(text, 34, "InterDisplay-Bold.otf", W - 200)
                 f.text(text, W / 2, H - 120, size, LINE, "InterDisplay-Bold.otf", anchor="mm", alpha=al)
+        if ride_title and lines:
+            s, e, _ = lines[-1]
+            ra = prog(t, s, s + 0.5) * (1 - prog(t, T_ - 0.6, T_ - 0.1))
+            if ra > 0:
+                size = fit(ride_title, 40, "InterDisplay-Black.otf", W - 160)
+                f.text(ride_title, 60, 100, size, LINE, "InterDisplay-Black.otf", anchor="ls", alpha=ra)
+                tw = font("InterDisplay-Black.otf", size).getlength(ride_title) / SS
+                f.d.rectangle([60 * SS, 112 * SS, (60 + tw * ease(ra)) * SS, 117 * SS], fill=RED + (int(255 * ra),))
         if item.get("tag") and not burst:
             from kits import common
             common.pill(f, item["tag"], 40, 36, LINE, 15, "la", 0.85)

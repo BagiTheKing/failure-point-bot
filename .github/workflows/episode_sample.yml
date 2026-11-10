@@ -47,6 +47,10 @@ on:
       report_credit:
         description: "Its credit line (agency, report, year)"
         default: ""
+      signature:
+        description: "Put the signature preview (flaw, forces, failure, fix; 'stay to the end') before the episode (off since 10 Nov: the disaster first)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -326,6 +330,9 @@ jobs:
           python tools/episode_sample.py assemble prep raw
           python tools/thumbnails.py prep raw prep/thumbs || echo "no thumbnails"
       - name: The signature preview, before the cold open
+        # off by default (owner, 2026-11-09): Silver Bridge lost 3 of 18 viewers
+        # on its "stay to the end" card, black and title before the story
+        if: inputs.signature
         env:
           KOKORO_VOICE: am_echo
         run: |

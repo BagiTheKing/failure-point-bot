@@ -604,7 +604,11 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, footage=None):
     # It is never given the footage: real footage is kept for the disaster's
     # own chapter, after the 3D and 2D have shown how it happened
     hook_T = 0.0
-    intro = intro_plan(sheet, voiced, photos, [], raw3d, tm, pictures)
+    # owner, 2026-11-09 (from the Sabin comparison): the disaster on screen and
+    # moving in the first 5 s; no burst of stills and no title card before it.
+    # The video opens on the teaser (the real fall, else our 3D fall) with one
+    # big line, and the title rides over the moving picture.
+    intro = intro_plan(sheet, voiced, photos, [], raw3d, tm, pictures) if OPENING_CARD else None
     if intro:
         fn, hook_T, hook_shots = intro
         # the cold open runs straight on into the structure: one chapter
@@ -627,7 +631,8 @@ def build(sheet, raw3d, photos, voiced, out_mp4, work, footage=None):
     # until past a minute). The disaster's own chapter still comes after
     # "Second by second", with the pictures the teaser did not use.
     teaser_T = 0.0
-    tz = teaser(sheet, voiced, clips, photos, pictures, shown)
+    fall_frames = [p for p in (find_frame(raw3d, n) for n in range(tm.frame(22.0), tm.frame(min(tm.end, 34.0)) + 1)) if p]
+    tz = teaser(sheet, voiced, clips, photos, pictures, shown, opening=not intro, fall_frames=fall_frames)
     if tz:
         fn, teaser_T, tz_shots, clips = tz
         add2d("teaser", fn, teaser_T, "dissolve", tz_shots)
@@ -720,7 +725,10 @@ def run_parallel(makes, workers=None):
 KEEP_FOR_AFTERMATH = 3
 
 
-def teaser(sheet, voiced, clips, photos, pictures, shown):
+OPENING_CARD = False       # the old cold open (a burst of stills, a title card), before 2026-11-10
+
+
+def teaser(sheet, voiced, clips, photos, pictures, shown, opening=False, fall_frames=()):
     """The hook lines as a teaser of the real thing, straight after the title:
     (fn, length, shots, the footage left), or None. Each line over real
     material only: footage first (one clip runs on under the next line), then
@@ -735,7 +743,11 @@ def teaser(sheet, voiced, clips, photos, pictures, shown):
     starts = [0.0] + [max(0.0, s - 0.25) for s, _, _ in lines[1:]]
     durs = [b - a for a, b in zip(starts, starts[1:] + [T])]
     items, rest = [], list(clips)
-    for c in clips[:1]:                          # footage: the first clip, for as many lines as it lasts
+    lead = clips[:1]
+    if opening and not clips and fall_frames:
+        # no real footage: our own 3D fall opens the video, moving on under the lines
+        lead = [{"frames": list(fall_frames), "fall": True, "credit": ""}]
+    for c in lead:                               # footage: the first clip, for as many lines as it lasts
         at = 0
         for d in durs:
             if at + d * FPS > len(c["frames"]):
@@ -757,7 +769,8 @@ def teaser(sheet, voiced, clips, photos, pictures, shown):
     if not items:
         return None
     cuts = [(a, d, items[min(i, len(items) - 1)]) for i, (a, d) in enumerate(zip(starts, durs))]
-    fn = coldopen.cold_open(cuts, lines, T, fade_out=False, opening=False)
+    fn = coldopen.cold_open(cuts, lines, T, fade_out=False, opening=False, first_big=opening,
+                            ride_title=(hook.get("title", "") if opening else ""))
     return fn, T, [(f"hook_{i}", s - narration.PAD_IN) for i, (s, _, _) in enumerate(lines)], rest
 
 
