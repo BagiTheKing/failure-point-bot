@@ -287,6 +287,11 @@ close that gap, part by part:
   preview (episode_sample input "signature", off), no burst, no title card;
   frame 1 is the real fall (else our 3D fall) with the first hook line
   large, and the title rides over the film on the last line.
+- Review copy v2, 10 Nov (run 42784158864, 90 shards, none failed): 6:30.
+  Checked frame by frame: frame 1 the real fall under the first line, the
+  title over the film at 0:12, no card, black or burst; the car and the
+  truck go down with their piece (3:21-3:24), nothing left in the air; the
+  spray a cloud; the side-span shot clear. Sent to the owner.
 - Not changed yet: the automatic 8-second check on 2D and photos, and
   per-scene sound.
 
