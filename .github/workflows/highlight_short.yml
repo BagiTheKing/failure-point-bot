@@ -5,7 +5,7 @@ name: Highlight Short
 # drawing on the full 9:16 screen, the failure first, the words as they are
 # said, looping back into its start. Always pushed to
 # preview-media (shorts/<name>/) for review; uploaded only when "publish" is
-# ticked, on the owner's go, after the 48-hour spacing check at the time it
+# ticked, on the owner's go, after the 24-hour spacing check at the time it
 # goes public (src/upload_gate.py).
 on:
   workflow_dispatch:
@@ -97,7 +97,7 @@ jobs:
           git diff --cached --quiet && { echo "same Short as before"; exit 0; }
           git commit -q -m "Highlight Short: ${{ inputs.name }} (run ${{ github.run_number }})"
           for i in 1 2 3; do git push -q origin preview-media && break; git pull -q --rebase origin preview-media; done
-      - name: 48-hour spacing
+      - name: 24-hour spacing
         id: gate
         if: inputs.publish
         working-directory: src

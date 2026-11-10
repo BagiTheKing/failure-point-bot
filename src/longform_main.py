@@ -857,7 +857,7 @@ def publish_clips(scenes, script, video_id):
     # Nothing goes out within MIN_HOURS_BETWEEN_UPLOADS of anything else
     # (owner, 2026-10-17; upload_gate.py): the first clip is scheduled that
     # long after the video, each next one that long after the one before.
-    gap = float(os.getenv("CLIP_GAP_HOURS", os.getenv("MIN_HOURS_BETWEEN_UPLOADS", "48")))
+    gap = float(os.getenv("CLIP_GAP_HOURS", os.getenv("MIN_HOURS_BETWEEN_UPLOADS", "24")))
     public = os.getenv("PRIVACY_STATUS", "public") == "public"
     start = datetime.datetime.now(datetime.timezone.utc)
     for k, clip in enumerate(clips):

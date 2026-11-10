@@ -1,14 +1,14 @@
 name: Daily YouTube Shorts Publisher
 
 on:
-  # Manual only (owner, 2026-10-17). The channel posts nothing within 48 hours
+  # Manual only (owner, 2026-10-17). The channel posts nothing within 24 hours
   # of anything else, and each long video brings its own highlight Short;
   # standalone Shorts would only take those slots (they drew ~40 views each,
   # the clips from long videos ~85% of all Shorts views).
   workflow_dispatch:
     inputs:
       ignore_spacing:
-        description: 'Upload even if the channel posted in the last 48 hours'
+        description: 'Upload even if the channel posted in the last 24 hours'
         type: boolean
         default: false
       skip_upload:
@@ -46,7 +46,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Nothing goes out within 48 hours of anything else on the channel, Shorts
+  # Nothing goes out within 24 hours of anything else on the channel, Shorts
   # and long videos alike (owner, 2026-10-17; src/upload_gate.py).
   gate:
     # Scheduled runs wait for the repository variable PIPELINE_ENABLED=true
@@ -63,7 +63,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: 48-hour spacing (src/upload_gate.py)
+      - name: 24-hour spacing (src/upload_gate.py)
         id: spacing
         env:
           YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}

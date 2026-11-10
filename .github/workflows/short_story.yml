@@ -6,7 +6,7 @@ name: Short
 # point of failure), the 2D drawn by the kit, the real photo last. The
 # script and the photo live on preview-media under shorts/<short>/. Always
 # pushed to preview-media for review; uploaded only when "publish" is
-# ticked, on the owner's go, after the 48-hour spacing check. With
+# ticked, on the owner's go, after the 24-hour spacing check. With
 # from_run, the Short that review run made is published as it is, in a
 # couple of minutes: nothing rendered, voiced or cut again.
 on:
@@ -198,7 +198,7 @@ jobs:
         # a picture standing still 1.5 s or more fails the run here: the review
         # copy is already up to see it, and nothing is published
         run: python tools/stillness.py --report short/short.json
-      - name: 48-hour spacing
+      - name: 24-hour spacing
         id: gate
         if: inputs.publish
         working-directory: src

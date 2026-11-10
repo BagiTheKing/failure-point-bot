@@ -1,4 +1,4 @@
-"""The 48-hour channel spacing (src/upload_gate.py; owner, 2026-10-17)."""
+"""The channel spacing, 24 h since 2026-11-10 (src/upload_gate.py; owner, 2026-10-17)."""
 
 import datetime
 import os
@@ -20,18 +20,18 @@ class UploadGateTest(unittest.TestCase):
     def test_empty_channel_goes(self):
         self.assertTrue(upload_gate.decide([], now=NOW)[0])
 
-    def test_post_inside_48h_stands_down(self):
-        go, reason = upload_gate.decide([{"title": "Hyatt", "publishedAt": at(30)}], now=NOW)
+    def test_post_inside_24h_stands_down(self):
+        go, reason = upload_gate.decide([{"title": "Hyatt", "publishedAt": at(18)}], now=NOW)
         self.assertFalse(go)
         self.assertIn("next slot", reason)
 
     def test_seconds_late_publish_still_frees_its_slot(self):
-        # the Short went public at 23:45:05: 23:45:00 two days on still goes
-        late = (NOW - datetime.timedelta(hours=48) + datetime.timedelta(seconds=5)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        # the Short went public at 23:45:05: 23:45:00 a day on still goes
+        late = (NOW - datetime.timedelta(hours=24) + datetime.timedelta(seconds=5)).strftime("%Y-%m-%dT%H:%M:%SZ")
         self.assertTrue(upload_gate.decide([{"title": "short", "publishedAt": late}], now=NOW)[0])
 
-    def test_post_older_than_48h_goes(self):
-        self.assertTrue(upload_gate.decide([{"title": "Hyatt", "publishedAt": at(49)}], now=NOW)[0])
+    def test_post_older_than_24h_goes(self):
+        self.assertTrue(upload_gate.decide([{"title": "Hyatt", "publishedAt": at(25)}], now=NOW)[0])
 
     def test_any_format_counts(self):
         # a Short posted by hand 10 h ago holds a long video too
@@ -41,20 +41,20 @@ class UploadGateTest(unittest.TestCase):
 
     def test_scheduled_publish_counts_at_its_publish_time(self):
         # uploaded 60 h ago, but scheduled to go public 12 h from now:
-        # the next post waits until 60 h from now
+        # the next post waits until 36 h from now
         videos = [{"title": "highlight", "publishedAt": at(60), "publishAt": at(-12)}]
         go, _ = upload_gate.decide(videos, now=NOW)
         self.assertFalse(go)
         slot = upload_gate.next_free_slot(videos)
-        self.assertEqual(slot, NOW + datetime.timedelta(hours=60))
+        self.assertEqual(slot, NOW + datetime.timedelta(hours=36))
 
     def test_a_slot_between_two_posts_goes(self):
-        # 48 h after one post and 48 h before the next one already scheduled
-        videos = [{"title": "Hyatt", "publishedAt": at(48)}, {"title": "Aloha", "publishAt": at(-48)}]
+        # 24 h after one post and 24 h before the next one already scheduled
+        videos = [{"title": "Hyatt", "publishedAt": at(24)}, {"title": "Aloha", "publishAt": at(-24)}]
         self.assertTrue(upload_gate.decide(videos, now=NOW)[0])
 
     def test_too_close_to_a_later_post_stands_down(self):
-        videos = [{"title": "Hyatt", "publishedAt": at(60)}, {"title": "Aloha", "publishAt": at(-30)}]
+        videos = [{"title": "Hyatt", "publishedAt": at(60)}, {"title": "Aloha", "publishAt": at(-18)}]
         go, reason = upload_gate.decide(videos, now=NOW)
         self.assertFalse(go)
         self.assertIn("after", reason)

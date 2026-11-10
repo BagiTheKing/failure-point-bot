@@ -44,7 +44,7 @@ the collapse itself, sound, and thumbnails people click.
 - Short: `short_story.yml` with tools/story_short.py and
   shorts/<short>/script.json on preview-media. `from_run` publishes the
   reviewed copy as is. It fails on any still stretch (tools/stillness.py).
-- Upload spacing: src/upload_gate.py (48 h today).
+- Upload spacing: src/upload_gate.py (24 h since 10 Nov; three long videos a week).
 - Thumbnail rotation: `rotate_thumbnails.yml`, branch `thumb-rotation`.
 - youtube.com is blocked from the sessions; vidIQ is out of credits. Numbers
   come from the owner's Studio screenshots.

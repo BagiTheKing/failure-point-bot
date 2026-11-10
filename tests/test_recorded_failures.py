@@ -605,11 +605,12 @@ class LongChapterInHalves(unittest.TestCase):
 
 
 class ClipSchedule(unittest.TestCase):
-    """2026-10-17 (owner): nothing goes out within 48 hours of anything else,
-    so the first clip is scheduled 48 h after the video, each next one 48 h
-    after the one before (was: first clip with the video, then every 6 h)."""
+    """2026-10-17 (owner): nothing goes out within the spacing of anything
+    else (48 h, 24 h since 2026-11-10), so the first clip is scheduled one
+    spacing after the video, each next one a spacing after the one before
+    (was: first clip with the video, then every 6 h)."""
 
-    def test_clips_spaced_48_hours_after_the_video(self):
+    def test_clips_spaced_24_hours_after_the_video(self):
         import datetime
         import longform_clips as LC
         import longform_main as LM
@@ -631,8 +632,8 @@ class ClipSchedule(unittest.TestCase):
             os.environ.pop("PRIVACY_STATUS")
         self.assertEqual(len(seen), 2)
         t = [datetime.datetime.strptime(x, "%Y-%m-%dT%H:%M:%SZ") for x in seen]
-        self.assertAlmostEqual((t[0] - start).total_seconds(), 48 * 3600, delta=120)
-        self.assertEqual((t[1] - t[0]).total_seconds(), 48 * 3600)
+        self.assertAlmostEqual((t[0] - start).total_seconds(), 24 * 3600, delta=120)
+        self.assertEqual((t[1] - t[0]).total_seconds(), 24 * 3600)
 
 
 class Animation(unittest.TestCase):

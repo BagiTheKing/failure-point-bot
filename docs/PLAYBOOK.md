@@ -19,7 +19,7 @@ How to use it:
 - Never photos of the dead or of remains; never a victim's last moments.
 - Nothing frozen in the 3D. The 2D is built line by line.
 - No picture shown twice. Moving footage is preferred over stills.
-- One Short per long video. 48 hours between posts (the owner may waive it).
+- One Short per long video. 24 hours between posts since 10 Nov (was 48; the owner may waive it).
 - The owner reviews every video before it is uploaded. Never delete and
   re-upload a public video.
 - Old videos are not touched (titles included) once published.
@@ -187,10 +187,10 @@ What it decides, for every long video from now on:
 - Thumbnails: curiosity, not wreckage. Sabin's shows a 1927 car next to a
   1967 car ("When cars get heavier…"); our postcard got 2.5% CTR against
   Teton's 6.5%. A video that is never clicked cannot hold anyone.
-- Proposed by the owner (9 Nov), not yet decided: three long videos a
-  week (Mon, Wed, Fri) with each Short the next day, Sunday off. Needs the
-  upload gate cut from 48 h to 24 h, and new kits only where a disaster
-  cannot reuse one.
+- Decided by the owner (10 Nov): three long videos a week (Mon, Wed, Fri)
+  with each Short the next day, Sunday off. The upload gate is 24 h
+  (src/upload_gate.py, every workflow's spacing step). New kits only where
+  a disaster cannot reuse one.
 
 ## 6d. The 3D against Sabin, frame by frame (9 Nov)
 

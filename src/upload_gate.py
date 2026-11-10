@@ -1,9 +1,10 @@
 """
-Channel spacing (owner, 2026-10-17): after any upload, a Short or a long
-video, by the pipeline or by hand, the channel posts nothing else for
-MIN_HOURS_BETWEEN_UPLOADS (48). Scheduled publishes count at their publish
-time, so a long video's highlight Short scheduled 48 h after it holds the
-next long video another 48 h.
+Channel spacing (owner, 2026-10-17; cut from 48 to 24 h on 2026-11-10 for
+three long videos a week, Mon/Wed/Fri, each Short the next day): after any
+upload, a Short or a long video, by the pipeline or by hand, the channel
+posts nothing else for MIN_HOURS_BETWEEN_UPLOADS (24). Scheduled publishes
+count at their publish time, so a long video's Short scheduled 24 h after it
+holds the next long video another 24 h.
 
 The workflows run this in their small gate job, before anything is rendered:
 
@@ -21,8 +22,8 @@ import datetime
 import os
 import sys
 
-MIN_HOURS = float(os.getenv("MIN_HOURS_BETWEEN_UPLOADS", "48"))
-# a scheduled video goes public a few seconds after its time, so the slot 48 h
+MIN_HOURS = float(os.getenv("MIN_HOURS_BETWEEN_UPLOADS", "24"))
+# a scheduled video goes public a few seconds after its time, so the slot 24 h
 # after it would be missed by those seconds (the Hyatt cut, 2026-10-20)
 GRACE = datetime.timedelta(minutes=2)
 

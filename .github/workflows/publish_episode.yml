@@ -2,7 +2,7 @@ name: Publish episode
 
 # Manual, and only on the owner's go: uploads a finished Episode sample run
 # to the channel with the chosen thumbnail and a description built from the
-# episode (chapters, sources, photo and music credits). The 48-hour spacing
+# episode (chapters, sources, photo and music credits). The 24-hour spacing
 # rule is checked first (src/upload_gate.py).
 on:
   workflow_dispatch:
@@ -65,7 +65,7 @@ jobs:
             git show "origin/preview-media:thumbs/${{ inputs.thumbs }}/thumb_$t.jpg" > ep/thumb_$t.jpg 2>/dev/null || rm -f ep/thumb_$t.jpg
           done
           ls -la ep
-      - name: 48-hour spacing
+      - name: 24-hour spacing
         id: gate
         working-directory: src
         env:
