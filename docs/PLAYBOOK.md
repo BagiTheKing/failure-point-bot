@@ -250,6 +250,31 @@ close that gap, part by part:
 - Local renders: Blender 5.2 (pip bpy) runs in the session; half-size
   frames take 8 to 15 s at 12 to 16 samples on 4 cores.
 
+## 6e. The Tacoma Narrows long video (building, 10 Nov)
+
+- Facts from the Wikipedia article (sources/tacoma on preview-media), checked
+  line by line; the narration claims only what it says (Coatsworth's car fell:
+  stated; the truck tipped over: stated, its fall not; the film's speed: only
+  that most copies run fast). A question before each answer.
+- The 2D kit (kits/flutter.py): the bridge, the 8 ft girder against the 25 ft
+  truss planned, the wind and its eddies, the summer's waves, the twist about
+  a still centre line, flutter (the motion feeding itself), the hangers;
+  compare: open truss holds, solid girder fails.
+- The 3D on the episode clock: each part of the narration gets shots of about
+  4.6 s from a pool of 5 or 6 angles (31 shots, 4 to 6.8 s), the twist at its
+  true 12 cycles a minute; the collapse 48 s in twelve 4 s shots. About 4,100
+  frames: ordinary frames about 30 s on four cores, splash frames about 2 min
+  (11 min before the spray puffs were made solid at the core); 40 frames a
+  shard (about 100 shards).
+- Real film: four clips of Elliott and Monroe's film in footage/tacoma
+  (Prelinger Archives, public domain), credits beside them.
+- Thumbnails, 4 options sent to the owner: the 3D road tilting with the car
+  ("A BRIDGE DID THIS"), the real film ("THIS IS REAL FILM · 1940"), 25 FT /
+  8 FT ("ONE OF THESE FELL"), 10:59 / 11:00.
+- Not changed for this video (the owner narrowed the work to the 3D and the
+  new video): the cold open's card and title before the story, the
+  8-second check on 2D and photos, per-scene sound.
+
 ## 7. Topics by search demand (vidIQ, monthly YouTube searches)
 
 | Topic | Searches a month | Competition (lower is easier) |
