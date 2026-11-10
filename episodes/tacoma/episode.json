@@ -1,0 +1,82 @@
+{
+ "seconds": 370.4,
+ "chapters": [
+  "0:00 The structure and its weak point",
+  "1:37 The physics",
+  "3:03 Second by second",
+  "3:27 The disaster, for real",
+  "4:09 How it should have worked",
+  "4:39 The warnings and the investigation",
+  "5:20 Could it happen today?"
+ ],
+ "music_credits": [
+  "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Impending Boom\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Volatile Reaction\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Lightless Dawn\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Tyrant\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Man Down\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
+  "\"Leaving Home\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/"
+ ],
+ "credits": [
+  "Aerial photo of the Tacoma Narrows Bridge — Dllu — CC BY-SA 4.0 (via Wikimedia Commons)",
+  "Barney Elliott and Harbine Monroe, The Camera Shop, Tacoma, 7 November 1940 — Prelinger Archives, public domain (via Wikimedia Commons: Tacoma Narrows Bridge destruction.ogv)",
+  "Bridge 2249 — Chris Light — CC BY-SA 4.0 (via Wikimedia Commons)",
+  "Bridge 2262 — Chris Light — CC BY-SA 4.0 (via Wikimedia Commons)",
+  "Bridge at a Distance (21452155750) — Ben Brooks from Fife WA, USA — CC BY-SA 2.0 (via Wikimedia Commons)",
+  "Narrows Bridge 2247 — Chris Light — CC BY-SA 4.0 (via Wikimedia Commons)",
+  "Tacoma Narrows Bridge (117561801) — Sounderbruce — CC BY-SA 3.0 (via Wikimedia Commons)",
+  "Tacoma Narrows Bridge 2009 — Lderendi — Public domain (via Wikimedia Commons)",
+  "Tacoma Narrows Bridge-2 — Chris connelly — CC BY 2.0 (via Wikimedia Commons)",
+  "Tacoma Narrows aerial — Dicklyon — CC BY-SA 4.0 (via Wikimedia Commons)",
+  "Tacoma Narrows — Rattlhed at English Wikipedia — Public domain (via Wikimedia Commons)"
+ ],
+ "hook": {
+  "title": "THE TACOMA NARROWS COLLAPSE",
+  "lines": [
+   "November 7, 1940. A steady wind, not a storm. A bridge four months old twists itself apart.",
+   "Its deck was stiffened by a wall of steel only eight feet deep.",
+   "And every twist let the wind push it further."
+  ],
+  "sub": "TACOMA NARROWS, WASHINGTON · 7 NOVEMBER 1940"
+ },
+ "preview": {
+  "seconds": 11.0,
+  "at": 0.0,
+  "sources": {
+   "flaw": 120.20062500000002,
+   "forces": 168.85999999999999,
+   "failure": 184.43462499999998,
+   "fix": 265.111,
+   "stay": 19.766625
+  },
+  "spans": [
+   [
+    "flaw",
+    0.0,
+    1.3199999999999998
+   ],
+   [
+    "forces",
+    1.3199999999999998,
+    2.558333333333333
+   ],
+   [
+    "failure",
+    2.558333333333333,
+    3.708333333333333
+   ],
+   [
+    "fix",
+    3.708333333333333,
+    4.880583333333333
+   ],
+   [
+    "stay",
+    4.880583333333333,
+    10.19975
+   ]
+  ],
+  "music_credits": []
+ }
+}
