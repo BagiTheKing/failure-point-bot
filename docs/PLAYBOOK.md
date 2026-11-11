@@ -325,6 +325,14 @@ close that gap, part by part:
   rotation). Run 42995695925: upload and thumbnail fine; the rotation step
   failed with nothing to commit (one thumbnail), now a clean skip. The
   Friday slot is free; with 24 h spacing the next long can go from 12 Nov.
+- Tacoma Short, 11 Nov (run 43117666453, review copy on preview-media
+  shorts/tacoma): 15.9 s, loops. "NO STORM. JUST WIND." over our 3D fall
+  (the Short's fall camera starts at 25 s: Tacoma's middle span goes at
+  26 s, not T_FALL's 22); the 2D truss (HOLDS) over the solid girder
+  ("SOLID STEEL", a ring, the twist growing, FAILS); then the real 1940
+  film with 42 MPH counting up (a new "film" scene in story_short). No
+  still stretches. The film is soft: 640x480 cropped to fill the phone.
+  Sent to the owner; not uploaded.
 - Not changed yet: the automatic 8-second check on 2D and photos, and
   per-scene sound.
 
