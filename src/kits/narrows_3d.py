@@ -1425,7 +1425,7 @@ class Model:
                 hit_t, hit_z, sunk = {}, {}, {}
                 # vehicles standing on this piece go with it
                 on = []
-                for r in riders:
+                for r in list(riders):            # a copy: riders are taken off it as they board
                     o_, x_, y_, h_, rot_ = r
                     if px0 <= x_ <= px1:
                         ny_, nz_, th_ = deck_transform(x_, y_, ROAD_Z + h_, tw, hv, 1.0)

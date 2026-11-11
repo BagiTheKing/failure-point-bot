@@ -220,7 +220,7 @@ jobs:
           path: raw/
           retention-days: 90
 
-  # a re-cut that fixes one 3D shot: those frames only, in five parts, laid
+  # a re-cut that fixes one 3D shot: those frames only, in twenty parts, laid
   # over the reused run's frames at assembly (Silver Bridge, 2026-11-05: a
   # camera that skimmed the cars' roofs, 190 frames of 4,000)
   patch3d:
@@ -230,7 +230,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: [0, 1, 2, 3, 4]
+        part: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -249,7 +249,7 @@ jobs:
           RANGE: ${{ inputs.rerender }}
         run: |
           A=${RANGE%-*}; B=${RANGE#*-}
-          PER=$(( (B - A + 5) / 5 ))
+          PER=$(( (B - A + 20) / 20 ))
           FIRST=$(( A + ${{ matrix.part }} * PER )); LAST=$(( FIRST + PER - 1 ))
           [ $LAST -gt $B ] && LAST=$B
           mkdir -p ../raw
