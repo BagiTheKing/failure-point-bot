@@ -311,6 +311,12 @@ close that gap, part by part:
   and the rest as v1. Main keeps the v2/v3 changes but they are not used for
   this episode; lesson: change one thing per review copy, never the opening
   and the 3D at once.
+- Review copy v1-fixed, 11 Nov (run 42928682106, preview-media d60e504):
+  6:45.5, the same length as v1. A frame-by-frame diff against v1 (PSNR
+  under 40) finds changes only at 3:38-3:55: the truck now goes down on its
+  side with its piece, the speck under the cable (the truck in the sky) is
+  gone, and a black bar across a tower at 3:50 is gone. Opening and the
+  rest identical to v1. Sent to the owner.
 - Not changed yet: the automatic 8-second check on 2D and photos, and
   per-scene sound.
 
