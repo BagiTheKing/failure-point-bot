@@ -407,6 +407,38 @@ class FlutterBridge(KitTiming):
         f.caption(self.captions.get("fall", ""), prog(t, b.end("pull"), b.end("pull") + 0.5))
         return f.done()
 
+    def side(self, built, deck=1.0, wind=0.0, swing=0.0, verdict=0.0, stamp=0.0, stamp_text="",
+             mark=0.0, clock=0.0):
+        """One side of the comparison on its own, for a Short (what it needed
+        above, what it had below): the cut through the deck, close, in the
+        wind. The open truss lets the wind through and barely moves; the
+        solid girder turns the wind into eddies and twists further each
+        swing. clock: seconds into the scene (the twist keeps going)."""
+        f = Frame(CX + 20, CY + 50, 1.25)
+        f.grid(1)
+        rock = math.sin(2 * math.pi * 0.45 * clock)
+        if built:
+            ang = math.radians(2 + 26 * swing ** 1.4) * rock * max(0.15, swing)
+            R = self.section(f, angle=ang, alpha=deck)
+        else:
+            ang = math.radians(1.5) * rock * swing
+            R = self.section(f, angle=ang, girder=False, truss=True, alpha=deck)
+        self.wind(f, clock, through=not built, alpha=wind, x0=CX - 560, x1=CX + 520, strength=1.4)
+        if mark > 0 and built:                     # a ring closing in on the solid web
+            r = 70 + 90 * (1 - min(1.0, mark))
+            x, y = R(CX + HALF_W, CY + G_D * 0.2)
+            pts = [(x + r * math.cos(a / 24 * 2 * math.pi), y + r * math.sin(a / 24 * 2 * math.pi))
+                   for a in range(25)]
+            f.poly(pts, RED, 4, min(1.0, mark * 2))
+        if stamp > 0 and stamp_text and verdict < 1:
+            k = min(1.0, stamp)
+            f.text(stamp_text, W / 2, 80, int(52 * (1.6 - 0.6 * k)), RED, "InterDisplay-Black.otf",
+                   anchor="mm", screen=True, alpha=k)
+        if verdict > 0:
+            word, col = ("FAILS", RED) if built else ("HOLDS", GREEN)
+            f.text(word, W / 2, 80, 96, col, "InterDisplay-Black.otf", anchor="mm", screen=True, alpha=verdict)
+        return f.done()
+
     def compare(self, t, T=None):
         b = self.COMP
         wind, swing = b.p(t, "wind"), b.p(t, "swing")

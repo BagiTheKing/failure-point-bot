@@ -10,7 +10,9 @@ continuous shot each, nothing shown twice and nothing standing still:
                 drawn from nothing at once, the change stamped on, the load
                 doubling, then the built one falls while the other holds
     4. "photo"  the real photo, the toll counting from its first frame to
-                the word that says it, then where the full story is
+                the word that says it, then where the full story is; or
+       "film"   the same over real film of the event ("clip": a repo path,
+                "from": its second to start at; "tag": the label)
 
 The 3D frames are rendered for the Short (kits/*_3d.py short_camera, the
 short3d workflow), the 2D drawn by the kit (side()). The script:
@@ -163,6 +165,23 @@ def _canonical(segs, u):
     return segs[-1][1]
 
 
+class Film:
+    """A stretch of real film, decoded once at the Short's frame rate."""
+
+    def __init__(self, path, start, seconds):
+        w, h = map(int, subprocess.check_output(
+            ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height",
+             "-of", "csv=p=0", path], text=True).strip().split(","))
+        raw = subprocess.check_output(["ffmpeg", "-v", "error", "-ss", str(start), "-t", str(seconds), "-i", path,
+                                       "-vf", f"fps={FPS}", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"])
+        n = len(raw) // (w * h * 3)
+        self.frames = np.frombuffer(raw[: n * w * h * 3], np.uint8).reshape(n, h, w, 3)
+
+    def at(self, sec):
+        i = min(len(self.frames) - 1, max(0, int(sec * FPS)))
+        return Image.fromarray(self.frames[i])
+
+
 def _grid_canvas():
     out = Image.new("RGB", (SW, SH), NAVY)
     d = ImageDraw.Draw(out)
@@ -292,7 +311,7 @@ def build(sheet, frames3d, script, out_dir, photo=None):
     renders = Renders(frames3d)
     from kits import timemap                             # pure Python: no Blender needed here
     cams = timemap.SHORT[sheet["kit"]["variant"]]
-    t_fall = timemap.T_FALL
+    t_fall = timemap.SHORT_BREAK.get(sheet["kit"]["variant"], timemap.T_FALL)
 
     # the clock: each scene as long as its words and what follows them
     takes = voice(scenes, os.path.join(out_dir, "voice"))
@@ -323,6 +342,8 @@ def build(sheet, frames3d, script, out_dir, photo=None):
         return starts[i] + LEAD + takes[i][1]
 
     sfx = [(max(0.0, starts[i] - 0.2), score.whoosh(20 + i) * 0.28) for i in range(1, len(scenes))]
+    import inspect
+    _takes_clock = "clock" in inspect.signature(kit.side).parameters if hasattr(kit, "side") else False
     pictures = []                    # per scene: the Short's second -> (picture, overlays)
     drawing = {}                     # per 2D scene: the spans in which something is being drawn
     for i, sc in enumerate(scenes):
@@ -435,6 +456,8 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                     words_ = [(a_top.pop("verdict", 0.0), "HOLDS", (60, 220, 130)),
                               (a_bot.pop("verdict", 0.0), "FAILS", RED)]
                     stamp_ = (a_bot.pop("stamp", 0.0), a_bot.pop("stamp_text", ""), a_bot.get("slip", 0.0))
+                if _takes_clock:                             # a kit whose drawing keeps moving on its own
+                    a_top["clock"] = a_bot["clock"] = t - t0
                 top = kit.side(False, **a_top)
                 bot = kit.side(True, **a_bot)
                 img = _grid_canvas()
@@ -459,8 +482,14 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                               RED + (int(255 * min(1.0, k)),), stroke=8)      # it stays: the reason beside FAILS
                 return img, {"tags": tags}
             pictures.append(stack)
-        elif sc["show"] == "photo":
-            pic = Image.open(photo or sc["photo"]).convert("RGB")
+        elif sc["show"] in ("photo", "film"):
+            if sc["show"] == "film":
+                # real film of the event (owner footage, footage/<name>/), played from "from" seconds
+                film = Film(os.path.join(HERE, "..", sc["clip"]), sc.get("from", 0.0), t1 - t0 + 0.5)
+                pic = None
+            else:
+                film = None
+                pic = Image.open(photo or sc["photo"]).convert("RGB")
             hit = _word_at(words, sc.get("toll", ""), t0) if sc.get("toll") else None
             count_to = hit[1] if hit else t0 + 2.5
             cta_at = voice_end(i) + 0.15
@@ -477,8 +506,12 @@ def build(sheet, frames3d, script, out_dir, photo=None):
             if not loop:
                 sfx.append((cta_at, score.boom() * 0.6))
 
-            def photo_(t, t0=t0, t1=t1, pic=pic, count_to=count_to, cta_at=cta_at):
+            tag = sc.get("tag", "REAL FILM" if film else "PHOTO")
+
+            def photo_(t, t0=t0, t1=t1, pic=pic, count_to=count_to, cta_at=cta_at, film=film, tag=tag):
                 k = (t - t0) / max(0.1, t1 - t0)
+                if film:
+                    pic = film.at(t - t0)
                 img = Image.new("RGB", (SW, SH), (4, 10, 20))
                 # looping: once the count lands, the camera pushes in hard until the cut back to frame one
                 z = 1.0 + 0.1 * k + (0.35 * _ramp(t, count_to, max(0.5, t1 - count_to)) ** 1.6 if loop else 0.0)
@@ -487,14 +520,14 @@ def build(sheet, frames3d, script, out_dir, photo=None):
                 shot.paste(shade, (0, 0), shade)
                 img.paste(shot, (0, HOOK_H))
                 count = _ramp(t, t0, max(0.3, count_to - t0))         # counting from the first frame
-                return img, {"tags": [("PHOTO", (36, HOOK_H + 60), (170, 206, 255))],
+                return img, {"tags": [(tag, (36, HOOK_H + 60), (170, 206, 255))],
                              "toll": (str(toll.get("value", "")), toll.get("label", ""), count,
                                       0.0 if loop else _ramp(t, cta_at, 0.35)),
                              "cta": _ramp(t, cta_at - 0.6, 0.3) if loop else 0.0}
             pictures.append(photo_)
 
     # the sound: the voice over the episode's own score (ducked), the sounds on their moments
-    people = next((starts[i] for i, sc in enumerate(scenes) if sc["show"] == "photo"), total)
+    people = next((starts[i] for i, sc in enumerate(scenes) if sc["show"] in ("photo", "film")), total)
     mixed = os.path.join(out_dir, "mix.wav")
     credits = score.mix(vwav, [(0.0, people, MUSIC[0], MUSIC_LEVEL, 0.05),
                                (people, total, MUSIC[1], MUSIC_LEVEL, 0.6)], total, mixed)

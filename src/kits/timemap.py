@@ -17,6 +17,9 @@ FPS = 30
 CANON = [("establish", 0.0, 7.0), ("load_path", 7.0, 13.0), ("connection", 13.0, 20.0),
          ("pull", 20.0, 21.4), ("hold", 21.4, 22.0), ("drop", 22.0, 28.0)]
 T_FALL = 22.0                  # the canonical second the fall begins
+# where a model's first piece actually lets go, when not at T_FALL (a Short's
+# fall scene starts its "lead" before it): Tacoma's middle span goes at 26 s
+SHORT_BREAK = {"flutter": 26.0}
 # a model whose collapse is the centrepiece runs a longer drop (owner,
 # 2026-11-09: the collapse 30 to 60 s, close, step by step, from many angles;
 # the Tacoma Narrows model, kits/narrows_3d.py, variant "flutter")
@@ -27,7 +30,7 @@ SHORT = {"hanging_walkways": {"fall": (21.0, 26.0), "close": (11.5, 23.6)},
          "earth_dam": {"fall": (21.0, 27.0), "close": (11.5, 23.5)},
          "eyebar_chain": {"fall": (21.0, 27.0), "close": (11.5, 23.0)},
          "fuselage": {"fall": (21.0, 26.0), "close": (11.5, 23.8)},
-         "flutter": {"fall": (21.0, 30.0), "close": (13.0, 22.0)}}
+         "flutter": {"fall": (25.0, 31.0), "close": (13.0, 22.0)}}
 
 
 class TimeMap:

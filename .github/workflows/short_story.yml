@@ -21,6 +21,9 @@ on:
       samples:
         description: "3D render samples per pixel"
         default: "16"
+      cameras:
+        description: "The tall 3D cameras to render (the script's fall/close scenes)"
+        default: '["fall", "close"]'
       frames_run:
         description: "Reuse this earlier run's 3D frames (blank = render them)"
         default: ""
@@ -56,8 +59,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        camera: [fall, close]
-        shard: [0, 1, 2, 3, 4, 5]
+        camera: ${{ fromJSON(inputs.cameras) }}
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -72,7 +75,7 @@ jobs:
         working-directory: src
         run: |
           read FIRST LAST < <(python -m kits.render3d ../sheet.json ../raw --short ${{ matrix.camera }} --range | tail -1)
-          PER=$(( (LAST - FIRST + 6) / 6 ))
+          PER=$(( (LAST - FIRST + 12) / 12 ))
           A=$(( FIRST + ${{ matrix.shard }} * PER ))
           B=$(( A + PER - 1 )); [ $B -gt $LAST ] && B=$LAST
           [ $A -gt $LAST ] && { echo "nothing to render"; mkdir -p ../raw/${{ matrix.camera }}; exit 0; }

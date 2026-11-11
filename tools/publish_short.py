@@ -48,7 +48,7 @@ def description(short, episode, full_id):
              "findings; they show the mechanism, not footage of the event.", ""]
     photo = (short.get("script") or {}).get("photo_credit")
     if photo:
-        lines += ["PHOTO", photo, ""]
+        lines += [(short.get("script") or {}).get("credit_label", "PHOTO"), photo, ""]
     credits = music_credits(short, episode)
     if credits:
         lines += ["MUSIC"] + credits + [""]
