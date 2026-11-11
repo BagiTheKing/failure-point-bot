@@ -302,6 +302,15 @@ close that gap, part by part:
   signature; then the 3D. A first try put the signature where the opening's
   dissolve began, so half a second of film came back after it: the opening
   now ends on a straight cut.
+- Owner, 11 Nov, on v3: "These versions are just bad"; bring back the first
+  video and correct only the car glitch. Done on branch tacoma-v1 (the v1
+  code, 522ca0d, plus only the truck fix): a re-cut of v1 (reuse_run
+  42758500264 with keep, frames_run 42732404342) with 3D frames 2815-3583
+  rendered again, the only frames where the truck is on screen after its
+  piece lets go (frame 2817), in 20 patch parts. Opening, spray, cameras
+  and the rest as v1. Main keeps the v2/v3 changes but they are not used for
+  this episode; lesson: change one thing per review copy, never the opening
+  and the 3D at once.
 - Not changed yet: the automatic 8-second check on 2D and photos, and
   per-scene sound.
 
