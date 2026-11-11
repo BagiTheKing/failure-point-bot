@@ -179,8 +179,8 @@
         "videos/sSjHt9jXv28/3_xray.jpg",
         "videos/sSjHt9jXv28/4_drawing.jpg"
       ],
-      "status": "testing",
-      "current": 3,
+      "status": "done",
+      "current": null,
       "since": "2026-11-08T17:55:54.346152+00:00",
       "views_at_start": 11,
       "results": [
@@ -201,9 +201,16 @@
           "views": 3,
           "days": 3.92,
           "per_day": 0.76
+        },
+        {
+          "file": "videos/sSjHt9jXv28/4_drawing.jpg",
+          "views": 3,
+          "days": 3.07,
+          "per_day": 0.98
         }
       ],
-      "registered": "2026-10-28T23:37:20.665057+00:00"
+      "registered": "2026-10-28T23:37:20.665057+00:00",
+      "winner": "videos/sSjHt9jXv28/2_model.jpg"
     },
     "zcW0NBygU_s": {
       "files": [
