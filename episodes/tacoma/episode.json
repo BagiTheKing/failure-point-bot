@@ -1,13 +1,13 @@
 {
- "seconds": 396.53333333333336,
+ "seconds": 405.46666666666664,
  "chapters": [
   "0:00 The structure and its weak point",
-  "1:28 The physics",
-  "2:54 Second by second",
-  "3:53 The disaster, for real",
-  "4:35 How it should have worked",
-  "5:05 The warnings and the investigation",
-  "5:46 Could it happen today?"
+  "1:37 The physics",
+  "3:03 Second by second",
+  "4:02 The disaster, for real",
+  "4:44 How it should have worked",
+  "5:14 The warnings and the investigation",
+  "5:55 Could it happen today?"
  ],
  "music_credits": [
   "\"Impact Prelude\" Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0 License\nhttp://creativecommons.org/licenses/by/4.0/",
@@ -27,7 +27,6 @@
   "Narrows Bridge 2247 — Chris Light — CC BY-SA 4.0 (via Wikimedia Commons)",
   "Tacoma Narrows Bridge (117561801) — Sounderbruce — CC BY-SA 3.0 (via Wikimedia Commons)",
   "Tacoma Narrows Bridge 2009 — Lderendi — Public domain (via Wikimedia Commons)",
-  "Tacoma Narrows Bridge aerial — Dicklyon — CC BY-SA 4.0 (via Wikimedia Commons)",
   "Tacoma Narrows Bridge-2 — Chris connelly — CC BY 2.0 (via Wikimedia Commons)",
   "Tacoma Narrows aerial — Dicklyon — CC BY-SA 4.0 (via Wikimedia Commons)",
   "Tacoma Narrows — Rattlhed at English Wikipedia — Public domain (via Wikimedia Commons)"
@@ -42,14 +41,14 @@
   "sub": "TACOMA NARROWS, WASHINGTON · 7 NOVEMBER 1940"
  },
  "preview": {
-  "seconds": 5.3,
-  "at": 15.533375,
+  "seconds": 11.0,
+  "at": 0.0,
   "sources": {
-   "flaw": 116.96737500000002,
-   "forces": 165.62662500000002,
-   "failure": 181.20137499999998,
-   "fix": 296.944375,
-   "stay": 16.533375
+   "flaw": 120.20062500000002,
+   "forces": 168.85999999999999,
+   "failure": 184.43462499999998,
+   "fix": 300.177625,
+   "stay": 19.766625
   },
   "spans": [
    [
@@ -70,7 +69,12 @@
    [
     "fix",
     3.708333333333333,
-    5.310583333333333
+    4.880583333333333
+   ],
+   [
+    "stay",
+    4.880583333333333,
+    10.19975
    ]
   ],
   "music_credits": []
