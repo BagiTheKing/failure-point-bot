@@ -109,5 +109,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
+          # one thumbnail: nothing registered, nothing to push
+          git diff --cached --quiet && exit 0
           git commit -qm "Register $VID for thumbnail rotation"
           git push -q origin HEAD:thumb-rotation

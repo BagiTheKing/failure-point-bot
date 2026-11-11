@@ -41,6 +41,7 @@ Long videos:
 | Columbia | 29 Oct | new: 3D at 0:15 (re-uploaded) | about 5 | 8 (7 d) | 4.2% | 24 | ? |
 | Teton Dam | 1 Nov | new: 3D at 0:15 | 48 | 48 (3.5 d) | 6.5% | 356 | 30.6% (2:06 of 6:52) |
 | Silver Bridge | 6 Nov | new: teaser 0:15–0:33, 3D from 0:33; search-first title | ? | ? | ? | ? | ? |
+| Tacoma Narrows (1tP9MtnAqjc) | 11 Nov | signature, title, teaser of the real film, 3D; search-first title; 3D thumbnail | ? | ? | ? | ? | ? |
 
 Teton retention: 68% at 0:20, 56% at 0:30, 40% at 1:00, 32% from 1:15
 to 1:55, 23% from 2:35 to the end. Traffic: suggested 56%, browse 29%,
@@ -317,6 +318,13 @@ close that gap, part by part:
   side with its piece, the speck under the cable (the truck in the sky) is
   gone, and a black bar across a tower at 3:50 is gone. Opening and the
   rest identical to v1. Sent to the owner.
+- Published 11 Nov about 03:20 UTC, public at once (the owner's go:
+  "Publish it"): 1tP9MtnAqjc, "Tacoma Narrows Bridge Collapse (1940): The
+  Wind That Twisted It Apart", thumbnail option 1 (our 3D road tilting with
+  the car, "A BRIDGE DID THIS"; the owner's pick, the only one, so no
+  rotation). Run 42995695925: upload and thumbnail fine; the rotation step
+  failed with nothing to commit (one thumbnail), now a clean skip. The
+  Friday slot is free; with 24 h spacing the next long can go from 12 Nov.
 - Not changed yet: the automatic 8-second check on 2D and photos, and
   per-scene sound.
 
