@@ -1,0 +1,27 @@
+{
+ "hook": "NO STORM.|JUST WIND.",
+ "hook_big": true,
+ "end": "loop",
+ "toll": {"value": "42", "label": "MPH · A STEADY WIND"},
+ "credit_label": "FILM",
+ "photo_credit": "Barney Elliott and Harbine Monroe, The Camera Shop, Tacoma, 7 November 1940 — Prelinger Archives, public domain (via Wikimedia Commons: Tacoma Narrows Bridge destruction.ogv)",
+ "comment": "Would you have driven across it that morning?",
+ "scenes": [
+  {"show": "fall", "lead": 0.8,
+   "say": "1940. A steady wind tears a brand new bridge apart."},
+  {"show": "stack", "tail": 1.2,
+   "say": "Its sides were solid steel. The wind couldn't pass through, so every twist grew bigger.",
+   "sides": {
+    "needed": {"deck": ["start", -3, 0.3], "wind": ["start", 0, 0.6], "swing": ["start", 0, 0.5],
+               "verdict": ["end", 0.3, 0.4]},
+    "built": {"deck": ["start", -3, 0.3], "wind": ["start", 0, 0.6], "swing": ["every", 0, 2.0],
+              "stamp": ["solid", 0, 0.35], "stamp_text": "SOLID STEEL", "mark": ["solid", 0.2, 0.7],
+              "verdict": ["end", 0.3, 0.4]}},
+   "sounds": [{"at": ["solid", 0], "sound": "lock", "level": 0.35},
+              {"at": ["every", 0], "sound": "groan", "level": 0.4}],
+   "zoom": [1.15, 0.47, 0.55]},
+  {"show": "film", "clip": "footage/tacoma/01_collapse.mp4", "from": 0.0, "tag": "REAL FILM · 1940",
+   "toll": "forty",
+   "say": "This is the real film. A forty-two mile an hour wind. No storm."}
+ ]
+}
