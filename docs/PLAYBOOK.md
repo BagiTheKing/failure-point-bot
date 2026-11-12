@@ -57,6 +57,7 @@ Shorts:
 | Columbia | 1,688 | 53% | close-up lost about 9 points a second; avg 0:15 of 0:24 |
 | Teton | 1,304 (6 d; 1.1K of them in the first hours) | 51.9% | no close-up; avg 0:13 of 0:20 (63.4%); a cliff from 0:04.5 to 0:07, about 18 points a second, as the 3D cut to a dark 2D drawing itself from nothing over "open joints… the core's silt… no filter"; 0 subscribers; 96% Shorts feed, 93% new viewers |
 | Silver Bridge (9jel8N8tNNc, 8 Nov 22:16 UTC) | ? | ? | first Short made to 6b: "ONE CRACK. 46 DEAD." big over the colour fall; zoomed 2D already drawn, filling the screen, a red ring on the crack; HOLDS / FAILS; 17.6 s; loops |
+| Tacoma (WF-IE-T0qzg, 12 Nov 09:45 UTC) | ? | ? | "NO STORM. JUST WIND." over the 3D fall; truss HOLDS / girder FAILS 2D; the real 1940 film last, 42 MPH counting; 15.9 s; loops |
 
 ## 3. What works
 
@@ -318,7 +319,7 @@ close that gap, part by part:
   side with its piece, the speck under the cable (the truck in the sky) is
   gone, and a black bar across a tower at 3:50 is gone. Opening and the
   rest identical to v1. Sent to the owner.
-- Published 11 Nov about 03:20 UTC, public at once (the owner's go:
+- Published 11 Nov about 09:33 UTC, public at once (the owner's go:
   "Publish it"): 1tP9MtnAqjc, "Tacoma Narrows Bridge Collapse (1940): The
   Wind That Twisted It Apart", thumbnail option 1 (our 3D road tilting with
   the car, "A BRIDGE DID THIS"; the owner's pick, the only one, so no
@@ -332,7 +333,10 @@ close that gap, part by part:
   ("SOLID STEEL", a ring, the twist growing, FAILS); then the real 1940
   film with 42 MPH counting up (a new "film" scene in story_short). No
   still stretches. The film is soft: 640x480 cropped to fill the phone.
-  Sent to the owner; not uploaded.
+  Sent to the owner. Published on the owner's go ("publish it") as
+  reviewed (from_run): WF-IE-T0qzg, "The Tacoma Narrows Bridge: No Storm,
+  Just Wind #shorts", scheduled public 12 Nov 09:45 UTC (the long went
+  public 11 Nov about 09:33, not 03:20 as first noted).
 - Not changed yet: the automatic 8-second check on 2D and photos, and
   per-scene sound.
 
