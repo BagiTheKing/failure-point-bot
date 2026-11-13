@@ -218,8 +218,8 @@
         "videos/zcW0NBygU_s/2_photo.jpg",
         "videos/zcW0NBygU_s/3_model.jpg"
       ],
-      "status": "testing",
-      "current": 2,
+      "status": "done",
+      "current": null,
       "since": "2026-11-09T22:21:50.201867+00:00",
       "views_at_start": 60,
       "results": [
@@ -234,9 +234,16 @@
           "views": 12,
           "days": 4.1,
           "per_day": 2.93
+        },
+        {
+          "file": "videos/zcW0NBygU_s/3_model.jpg",
+          "views": 4,
+          "days": 3.89,
+          "per_day": 1.03
         }
       ],
-      "registered": "2026-11-01T22:39:56.075251+00:00"
+      "registered": "2026-11-01T22:39:56.075251+00:00",
+      "winner": "videos/zcW0NBygU_s/1_photo_A.jpg"
     },
     "foZj6XFlEKc": {
       "files": [
@@ -246,15 +253,21 @@
         "videos/foZj6XFlEKc/4_drawing.jpg"
       ],
       "status": "testing",
-      "current": 1,
-      "since": "2026-11-09T22:21:50.201867+00:00",
-      "views_at_start": 22,
+      "current": 2,
+      "since": "2026-11-13T19:42:37.412599+00:00",
+      "views_at_start": 112,
       "results": [
         {
           "file": "videos/foZj6XFlEKc/1_photo.jpg",
           "views": 15,
           "days": 3.12,
           "per_day": 4.8
+        },
+        {
+          "file": "videos/foZj6XFlEKc/2_model.jpg",
+          "views": 90,
+          "days": 3.89,
+          "per_day": 23.14
         }
       ],
       "registered": "2026-11-06T13:50:14.065441+00:00"
