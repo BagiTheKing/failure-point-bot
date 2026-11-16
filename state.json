@@ -253,9 +253,9 @@
         "videos/foZj6XFlEKc/4_drawing.jpg"
       ],
       "status": "testing",
-      "current": 2,
-      "since": "2026-11-13T19:42:37.412599+00:00",
-      "views_at_start": 112,
+      "current": 3,
+      "since": "2026-11-16T22:07:45.400487+00:00",
+      "views_at_start": 224,
       "results": [
         {
           "file": "videos/foZj6XFlEKc/1_photo.jpg",
@@ -268,6 +268,12 @@
           "views": 90,
           "days": 3.89,
           "per_day": 23.14
+        },
+        {
+          "file": "videos/foZj6XFlEKc/3_xray.jpg",
+          "views": 112,
+          "days": 3.1,
+          "per_day": 36.12
         }
       ],
       "registered": "2026-11-06T13:50:14.065441+00:00"
